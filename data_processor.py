@@ -501,30 +501,28 @@ class AlbumDataProcessor:
         if musician_names:
             album["musicians"] = [self.clean_text(n) for n in musician_names if n]
 
-        # Detailed musicians info with mbid and instruments
-        musician_details = row.get("musician_details") or []
-        if musician_details:
-            normalized_details = []
-            for md in musician_details:
-                if not isinstance(md, dict):
-                    continue
-                name = self.clean_text(md.get("name"))
-                mbid = self.clean_text(md.get("mbid"))
-                instruments = md.get("instruments") or []
-                instruments = [self.clean_text(i) for i in instruments if i]
-                detail_obj = {
-                    k: v
-                    for k, v in {
-                        "name": name,
-                        "mbid": mbid,
-                        "instruments": instruments,
-                    }.items()
-                    if v not in (None, "") and v != []
-                }
-                if detail_obj:
-                    normalized_details.append(detail_obj)
-            if normalized_details:
-                album["musicians_details"] = normalized_details
+        # Detailed musicians info - removed for now, not used in the index
+        # musician_details = row.get("musician_details") or []
+        # if musician_details:
+        #     normalized_details = []
+        #     for md in musician_details:
+        #         if not isinstance(md, dict):
+        #             continue
+        #         name = self.clean_text(md.get("name"))
+        #         instruments = md.get("instruments") or []
+        #         instruments = [self.clean_text(i) for i in instruments if i]
+        #         detail_obj = {
+        #             k: v
+        #             for k, v in {
+        #                 "name": name,
+        #                 "instruments": instruments,
+        #             }.items()
+        #             if v not in (None, "") and v != []
+        #         }
+        #         if detail_obj:
+        #             normalized_details.append(detail_obj)
+        #     if normalized_details:
+        #         album["musicians_details"] = normalized_details
 
         # Ratings
         if rating_value is not None:
@@ -565,10 +563,8 @@ class AlbumDataProcessor:
         if not album.get("title") or not album.get("objectID"):
             return None
         self.processed_count += 1
-        # Randomly log the album content approximately once every 1000 records
-        if random.randint(1, 1000) == 1:
-            print(f"Sample album: {json.dumps(album, ensure_ascii=False)}")
-
+        if len(json.dumps(album)) > 10000:
+            print(f"This album is too big: {json.dumps(album, ensure_ascii=False)}")
         return album
 
     def stream_albums_from_db(
