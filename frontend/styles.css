@@ -38,7 +38,7 @@ body {
 }
 
 .container {
-    max-width: 800px;
+    max-width: 1200px;
     margin: 0 auto;
     padding: 1rem;
     min-height: 100vh;
@@ -120,7 +120,7 @@ body {
 
 @media (min-width: 980px) {
     .content-grid {
-        grid-template-columns: 1fr 320px;
+        grid-template-columns: 2fr 1fr;
         align-items: start;
     }
     .sidebar-panel {
