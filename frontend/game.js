@@ -64,6 +64,7 @@ class AlbumGuessrGame {
             finalGuesses: document.getElementById('final-guesses'),
             finalClues: document.getElementById('final-clues'),
             shareButton: document.getElementById('share-button'),
+            playAgainButton: document.getElementById('play-again-button'),
             closeVictory: document.getElementById('close-victory'),
             instructionsModal: document.getElementById('instructions-modal'),
             instructionsButton: document.getElementById('instructions-button'),
@@ -194,6 +195,9 @@ class AlbumGuessrGame {
         // Modal events
         this.elements.closeVictory.addEventListener('click', this.hideVictoryModal.bind(this));
         this.elements.shareButton.addEventListener('click', this.shareResult.bind(this));
+        if (this.elements.playAgainButton) {
+            this.elements.playAgainButton.addEventListener('click', () => window.location.reload());
+        }
         
         // Instructions modal
         this.elements.instructionsButton.addEventListener('click', this.showInstructionsModal.bind(this));
