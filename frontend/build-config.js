@@ -19,6 +19,7 @@ function main() {
   const indexName = getEnv('ALGOLIA_INDEX_NAME', { required: true });
   const auth0Domain = getEnv('AUTH0_DOMAIN', { required: false });
   const auth0ClientId = getEnv('AUTH0_CLIENT_ID', { required: false });
+  const auth0Audience = getEnv('AUTH0_AUDIENCE', { required: false });
 
   const output = `// Configuration for Algolia Search (generated at build time)\n` +
     `const ALGOLIA_CONFIG = {\n` +
@@ -30,7 +31,7 @@ function main() {
     `const AUTH0_CONFIG = ${auth0Domain && auth0ClientId ? `{\n` +
     `    domain: '${auth0Domain}',\n` +
     `    clientId: '${auth0ClientId}',\n` +
-    `    authorizationParams: { redirect_uri: (typeof window !== 'undefined' ? window.location.origin : '') }\n` +
+    `    authorizationParams: { redirect_uri: (typeof window !== 'undefined' ? window.location.origin : '')${auth0Audience ? `, audience: '${auth0Audience}'` : ''} }\n` +
     `}` : `null`};\n\n` +
     `const GAME_CONFIG = {\n` +
     `    clueCategories: [\n` +

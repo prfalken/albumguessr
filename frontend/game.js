@@ -786,64 +786,69 @@ class AlbumGuessrGame {
         };
     }
 
-    // ---------- User history persistence ----------
-    getUserHistoryStorageKey() {
-        if (!this.authenticatedUser) return null;
-        const userId = this.authenticatedUser.sub || this.authenticatedUser.email || 'unknown';
-        return `albumguessr:userHistory:${userId}`;
-    }
-
-    loadUserHistory() {
-        const key = this.getUserHistoryStorageKey();
-        if (!key) return [];
+    // ---------- User history via API (Netlify Functions + Neon) ----------
+    async getApiAccessToken() {
+        const client = await this.ensureAuth0Client();
+        const audience = AUTH0_CONFIG && AUTH0_CONFIG.authorizationParams && AUTH0_CONFIG.authorizationParams.audience;
+        if (!client || !audience) return null;
         try {
-            const raw = localStorage.getItem(key);
-            if (!raw) return [];
-            const parsed = JSON.parse(raw);
-            if (!Array.isArray(parsed)) return [];
-            return parsed.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+            return await client.getTokenSilently({ authorizationParams: { audience } });
         } catch (e) {
-            console.warn('Failed to load user history:', e);
-            return [];
+            console.warn('Failed to obtain API token:', e);
+            return null;
         }
     }
 
-    saveUserHistory(history) {
-        const key = this.getUserHistoryStorageKey();
-        if (!key) return;
-        try {
-            localStorage.setItem(key, JSON.stringify(history));
-        } catch (e) {
-            console.warn('Failed to save user history:', e);
-        }
+    async fetchUserHistoryFromApi() {
+        const token = await this.getApiAccessToken();
+        if (!token) return [];
+        const res = await fetch('/.netlify/functions/history', {
+            method: 'GET',
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        if (!res.ok) throw new Error('history_get_failed');
+        return await res.json();
+    }
+
+    async saveHistoryToApi(entry) {
+        const token = await this.getApiAccessToken();
+        if (!token) return false;
+        const res = await fetch('/.netlify/functions/history', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`
+            },
+            body: JSON.stringify(entry)
+        });
+        return res.ok;
     }
 
     saveWinToHistory() {
         if (this.winSaved) return;
         if (!this.gameWon || !this.mysteryAlbum) return;
         if (!this.authenticatedUser) return; // only for logged-in users
+
         const entry = {
             objectID: this.mysteryAlbum.objectID,
             title: this.mysteryAlbum.title,
             artists: Array.isArray(this.mysteryAlbum.artists) ? this.mysteryAlbum.artists : [],
             release_year: this.mysteryAlbum.release_year || null,
             coverUrl: this.getCoverUrl(this.mysteryAlbum),
-            guesses: this.guessCount,
-            timestamp: Date.now()
+            guesses: this.guessCount
         };
-        const history = this.loadUserHistory();
-        const existingIndex = history.findIndex(h => h.objectID === entry.objectID);
-        if (existingIndex >= 0) {
-            history[existingIndex] = entry;
-        } else {
-            history.unshift(entry);
-        }
-        this.saveUserHistory(history);
-        this.renderUserHistory();
-        this.winSaved = true;
+
+        this.saveHistoryToApi(entry)
+            .then(ok => {
+                if (ok) {
+                    this.winSaved = true;
+                    this.renderUserHistory();
+                }
+            })
+            .catch(err => console.warn('save history error:', err));
     }
 
-    renderUserHistory() {
+    async renderUserHistory() {
         const subtitleEl = this.elements.userHistorySubtitle;
         const listEl = this.elements.userHistoryList;
         if (!subtitleEl || !listEl) return;
@@ -854,38 +859,45 @@ class AlbumGuessrGame {
             return;
         }
 
-        subtitleEl.textContent = 'Recent wins saved to your browser';
-        const history = this.loadUserHistory();
-        if (history.length === 0) {
-            listEl.innerHTML = `<div class="no-clues" style="padding: 1rem;">
-                <i class="bi bi-inbox"></i>
-                <p>No wins saved yet. Find a mystery album!</p>
-            </div>`;
-            return;
-        }
-
-        const html = history.map(item => {
-            const cover = item.coverUrl ? `<img class="history-cover" src="${this.escapeHtml(item.coverUrl)}" alt="Cover">` : `<div class="history-cover"></div>`;
-            const date = new Date(item.timestamp);
-            const meta = [
-                item.release_year ? String(item.release_year) : null,
-                `${item.guesses} guess${item.guesses === 1 ? '' : 'es'}`,
-                isNaN(date.getTime()) ? null : date.toLocaleDateString()
-            ].filter(Boolean).join(' • ');
-            const artist = (item.artists && item.artists.length > 0) ? item.artists.join(', ') : 'Unknown artist';
-            return `
-                <div class="history-item">
-                    ${cover}
-                    <div class="history-text">
-                        <div class="history-title">${this.escapeHtml(item.title)}</div>
-                        <div class="history-artist">${this.escapeHtml(artist)}</div>
-                        <div class="history-meta">${this.escapeHtml(meta)}</div>
+        subtitleEl.textContent = 'Recent wins saved to your account';
+        try {
+            const history = await this.fetchUserHistoryFromApi();
+            if (!history || history.length === 0) {
+                listEl.innerHTML = `<div class="no-clues" style="padding: 1rem;">
+                    <i class="bi bi-inbox"></i>
+                    <p>No wins saved yet. Find a mystery album!</p>
+                </div>`;
+                return;
+            }
+            const html = history.map(item => {
+                const cover = item.coverUrl ? `<img class="history-cover" src="${this.escapeHtml(item.coverUrl)}" alt="Cover">` : `<div class="history-cover"></div>`;
+                const date = item.timestamp ? new Date(item.timestamp) : null;
+                const meta = [
+                    item.release_year ? String(item.release_year) : null,
+                    `${item.guesses} guess${item.guesses === 1 ? '' : 'es'}`,
+                    date && !isNaN(date.getTime()) ? date.toLocaleDateString() : null
+                ].filter(Boolean).join(' • ');
+                const artist = (item.artists && item.artists.length > 0) ? item.artists.join(', ') : 'Unknown artist';
+                return `
+                    <div class="history-item">
+                        ${cover}
+                        <div class="history-text">
+                            <div class="history-title">${this.escapeHtml(item.title)}</div>
+                            <div class="history-artist">${this.escapeHtml(artist)}</div>
+                            <div class="history-meta">${this.escapeHtml(meta)}</div>
+                        </div>
+                        <div class="history-actions"></div>
                     </div>
-                    <div class="history-actions"></div>
-                </div>
-            `;
-        }).join('');
-        listEl.innerHTML = html;
+                `;
+            }).join('');
+            listEl.innerHTML = html;
+        } catch (e) {
+            console.warn('history render failed:', e);
+            listEl.innerHTML = `<div class="no-clues" style="padding: 1rem;">
+                <i class="bi bi-exclamation-triangle"></i>
+                <p>Unable to load history. Try again later.</p>
+            </div>`;
+        }
     }
 }
 
