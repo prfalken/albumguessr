@@ -14,3 +14,7 @@
   directory = "../netlify/functions"
   node_bundler = "esbuild"
 
+[[extensions]]
+package = "."
+extension = "netlify-build-extension-neon"
+
