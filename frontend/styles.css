@@ -426,17 +426,29 @@ body {
 
 .guess-item {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
+    flex-direction: column;
+    gap: 0.75rem;
     padding: 1rem;
     background: var(--surface-elevated);
     border-radius: var(--radius);
     border: 1px solid var(--border);
     animation: guessSlideIn 0.3s ease;
 }
+.guess-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+.guess-basic {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    flex: 1;
+}
 .guess-cover {
-    width: 48px;
-    height: 48px;
+    width: 96px;
+    height: 96px;
     border-radius: 6px;
     object-fit: cover;
     background: var(--border-light);

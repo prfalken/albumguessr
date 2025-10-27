@@ -667,18 +667,20 @@ class AlbumGuessrGame {
 
             return `
             <div class="guess-item ${guess.correct ? 'victory' : ''}">
-                ${coverUrl ? `<img class=\"guess-cover\" src=\"${coverUrl}\" alt=\"Cover\">` : `<div class=\"guess-cover placeholder\"></div>`}
-                <div class="guess-info">
-                    <div class="guess-title">${this.escapeHtml(guess.album.title)}</div>
-                    <div class="guess-artist">${this.escapeHtml(guess.album.artists ? guess.album.artists.join(', ') : 'Unknown artist')}</div>
-                    ${!guess.correct ? detailedCluesHTML : ''}
+                <div class="guess-header">
+                    ${coverUrl ? `<img class=\"guess-cover\" src=\"${coverUrl}\" alt=\"Cover\">` : `<div class=\"guess-cover placeholder\"></div>`}
+                    <div class="guess-basic">
+                        <div class="guess-title">${this.escapeHtml(guess.album.title)}</div>
+                        <div class="guess-artist">${this.escapeHtml(guess.album.artists ? guess.album.artists.join(', ') : 'Unknown artist')}</div>
+                    </div>
+                    <div class="guess-clues ${guess.correct ? 'victory' : ''}">
+                        ${guess.correct ? 
+                            '<i class="bi bi-trophy-fill"></i> Victory!' : 
+                            `<i class=\"bi bi-lightbulb\"></i> ${guess.cluesRevealed.length} clue(s)`
+                        }
+                    </div>
                 </div>
-                <div class="guess-clues ${guess.correct ? 'victory' : ''}">
-                    ${guess.correct ? 
-                        '<i class="bi bi-trophy-fill"></i> Victory!' : 
-                        `<i class=\"bi bi-lightbulb\"></i> ${guess.cluesRevealed.length} clue(s)`
-                    }
-                </div>
+                ${!guess.correct ? detailedCluesHTML : ''}
             </div>`;
         }).join('');
 
