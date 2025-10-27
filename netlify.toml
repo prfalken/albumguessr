@@ -11,7 +11,7 @@
   SECRETS_SCAN_OMIT_KEYS = "ALGOLIA_INDEX_NAME,ALGOLIA_APPLICATION_ID,ALGOLIA_SEARCH_API_KEY"
 
 [functions]
-  directory = "../netlify/functions"
+  directory = "netlify/functions"
   node_bundler = "esbuild"
 
 [[extensions]]
