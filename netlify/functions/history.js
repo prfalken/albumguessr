@@ -1,10 +1,10 @@
 import { createRemoteJWKSet, jwtVerify } from "jose";
 import { neon } from "@neondatabase/serverless";
 
-const { NEON_DATABASE_URL, AUTH0_DOMAIN, AUTH0_AUDIENCE } = process.env;
+const { NETLIFY_DATABASE_URL, AUTH0_DOMAIN, AUTH0_AUDIENCE } = process.env;
 
 // Initialize Neon only if configured
-const sql = NEON_DATABASE_URL ? neon(NEON_DATABASE_URL) : null;
+const sql = NETLIFY_DATABASE_URL ? neon(NETLIFY_DATABASE_URL) : null;
 
 function corsHeaders(event) {
   const origin = event?.headers?.origin || "*";
@@ -49,8 +49,8 @@ export async function handler(event) {
 
   try {
     // Validate required env vars early
-    if (!NEON_DATABASE_URL) {
-      return { statusCode: 500, headers: baseHeaders, body: "missing_env:NEON_DATABASE_URL" };
+    if (!NETLIFY_DATABASE_URL) {
+      return { statusCode: 500, headers: baseHeaders, body: "missing_env:NETLIFY_DATABASE_URL" };
     }
     if (!AUTH0_DOMAIN) {
       return { statusCode: 500, headers: baseHeaders, body: "missing_env:AUTH0_DOMAIN" };
