@@ -2,10 +2,9 @@ import { createRemoteJWKSet, jwtVerify } from "jose";
 import { neon } from "@neondatabase/serverless";
 
 const { NEON_DATABASE_URL, AUTH0_DOMAIN, AUTH0_AUDIENCE } = process.env;
-const issuer = `https://${AUTH0_DOMAIN}/`;
-const JWKS = createRemoteJWKSet(new URL(`${issuer}.well-known/jwks.json`));
 
-const sql = neon(NEON_DATABASE_URL);
+// Initialize Neon only if configured
+const sql = NEON_DATABASE_URL ? neon(NEON_DATABASE_URL) : null;
 
 function corsHeaders(event) {
   const origin = event?.headers?.origin || "*";
@@ -16,11 +15,24 @@ function corsHeaders(event) {
   };
 }
 
+function getIssuer() {
+  if (!AUTH0_DOMAIN) return null;
+  return `https://${AUTH0_DOMAIN}/`;
+}
+
+function getJWKS(issuer) {
+  return createRemoteJWKSet(new URL(`${issuer}.well-known/jwks.json`));
+}
+
 async function verifyAuth(event) {
   const auth = event.headers?.authorization || "";
   const token = auth.startsWith("Bearer ") ? auth.slice(7) : null;
   if (!token) throw new Error("missing_token");
-  const { payload } = await jwtVerify(token, JWKS, {
+  const issuer = getIssuer();
+  if (!issuer) throw new Error("missing_auth0_domain");
+  if (!AUTH0_AUDIENCE) throw new Error("missing_auth0_audience");
+  const jwks = getJWKS(issuer);
+  const { payload } = await jwtVerify(token, jwks, {
     issuer,
     audience: AUTH0_AUDIENCE
   });
@@ -36,6 +48,17 @@ export async function handler(event) {
   }
 
   try {
+    // Validate required env vars early
+    if (!NEON_DATABASE_URL) {
+      return { statusCode: 500, headers: baseHeaders, body: "missing_env:NEON_DATABASE_URL" };
+    }
+    if (!AUTH0_DOMAIN) {
+      return { statusCode: 500, headers: baseHeaders, body: "missing_env:AUTH0_DOMAIN" };
+    }
+    if (!AUTH0_AUDIENCE) {
+      return { statusCode: 500, headers: baseHeaders, body: "missing_env:AUTH0_AUDIENCE" };
+    }
+
     const userId = await verifyAuth(event);
 
     if (event.httpMethod === "GET") {
