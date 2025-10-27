@@ -31,7 +31,10 @@ function main() {
     `const AUTH0_CONFIG = ${auth0Domain && auth0ClientId ? `{\n` +
     `    domain: '${auth0Domain}',\n` +
     `    clientId: '${auth0ClientId}',\n` +
-    `    authorizationParams: { redirect_uri: (typeof window !== 'undefined' ? window.location.origin : '')${auth0Audience ? `, audience: '${auth0Audience}'` : ''} }\n` +
+    `    authorizationParams: { redirect_uri: (typeof window !== 'undefined' ? window.location.origin : '')${auth0Audience ? `, audience: '${auth0Audience}'` : ''} },\n` +
+    `    cacheLocation: 'localstorage',\n` +
+    `    useRefreshTokens: true,\n` +
+    `    useRefreshTokensFallback: true\n` +
     `}` : `null`};\n\n` +
     `const GAME_CONFIG = {\n` +
     `    clueCategories: [\n` +
