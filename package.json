@@ -1,0 +1,12 @@
+{
+  "private": true,
+  "name": "albumguessr",
+  "version": "0.0.0",
+  "license": "MIT",
+  "dependencies": {
+    "@neondatabase/serverless": "^0.9.5",
+    "jose": "^5.9.3"
+  }
+}
+
+
