@@ -193,7 +193,7 @@ class AlbumGuessrGame {
         this.elements.searchSubmit.addEventListener('click', this.submitGuess.bind(this));
 
         // Modal events
-        this.elements.closeVictory.addEventListener('click', this.hideVictoryModal.bind(this));
+        this.elements.closeVictory.addEventListener('click', () => window.location.reload());
         this.elements.shareButton.addEventListener('click', this.shareResult.bind(this));
         if (this.elements.playAgainButton) {
             this.elements.playAgainButton.addEventListener('click', () => window.location.reload());
