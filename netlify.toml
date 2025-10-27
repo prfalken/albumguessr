@@ -1,7 +1,7 @@
 [build]
   base = "frontend"
   publish = "."
-  command = "npm ci && node build-config.js && echo Static site build-ready"
+  command = "npm install --no-audit --no-fund && node build-config.js && echo Static site build-ready"
 
 [build.environment]
   NODE_VERSION = "20.17.0"
