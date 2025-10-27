@@ -490,7 +490,6 @@ class AlbumDataProcessor:
         # Genres mapped from tags (max 10)
         tag_names = row.get("tag_names") or []
         album["genres"] = [self.clean_text(t) for t in tag_names[:10] if t]
-        print(f"Title: {album['title']}, Genres: {album['genres']}")
 
         # Secondary types
         secondary_names = row.get("secondary_names") or []
