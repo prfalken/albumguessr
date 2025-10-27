@@ -806,7 +806,12 @@ class AlbumGuessrGame {
             method: 'GET',
             headers: { Authorization: `Bearer ${token}` }
         });
-        if (!res.ok) throw new Error('history_get_failed');
+        if (!res.ok) {
+            let details = '';
+            try { details = await res.text(); } catch {}
+            console.warn('history_get_failed_response:', res.status, details);
+            throw new Error('history_get_failed');
+        }
         return await res.json();
     }
 
