@@ -36,57 +36,74 @@
         </header>
 
         <main class="game-container">
-            <!-- Game Status -->
-            <div class="game-status" id="game-status">
-                <div class="guess-counter">
-                    <i class="bi bi-music-note-beamed"></i>
-                    <span id="guess-count">0</span> guesses
-                </div>
-                <div class="mystery-indicator">
-                    <i class="bi bi-question-circle"></i>
-                    <span>Mystery album</span>
-                </div>
-            </div>
+            <div class="content-grid">
+                <div class="main-column">
+                    <!-- Game Status -->
+                    <div class="game-status" id="game-status">
+                        <div class="guess-counter">
+                            <i class="bi bi-music-note-beamed"></i>
+                            <span id="guess-count">0</span> guesses
+                        </div>
+                        <div class="mystery-indicator">
+                            <i class="bi bi-question-circle"></i>
+                            <span>Mystery album</span>
+                        </div>
+                    </div>
 
-            <!-- Search Input -->
-            <div class="search-container">
-                <div class="search-box">
-                    <i class="bi bi-search"></i>
-                    <input 
-                        type="text" 
-                        id="album-search" 
-                        placeholder="Search an album or an artist..."
-                        autocomplete="off"
-                    >
-                    <button class="search-submit-btn" id="search-submit" disabled>
-                        <i class="bi bi-arrow-right"></i>
-                    </button>
-                </div>
-                <div class="search-results" id="search-results"></div>
-            </div>
+                    <!-- Search Input -->
+                    <div class="search-container">
+                        <div class="search-box">
+                            <i class="bi bi-search"></i>
+                            <input 
+                                type="text" 
+                                id="album-search" 
+                                placeholder="Search an album or an artist..."
+                                autocomplete="off"
+                            >
+                            <button class="search-submit-btn" id="search-submit" disabled>
+                                <i class="bi bi-arrow-right"></i>
+                            </button>
+                        </div>
+                        <div class="search-results" id="search-results"></div>
+                    </div>
 
-            <!-- Clues Board -->
-            <div class="clues-board" id="clues-board">
-                <div class="clues-header">
-                    <h3><i class="bi bi-lightbulb"></i> Discovered clues</h3>
-                    <p>Attributes your guesses share with the mystery album</p>
-                </div>
-                <div class="clues-container" id="clues-container">
-                    <div class="no-clues">
-                        <i class="bi bi-search"></i>
-                        <p>Make a first guess to reveal clues...</p>
+                    <!-- Clues Board -->
+                    <div class="clues-board" id="clues-board">
+                        <div class="clues-header">
+                            <h3><i class="bi bi-lightbulb"></i> Discovered clues</h3>
+                            <p>Attributes your guesses share with the mystery album</p>
+                        </div>
+                        <div class="clues-container" id="clues-container">
+                            <div class="no-clues">
+                                <i class="bi bi-search"></i>
+                                <p>Make a first guess to reveal clues...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Guesses History -->
+                    <div class="guesses-history" id="guesses-history">
+                        <div class="history-header">
+                            <h3><i class="bi bi-clock-history"></i> Your guesses</h3>
+                        </div>
+                        <div class="guesses-container" id="guesses-container">
+                            <!-- Guesses will be displayed here -->
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Guesses History -->
-            <div class="guesses-history" id="guesses-history">
-                <div class="history-header">
-                    <h3><i class="bi bi-clock-history"></i> Your guesses</h3>
-                </div>
-                <div class="guesses-container" id="guesses-container">
-                    <!-- Guesses will be displayed here -->
-                </div>
+                <!-- Right Sidebar: User Found Albums History -->
+                <aside class="sidebar-panel" id="user-history-panel">
+                    <div class="user-history">
+                        <div class="user-history-header">
+                            <h3><i class="bi bi-person-lines-fill"></i> Your found albums</h3>
+                            <div class="user-history-subtitle" id="user-history-subtitle">Log in to save and see your history</div>
+                        </div>
+                        <div class="user-history-list" id="user-history-list">
+                            <!-- Saved wins will render here -->
+                        </div>
+                    </div>
+                </aside>
             </div>
 
             <!-- Victory Modal -->

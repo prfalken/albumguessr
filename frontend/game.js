@@ -12,6 +12,7 @@ class AlbumGuessrGame {
         this.searchResults = [];
         this.selectedResult = null;
         this.discoveredClues = new Map(); // Map of clue category -> Set of values
+        this.winSaved = false;
         
         this.initializeAlgolia();
         this.initializeAuth0();
@@ -73,7 +74,10 @@ class AlbumGuessrGame {
             btnLogout: document.getElementById('btn-logout'),
             userProfile: document.getElementById('user-profile'),
             userAvatar: document.getElementById('user-avatar'),
-            userName: document.getElementById('user-name')
+            userName: document.getElementById('user-name'),
+            // User history (right panel)
+            userHistorySubtitle: document.getElementById('user-history-subtitle'),
+            userHistoryList: document.getElementById('user-history-list')
         };
 
         // Show refresh-based info
@@ -102,6 +106,7 @@ class AlbumGuessrGame {
                 this.authenticatedUser = null;
             }
             this.updateAuthUI(isAuthenticated);
+            this.renderUserHistory();
         } catch (err) {
             console.warn('Auth0 post-DOM setup skipped or failed:', err);
         }
@@ -264,6 +269,11 @@ class AlbumGuessrGame {
             show(this.elements.userProfile, true);
         } else {
             show(this.elements.userProfile, false);
+        }
+        this.renderUserHistory();
+        // If the user logs in after already winning, persist the win once
+        if (isAuthenticated && this.gameWon && !this.winSaved) {
+            this.saveWinToHistory();
         }
     }
 
@@ -689,6 +699,9 @@ class AlbumGuessrGame {
         this.elements.finalClues.textContent = this.discoveredClues.size;
 
         this.elements.victoryModal.classList.add('show');
+
+        // Persist win to user history if logged in
+        this.saveWinToHistory();
     }
 
     hideVictoryModal() {
@@ -771,6 +784,108 @@ class AlbumGuessrGame {
             clearTimeout(timeout);
             timeout = setTimeout(later, wait);
         };
+    }
+
+    // ---------- User history persistence ----------
+    getUserHistoryStorageKey() {
+        if (!this.authenticatedUser) return null;
+        const userId = this.authenticatedUser.sub || this.authenticatedUser.email || 'unknown';
+        return `albumguessr:userHistory:${userId}`;
+    }
+
+    loadUserHistory() {
+        const key = this.getUserHistoryStorageKey();
+        if (!key) return [];
+        try {
+            const raw = localStorage.getItem(key);
+            if (!raw) return [];
+            const parsed = JSON.parse(raw);
+            if (!Array.isArray(parsed)) return [];
+            return parsed.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+        } catch (e) {
+            console.warn('Failed to load user history:', e);
+            return [];
+        }
+    }
+
+    saveUserHistory(history) {
+        const key = this.getUserHistoryStorageKey();
+        if (!key) return;
+        try {
+            localStorage.setItem(key, JSON.stringify(history));
+        } catch (e) {
+            console.warn('Failed to save user history:', e);
+        }
+    }
+
+    saveWinToHistory() {
+        if (this.winSaved) return;
+        if (!this.gameWon || !this.mysteryAlbum) return;
+        if (!this.authenticatedUser) return; // only for logged-in users
+        const entry = {
+            objectID: this.mysteryAlbum.objectID,
+            title: this.mysteryAlbum.title,
+            artists: Array.isArray(this.mysteryAlbum.artists) ? this.mysteryAlbum.artists : [],
+            release_year: this.mysteryAlbum.release_year || null,
+            coverUrl: this.getCoverUrl(this.mysteryAlbum),
+            guesses: this.guessCount,
+            timestamp: Date.now()
+        };
+        const history = this.loadUserHistory();
+        const existingIndex = history.findIndex(h => h.objectID === entry.objectID);
+        if (existingIndex >= 0) {
+            history[existingIndex] = entry;
+        } else {
+            history.unshift(entry);
+        }
+        this.saveUserHistory(history);
+        this.renderUserHistory();
+        this.winSaved = true;
+    }
+
+    renderUserHistory() {
+        const subtitleEl = this.elements.userHistorySubtitle;
+        const listEl = this.elements.userHistoryList;
+        if (!subtitleEl || !listEl) return;
+
+        if (!this.authenticatedUser) {
+            subtitleEl.textContent = 'Log in to save and see your history';
+            listEl.innerHTML = '';
+            return;
+        }
+
+        subtitleEl.textContent = 'Recent wins saved to your browser';
+        const history = this.loadUserHistory();
+        if (history.length === 0) {
+            listEl.innerHTML = `<div class="no-clues" style="padding: 1rem;">
+                <i class="bi bi-inbox"></i>
+                <p>No wins saved yet. Find a mystery album!</p>
+            </div>`;
+            return;
+        }
+
+        const html = history.map(item => {
+            const cover = item.coverUrl ? `<img class="history-cover" src="${this.escapeHtml(item.coverUrl)}" alt="Cover">` : `<div class="history-cover"></div>`;
+            const date = new Date(item.timestamp);
+            const meta = [
+                item.release_year ? String(item.release_year) : null,
+                `${item.guesses} guess${item.guesses === 1 ? '' : 'es'}`,
+                isNaN(date.getTime()) ? null : date.toLocaleDateString()
+            ].filter(Boolean).join(' • ');
+            const artist = (item.artists && item.artists.length > 0) ? item.artists.join(', ') : 'Unknown artist';
+            return `
+                <div class="history-item">
+                    ${cover}
+                    <div class="history-text">
+                        <div class="history-title">${this.escapeHtml(item.title)}</div>
+                        <div class="history-artist">${this.escapeHtml(artist)}</div>
+                        <div class="history-meta">${this.escapeHtml(meta)}</div>
+                    </div>
+                    <div class="history-actions"></div>
+                </div>
+            `;
+        }).join('');
+        listEl.innerHTML = html;
     }
 }
 
