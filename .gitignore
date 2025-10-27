@@ -128,3 +128,5 @@ data/
 *.json
 *.zip
 frontend/config.js
+
+frontend/node_modules/
