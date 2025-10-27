@@ -13,6 +13,8 @@ class AlbumGuessrGame {
         this.selectedResult = null;
         this.discoveredClues = new Map(); // Map of clue category -> Set of values
         this.winSaved = false;
+        this.countryDisplayNames = null;
+        this.countryDisplayNamesLocale = 'en';
         
         this.initializeAlgolia();
         this.initializeAuth0();
@@ -325,7 +327,7 @@ class AlbumGuessrGame {
                     <div class="search-result-meta">
                         ${album.release_year ? `<span>${album.release_year}</span>` : ''}
                         ${album.genres && album.genres.length > 0 ? `<span>${album.genres[0]}</span>` : ''}
-                        ${album.countries && album.countries.length > 0 ? `<span>${album.countries[0]}</span>` : ''}
+                        ${album.countries && album.countries.length > 0 ? `<span>${this.escapeHtml(this.getCountryName(album.countries[0]))}</span>` : ''}
                     </div>
                 </div>
             </div>`;
@@ -563,9 +565,11 @@ class AlbumGuessrGame {
                     `;
                 }).join('');
             } else {
-                valuesHTML = Array.from(values).map(value => 
-                    `<span class="clue-value">${this.escapeHtml(value)}</span>`
-                ).join('');
+                valuesHTML = Array.from(values).map(value => {
+                    const v = String(value);
+                    const rendered = category === 'countries' ? this.getCountryName(v) : v;
+                    return `<span class="clue-value">${this.escapeHtml(rendered)}</span>`;
+                }).join('');
             }
 
             return `
@@ -644,9 +648,10 @@ class AlbumGuessrGame {
                     const guessValues = Array.isArray(guessVal) ? guessVal : [guessVal];
                     const valuesHTML = guessValues.map(v => {
                         const vStr = String(v);
+                        const display = catKey === 'countries' ? this.getCountryName(vStr) : vStr;
                         const isCommon = revealed.has(vStr);
                         const cls = isCommon ? 'guess-chip-hit' : 'guess-chip-miss';
-                        return `<span class="guess-chip ${cls}">${this.escapeHtml(vStr)}</span>`;
+                        return `<span class="guess-chip ${cls}">${this.escapeHtml(display)}</span>`;
                     }).join('');
 
                     // Only render section if there is at least one value
@@ -695,7 +700,7 @@ class AlbumGuessrGame {
             <div class="mystery-album-meta">
                 ${this.mysteryAlbum.release_year ? `<span>📅 ${this.mysteryAlbum.release_year}</span>` : ''}
                 ${this.mysteryAlbum.genres && this.mysteryAlbum.genres.length > 0 ? `<span>🎵 ${this.mysteryAlbum.genres[0]}</span>` : ''}
-                ${this.mysteryAlbum.countries && this.mysteryAlbum.countries.length > 0 ? `<span>🌍 ${this.mysteryAlbum.countries[0]}</span>` : ''}
+                ${this.mysteryAlbum.countries && this.mysteryAlbum.countries.length > 0 ? `<span>🌍 ${this.escapeHtml(this.getCountryName(this.mysteryAlbum.countries[0]))}</span>` : ''}
             </div>
         `;
         this.elements.mysteryAlbumDisplay.innerHTML = mysteryAlbumHTML;
@@ -778,6 +783,29 @@ class AlbumGuessrGame {
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
+    }
+
+    getCountryName(code) {
+        if (!code) return '';
+        const regionCode = String(code).toUpperCase();
+        try {
+            const locale = (typeof navigator !== 'undefined' && navigator.language) ? navigator.language : this.countryDisplayNamesLocale || 'en';
+            if (!this.countryDisplayNames || this.countryDisplayNamesLocale !== locale) {
+                if (typeof Intl !== 'undefined' && typeof Intl.DisplayNames === 'function') {
+                    this.countryDisplayNames = new Intl.DisplayNames([locale], { type: 'region' });
+                    this.countryDisplayNamesLocale = locale;
+                } else {
+                    this.countryDisplayNames = null;
+                }
+            }
+            if (this.countryDisplayNames) {
+                const name = this.countryDisplayNames.of(regionCode);
+                if (name) return name;
+            }
+        } catch (e) {
+            // ignore and fallback
+        }
+        return regionCode;
     }
 
     debounce(func, wait) {
