@@ -19,6 +19,20 @@
                 <p>Find the mystery album using the revealed clues</p>
                 <div class="date" id="game-date"></div>
             </div>
+            <div class="auth-controls">
+                <button class="footer-button" id="btn-login">
+                    <i class="bi bi-box-arrow-in-right"></i>
+                    Log in
+                </button>
+                <button class="footer-button" id="btn-logout" style="display:none">
+                    <i class="bi bi-box-arrow-right"></i>
+                    Log out
+                </button>
+                <div class="user-profile" id="user-profile" style="display:none">
+                    <img id="user-avatar" class="user-avatar" alt="Avatar" />
+                    <span id="user-name"></span>
+                </div>
+            </div>
         </header>
 
         <main class="game-container">
@@ -186,6 +200,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/algoliasearch@4.14.3/dist/algoliasearch.umd.js"></script>
+    <script src="https://cdn.auth0.com/js/auth0-spa-js/2.1/auth0-spa-js.production.js"></script>
     <script src="config.js"></script>
     <script src="game.js"></script>
 </body>

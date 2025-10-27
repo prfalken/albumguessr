@@ -17,6 +17,8 @@ function main() {
   const applicationId = getEnv('ALGOLIA_APPLICATION_ID');
   const apiKey = getEnv('ALGOLIA_SEARCH_API_KEY');
   const indexName = getEnv('ALGOLIA_INDEX_NAME', { required: true });
+  const auth0Domain = getEnv('AUTH0_DOMAIN', { required: false });
+  const auth0ClientId = getEnv('AUTH0_CLIENT_ID', { required: false });
 
   const output = `// Configuration for Algolia Search (generated at build time)\n` +
     `const ALGOLIA_CONFIG = {\n` +
@@ -24,6 +26,12 @@ function main() {
     `    apiKey: '${apiKey}',\n` +
     `    indexName: '${indexName}'\n` +
     `};\n\n` +
+    `// Optional Auth0 configuration (generated at build time)\n` +
+    `const AUTH0_CONFIG = ${auth0Domain && auth0ClientId ? `{\n` +
+    `    domain: '${auth0Domain}',\n` +
+    `    clientId: '${auth0ClientId}',\n` +
+    `    authorizationParams: { redirect_uri: (typeof window !== 'undefined' ? window.location.origin : '') }\n` +
+    `}` : `null`};\n\n` +
     `const GAME_CONFIG = {\n` +
     `    clueCategories: [\n` +
     `        { key: 'artists', label: 'Artists', icon: 'bi-person-fill', description: 'Shared artists' },\n` +
@@ -34,7 +42,7 @@ function main() {
     `    ]\n` +
     `};\n\n` +
     `if (typeof module !== 'undefined' && module.exports) {\n` +
-    `    module.exports = { ALGOLIA_CONFIG, GAME_CONFIG };\n` +
+    `    module.exports = { ALGOLIA_CONFIG, AUTH0_CONFIG, GAME_CONFIG };\n` +
     `}\n`;
 
   const destination = path.join(__dirname, 'config.js');

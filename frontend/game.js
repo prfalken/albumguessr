@@ -2,6 +2,8 @@ class AlbumGuessrGame {
     constructor() {
         this.algoliaClient = null;
         this.algoliaIndex = null;
+        this.auth0Client = null;
+        this.authenticatedUser = null;
         this.guessCount = 0;
         this.gameOver = false;
         this.gameWon = false;
@@ -12,7 +14,10 @@ class AlbumGuessrGame {
         this.discoveredClues = new Map(); // Map of clue category -> Set of values
         
         this.initializeAlgolia();
+        this.initializeAuth0();
         this.initializeDOM();
+        // Kick off auth flow wiring after DOM is available
+        this.postDomAuthSetup();
         this.initializeGame();
         this.bindEvents();
     }
@@ -28,6 +33,18 @@ class AlbumGuessrGame {
         } catch (error) {
             console.error('Failed to initialize Algolia:', error);
             this.showError('Failed to connect to the search index. Please refresh the page.');
+        }
+    }
+
+    async initializeAuth0() {
+        // Only initialize if config and library are available
+        try {
+            if (typeof AUTH0_CONFIG === 'object' && AUTH0_CONFIG && typeof auth0 !== 'undefined') {
+                this.auth0Client = await auth0.createAuth0Client(AUTH0_CONFIG);
+                console.log('Auth0 initialized');
+            }
+        } catch (error) {
+            console.warn('Auth0 initialization failed or skipped:', error);
         }
     }
 
@@ -50,11 +67,44 @@ class AlbumGuessrGame {
             instructionsModal: document.getElementById('instructions-modal'),
             instructionsButton: document.getElementById('instructions-button'),
             closeInstructions: document.getElementById('close-instructions'),
-            loading: document.getElementById('loading')
+            loading: document.getElementById('loading'),
+            // Auth controls
+            btnLogin: document.getElementById('btn-login'),
+            btnLogout: document.getElementById('btn-logout'),
+            userProfile: document.getElementById('user-profile'),
+            userAvatar: document.getElementById('user-avatar'),
+            userName: document.getElementById('user-name')
         };
 
         // Show refresh-based info
         this.elements.gameDate.textContent = 'New mystery on each refresh';
+    }
+
+    async postDomAuthSetup() {
+        try {
+            await this.ensureAuth0Client();
+            if (!this.auth0Client) return;
+
+            // Handle redirect callback if returning from Auth0
+            const hasAuthParams = window.location.search.includes('code=') && window.location.search.includes('state=');
+            if (hasAuthParams) {
+                try {
+                    await this.auth0Client.handleRedirectCallback();
+                } finally {
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                }
+            }
+
+            const isAuthenticated = await this.auth0Client.isAuthenticated();
+            if (isAuthenticated) {
+                this.authenticatedUser = await this.auth0Client.getUser();
+            } else {
+                this.authenticatedUser = null;
+            }
+            this.updateAuthUI(isAuthenticated);
+        } catch (err) {
+            console.warn('Auth0 post-DOM setup skipped or failed:', err);
+        }
     }
 
     initializeGame() {
@@ -163,6 +213,58 @@ class AlbumGuessrGame {
                 this.hideSearchResults();
             }
         });
+
+        // Auth buttons
+        if (this.elements.btnLogin) {
+            this.elements.btnLogin.addEventListener('click', () => this.login());
+        }
+        if (this.elements.btnLogout) {
+            this.elements.btnLogout.addEventListener('click', () => this.logout());
+        }
+    }
+
+    async ensureAuth0Client() {
+        if (this.auth0Client) return this.auth0Client;
+        try {
+            if (typeof AUTH0_CONFIG === 'object' && AUTH0_CONFIG && typeof auth0 !== 'undefined') {
+                this.auth0Client = await auth0.createAuth0Client(AUTH0_CONFIG);
+                return this.auth0Client;
+            }
+        } catch (e) {
+            console.warn('Unable to create Auth0 client:', e);
+        }
+        return null;
+    }
+
+    async login() {
+        const client = await this.ensureAuth0Client();
+        if (!client) return;
+        await client.loginWithRedirect({
+            authorizationParams: { redirect_uri: window.location.origin }
+        });
+    }
+
+    async logout() {
+        const client = await this.ensureAuth0Client();
+        if (!client) return;
+        client.logout({ logoutParams: { returnTo: window.location.origin } });
+    }
+
+    updateAuthUI(isAuthenticated) {
+        const show = (el, visible) => { if (el) el.style.display = visible ? '' : 'none'; };
+        show(this.elements.btnLogin, !isAuthenticated);
+        show(this.elements.btnLogout, !!isAuthenticated);
+        if (isAuthenticated && this.authenticatedUser) {
+            if (this.elements.userAvatar) {
+                this.elements.userAvatar.src = this.authenticatedUser.picture || '';
+            }
+            if (this.elements.userName) {
+                this.elements.userName.textContent = this.authenticatedUser.name || this.authenticatedUser.email || '';
+            }
+            show(this.elements.userProfile, true);
+        } else {
+            show(this.elements.userProfile, false);
+        }
     }
 
     async handleSearchInput(event) {
