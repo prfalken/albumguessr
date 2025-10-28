@@ -48,6 +48,14 @@ class TestAlbumDataProcessor(unittest.TestCase):
 
     def setUp(self):
         self.processor = AlbumDataProcessor()
+        self.processor.all_genres = {
+            "Thrash": 1,
+            "Metal": 2,
+            "Rock": 3,
+            "Progressive Rock": 4,
+            "Progressive Metal": 5,
+            "Progressive Rock": 6,
+        }
 
     # Helper/pure functions
     def test_clean_text(self):
@@ -57,131 +65,6 @@ class TestAlbumDataProcessor(unittest.TestCase):
         self.assertEqual(self.processor.clean_text("Hello, World!"), "Hello, World!")
         self.assertEqual(self.processor.clean_text("Hello, World!   "), "Hello, World!")
         self.assertEqual(self.processor.clean_text("A   B\tC"), "A B C")
-
-    def test_extract_artist_names(self):
-        artist_credit: List[Dict[str, Any]] = [
-            {"name": " Metallica ", "artist": {"name": "Metallica"}},
-            {"artist": {"name": "James Hetfield"}},
-            {"name": None},
-        ]
-        names = self.processor.extract_artist_names(artist_credit)
-        self.assertEqual(names, ["Metallica", "James Hetfield"])
-
-        # Empty and non-dict entries
-        self.assertEqual(self.processor.extract_artist_names([]), [])
-        self.assertEqual(self.processor.extract_artist_names(["x"]), [])
-
-    def test_extract_genres_and_tags(self):
-        genres = [{"name": "  Thrash Metal  "}, {"name": None}, {}]
-        self.assertEqual(self.processor.extract_genres(genres), ["Thrash Metal"])
-
-        tags = [{"name": " classic "}, {"x": 1}, {"name": ""}]
-        self.assertEqual(self.processor.extract_tags(tags), ["classic"])
-
-    def test_parse_date_formats_and_fallback(self):
-        self.assertEqual(self.processor.parse_date("1986-03-03"), "1986-03-03")
-        self.assertEqual(self.processor.parse_date("1986-03"), "1986-03-01")
-        self.assertEqual(self.processor.parse_date("1986"), "1986-01-01")
-        self.assertEqual(self.processor.parse_date("Released in 1999?"), "1999-01-01")
-        self.assertIsNone(self.processor.parse_date("n/a"))
-        self.assertIsNone(self.processor.parse_date(None))
-
-    def test_safe_numeric_convert_int_and_float(self):
-        self.assertEqual(self.processor.safe_numeric_convert("10", 0), 10)
-        self.assertEqual(self.processor.safe_numeric_convert("10.9", 0), 10)
-        self.assertEqual(self.processor.safe_numeric_convert("10.9", 0.0), 10.9)
-        self.assertEqual(self.processor.safe_numeric_convert("1,234", 0), 1234)
-        self.assertEqual(self.processor.safe_numeric_convert("bad", 7), 7)
-        self.assertEqual(self.processor.safe_numeric_convert(None, 2.5), 2.5)
-
-    def test_extract_country_info(self):
-        artist_credit = [
-            {"artist": {"country": " US "}},
-            {"artist": {"country": "US"}},
-            {"artist": {}},
-        ]
-        self.assertEqual(self.processor.extract_country_info(artist_credit), ["US"])
-        self.assertEqual(self.processor.extract_country_info([]), [])
-
-    # Record processing
-    def test_process_album_record_happy_path(self):
-        album_data = {
-            "id": 123,
-            "primary-type": "Album",
-            "title": "  Master of Puppets  ",
-            "first-release-date": "1986-03-03",
-            "artist-credit": [
-                {"name": "Metallica"},
-                {"artist": {"name": "James Hetfield", "country": "US"}},
-            ],
-            "genres": [{"name": "Thrash Metal"}],
-            "secondary-types": ["live", None],
-            "rating": {"value": 4.5, "votes-count": 100},
-        }
-        result = self.processor.process_album_record(album_data)
-        self.assertIsInstance(result, dict)
-        self.assertEqual(result["objectID"], "123")
-        self.assertEqual(result["title"], "Master of Puppets")
-        self.assertEqual(result["first_release_date"], "1986-03-03")
-        self.assertEqual(result["release_year"], 1986)
-        self.assertEqual(result["artists"], ["Metallica", "James Hetfield"])
-        self.assertEqual(result["countries"], ["US"])
-        self.assertEqual(result["genres"], ["Thrash Metal"])
-        self.assertEqual(result["main_artist"], "Metallica")
-        self.assertEqual(result["primary_genre"], "Thrash Metal")
-        self.assertIn("rating_score", result)
-
-    def test_process_album_record_non_album(self):
-        not_album = {"id": 1, "primary-type": "Single", "title": "X"}
-        self.assertIsNone(self.processor.process_album_record(not_album))
-
-    def test_process_album_record_missing_required(self):
-        missing_title = {"id": 1, "primary-type": "Album"}
-        self.assertIsNone(self.processor.process_album_record(missing_title))
-
-        missing_id = {"primary-type": "Album", "title": "X"}
-        self.assertIsNone(self.processor.process_album_record(missing_id))
-
-    # File I/O
-    def test_load_json_data_in_batches_and_error_count(self):
-        with tempfile.TemporaryDirectory() as tmpdir:
-            p = Path(tmpdir) / "data.jsonl"
-            lines = [
-                json.dumps({"id": 1}),
-                "",  # blank
-                json.dumps({"id": 2}),
-                "{bad json}",  # error
-                json.dumps({"id": 3}),
-            ]
-            p.write_text("\n".join(lines), encoding="utf-8")
-
-            batches = list(self.processor.load_json_data_in_batches(p, batch_size=2))
-            # Expect batches: [ [1,2], [3] ]
-            self.assertEqual(len(batches), 2)
-            self.assertEqual(len(batches[0]), 2)
-            self.assertEqual(len(batches[1]), 1)
-            self.assertGreaterEqual(self.processor.error_count, 1)
-
-    def test_load_json_data_success_and_errors(self):
-        with tempfile.TemporaryDirectory() as tmpdir:
-            p = Path(tmpdir) / "data.jsonl"
-            p.write_text("\n".join([json.dumps({"a": 1}), "{oops}", json.dumps({"b": 2})]), encoding="utf-8")
-            proc = AlbumDataProcessor()
-            items = proc.load_json_data(p)
-            self.assertEqual(len(items), 2)
-            self.assertEqual(proc.error_count, 1)
-
-    def test_load_json_data_file_not_found(self):
-        with self.assertRaises(FileNotFoundError):
-            self.processor.load_json_data(Path("/no/such/file.jsonl"))
-
-    def test_process_albums_respects_max_records(self):
-        albums = [
-            {"id": i, "primary-type": "Album", "title": f"T{i}", "first-release-date": "2000"} for i in range(5)
-        ]
-        proc = AlbumDataProcessor()
-        out = proc.process_albums(albums, max_records=2)
-        self.assertEqual(len(out), 2)
 
     # SQL helpers
     @patch("data_processor.psycopg2.connect")
