@@ -4,7 +4,6 @@ Data processor for cleaning and transforming music album data for Algolia indexi
 
 import json
 import re
-import random
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Union
 from pathlib import Path
@@ -13,6 +12,8 @@ from tqdm import tqdm
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from config import Config
+
+from loguru import logger
 
 
 class AlbumDataProcessor:
@@ -38,10 +39,13 @@ class AlbumDataProcessor:
 
     def get_all_genres(self) -> List[str]:
         """Get all genres from the database."""
+        all_genres = {}
         with self._connect_db() as conn:
             with conn.cursor(cursor_factory=RealDictCursor) as cursor:
-                cursor.execute("SELECT name FROM musicbrainz.genre")
-                return [row["name"] for row in cursor.fetchall()]
+                cursor.execute("SELECT id, name FROM musicbrainz.genre")
+                for row in cursor.fetchall():
+                    all_genres[row["name"]] = row["id"]
+        return all_genres
 
     def _connect_db(self):
         """Create a PostgreSQL connection using Config settings."""
@@ -191,7 +195,7 @@ class AlbumDataProcessor:
 
         # Genres mapped from tags (should map a genre from the DB)
         tag_names = row.get("tag_names") or []
-        album["genres"] = [self.clean_text(t) for t in tag_names if t in self.all_genres]
+        album["genres"] = [self.clean_text(t) for t in tag_names if self.all_genres.get(t)]
 
         # Secondary types
         secondary_names = row.get("secondary_names") or []
