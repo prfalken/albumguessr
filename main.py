@@ -49,53 +49,6 @@ class MusicAlbumSyncApp:
             print("\n💡 You can copy .env.example to .env and fill in your credentials.")
             return False
 
-    def run_full_sync_batched(
-        self,
-        data_file: str,
-        max_records: Optional[int] = None,
-        batch_size: int = 1000,
-    ):
-        print("🚀 Starting Music Album Database Sync (Batch Processing)")
-        print("=" * 60)
-
-        try:
-            total_indexed = 0
-
-            def on_batch_processed(processed_batch, total_processed):
-                nonlocal total_indexed
-                # Index each batch immediately
-                print(f"🔍 Indexing batch of {len(processed_batch)} albums...")
-                self.algolia_indexer.batch_index_records(processed_batch)
-                total_indexed += len(processed_batch)
-                print(f"✅ Indexed batch. Total indexed so far: {total_indexed}")
-
-            print(f"📡 Processing file in batches of {batch_size} records...")
-
-            # Process file in batches
-            for batch_num, processed_batch in enumerate(
-                self.data_processor.process_json_file_in_batches(
-                    data_file,
-                    batch_size=batch_size,
-                    max_records=max_records,
-                    on_batch_processed=on_batch_processed,
-                ),
-                1,
-            ):
-                print(f"📦 Completed batch {batch_num}")
-
-            print("=" * 60)
-            print("🎉 album database sync completed successfully!")
-            print(f"📊 Total albums indexed: {total_indexed}")
-
-            return True
-
-        except KeyboardInterrupt:
-            print("\n⏹️  Sync interrupted by user")
-            return False
-        except Exception as e:
-            print(f"\n❌ Sync failed: {e}")
-            return False
-
     def show_index_stats(self):
         """Show current index statistics."""
         print("📊 Getting index statistics...")

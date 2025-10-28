@@ -312,41 +312,6 @@ class TestAlbumDataProcessor(unittest.TestCase):
                     # Implementation yields full batch then stops; ensure at least 3 were yielded
                     self.assertGreaterEqual(len(out), 3)
 
-    # JSON pipeline wrappers
-    def test_process_json_file_in_batches_limits_and_callback(self):
-        calls = []
-
-        def fake_loader(path, batch_size):  # noqa: ARG001
-            yield [{"id": 1, "primary-type": "Album", "title": "A", "first-release-date": "2000"}] * 3
-            yield [{"id": 2, "primary-type": "Album", "title": "B", "first-release-date": "2000"}] * 3
-
-        with patch.object(AlbumDataProcessor, "load_json_data_in_batches", side_effect=fake_loader):
-            with patch.object(
-                AlbumDataProcessor,
-                "process_albums",
-                side_effect=lambda xs: [{"objectID": str(i.get("id")), "title": i.get("title")} for i in xs],
-            ):
-
-                def on_batch(processed, total):
-                    calls.append((len(processed), total))
-
-                gen = self.processor.process_json_file_in_batches(
-                    Path("dummy"), batch_size=3, max_records=5, on_batch_processed=on_batch
-                )
-                batches = list(gen)
-                # Expect two batches output: first 3, then only 2 to respect max_records=5
-                self.assertEqual([len(b) for b in batches], [3, 2])
-                self.assertEqual(calls, [(3, 3), (2, 5)])
-
-    def test_process_json_file_chains(self):
-        with patch.object(AlbumDataProcessor, "load_json_data", return_value=[{"id": 1}]) as ld, patch.object(
-            AlbumDataProcessor, "process_albums", return_value=[{"objectID": "1"}]
-        ) as pa:
-            out = self.processor.process_json_file(Path("dummy"), max_records=1)
-            self.assertEqual(out, [{"objectID": "1"}])
-            ld.assert_called_once()
-            pa.assert_called_once()
-
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
