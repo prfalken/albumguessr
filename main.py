@@ -8,17 +8,15 @@ processes the data, and indexes it to Algolia for search functionality.
 
 import argparse
 import sys
-from pathlib import Path
-from typing import Optional, List, Dict, Any
+from loguru import logger
 
-from algolia_searcher import AlgoliaSearcher
 from config import Config
-from data_processor import AlbumDataProcessor
 
 from algoliasearch.search.client import SearchClientSync
+from algolia import AlgoliaApp
 from algolia_indexer import AlgoliaIndexer
 from algolia_searcher import AlgoliaSearcher
-from algolia import AlgoliaApp
+from data_processor import AlbumDataProcessor
 
 
 class MusicAlbumSyncApp:
@@ -39,25 +37,23 @@ class MusicAlbumSyncApp:
             self.config.validate()
             return True
         except ValueError as e:
-            print(f"❌ Environment validation failed: {e}")
-            print("\n📝 Please create a .env file with the following variables:")
-            print("   - KAGGLE_USERNAME: Your Kaggle username")
-            print("   - KAGGLE_KEY: Your Kaggle API key")
-            print("   - ALGOLIA_APPLICATION_ID: Your Algolia application ID")
-            print("   - ALGOLIA_API_KEY: Your Algolia admin API key")
-            print("   - ALGOLIA_INDEX_NAME: Name for your albums index (optional, defaults to 'albums')")
-            print("\n💡 You can copy .env.example to .env and fill in your credentials.")
+            logger.error(f"Environment validation failed: {e}")
+            logger.error("Please create a .env file with the following variables:")
+            logger.error("   - ALGOLIA_APPLICATION_ID: Your Algolia application ID")
+            logger.error("   - ALGOLIA_API_KEY: Your Algolia admin API key")
+            logger.error("   - ALGOLIA_INDEX_NAME: Name for your albums index (optional, defaults to 'albums')")
+            logger.error("\n💡 You can copy .env.example to .env and fill in your credentials.")
             return False
 
     def show_index_stats(self):
         """Show current index statistics."""
-        print("📊 Getting index statistics...")
+        logger.info("Getting index statistics...")
         try:
             stats = self.algolia_app.get_index_stats()
-            print(stats)
+            logger.info(stats)
 
         except Exception as e:
-            print(f"❌ Failed to get index stats: {e}")
+            logger.error(f"Failed to get index stats: {e}")
 
 
 def main():
@@ -140,15 +136,15 @@ def main():
         app.algolia_app.configure_index_settings()
     elif args.search:
         results = app.algolia_searcher.search_albums(args.search)
-        print("🔍 Search results:")
+        logger.info("Search results:")
         for result in results:
-            print(
+            logger.info(
                 result["title"],
                 result.get("main_artist", "N/A"),
                 result.get("release_year", "N/A"),
             )
     else:
-        print("🚀 Starting DB-driven sync (MusicBrainz → Algolia)")
+        logger.info("Starting DB-driven sync (MusicBrainz → Algolia)")
         total_indexed = 0
         for batch in app.data_processor.stream_albums_from_db(
             batch_size=args.batch_size, max_records=args.max_records
@@ -157,8 +153,8 @@ def main():
                 continue
             app.algolia_indexer.batch_index_records(batch)
             total_indexed += len(batch)
-            print(f"✅ Indexed so far: {total_indexed}")
-        print(f"🎉 Completed DB sync. Total indexed: {total_indexed}")
+            logger.info(f"Indexed so far: {total_indexed}")
+        logger.info(f"Completed DB sync. Total indexed: {total_indexed}")
 
 
 if __name__ == "__main__":

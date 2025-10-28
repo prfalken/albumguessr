@@ -1,6 +1,8 @@
 from config import Config
 from algoliasearch.search.client import SearchClientSync
 
+from loguru import logger
+
 
 class AlgoliaApp:
     def __init__(self, config: Config, client: SearchClientSync):
@@ -12,25 +14,25 @@ class AlgoliaApp:
     def clear_index(self) -> None:
         """Clear all records from the Algolia index."""
         try:
-            print(f"🧹 Clearing index '{self.index_name}'...")
+            logger.info(f"Clearing index '{self.index_name}'...")
             self.client.clear_objects(index_name=self.index_name)
-            print(f"✅ Index '{self.index_name}' cleared successfully.")
+            logger.info(f"Index '{self.index_name}' cleared successfully.")
         except Exception as e:
-            print(f"⚠️  Error clearing index '{self.index_name}': {e}")
+            logger.error(f"Error clearing index '{self.index_name}': {e}")
 
     def get_index_stats(self):
         """Retrieve statistics for the Algolia index."""
         try:
             stats = self.client.list_indices()
-            print(f"📈 Index stats for '{self.index_name}': {stats}")
+            logger.info(f"Index stats for '{self.index_name}': {stats}")
             print(stats)
         except Exception as e:
-            print(f"⚠️  Error retrieving index stats: {e}")
+            logger.error(f"Error retrieving index stats: {e}")
             return {}
 
     def configure_index_settings(self) -> None:
         """Configure Algolia index settings for optimal album search with rating support."""
-        print("⚙️  Configuring index settings for optimal album search...")
+        logger.info("Configuring index settings for optimal album search...")
         try:
             self.client.set_settings(
                 index_name=self.index_name,
@@ -50,6 +52,6 @@ class AlgoliaApp:
                     ],
                 },
             )
-            print("✅ Algolia settings updated")
+            logger.info("Algolia settings updated")
         except Exception as e:
-            print(f"⚠️  Failed to update Algolia settings: {e}")
+            logger.error(f"Failed to update Algolia settings: {e}")

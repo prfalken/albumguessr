@@ -6,6 +6,8 @@ from typing import Dict, List, Any
 from tqdm import tqdm
 from algolia import AlgoliaApp
 
+from loguru import logger
+
 
 class AlgoliaIndexer(AlgoliaApp):
     """Handles indexing album data to Algolia with rating support."""
@@ -13,11 +15,11 @@ class AlgoliaIndexer(AlgoliaApp):
     def batch_index_records(self, records: List[Dict[str, Any]]) -> None:
         """Index records in batches to Algolia."""
         if not records:
-            print("⚠️  No records to index")
+            logger.error("No records to index")
             return
 
         total_records = len(records)
-        print(f"📤 Indexing {total_records} records in batches of {self.batch_size}")
+        logger.info(f"Indexing {total_records} records in batches of {self.batch_size}")
 
         success_count = 0
         error_count = 0
@@ -36,7 +38,7 @@ class AlgoliaIndexer(AlgoliaApp):
                 success_count += len(batch)
 
             except Exception as e:
-                print(f"⚠️  Error processing batch: {e}")
+                logger.error(f"Error processing batch: {e}")
                 error_count += len(batch)
 
-        print(f"✅ Indexing completed: {success_count} successful, {error_count} errors")
+        logger.info(f"Indexing completed: {success_count} successful, {error_count} errors")

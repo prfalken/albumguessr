@@ -175,7 +175,7 @@ class AlbumDataProcessor:
             return None
         self.processed_count += 1
         if len(json.dumps(album)) > 10000:
-            print(f"This album is too big: {json.dumps(album, ensure_ascii=False)}")
+            logger.warning(f"Album is too big: {json.dumps(album, ensure_ascii=False)}")
         return album
 
     def stream_albums_from_db(
