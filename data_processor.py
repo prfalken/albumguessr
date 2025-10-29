@@ -157,9 +157,6 @@ class AlbumDataProcessor:
         if cover_release_gid:
             base = f"https://coverartarchive.org/release/{cover_release_gid}/front"
             album["cover_art_url"] = base
-            album["cover_art_url_250"] = f"{base}-250"
-            album["cover_art_url_500"] = f"{base}-500"
-            album["cover_art_url_1200"] = f"{base}-1200"
         if not album.get("title") or not album.get("objectID"):
             return None
         self.processed_count += 1

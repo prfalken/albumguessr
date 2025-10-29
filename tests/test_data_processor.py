@@ -1,12 +1,4 @@
-import json
-import sys
-import types
-import importlib
-import tempfile
 import unittest
-from pathlib import Path
-from typing import Any, Dict, List
-
 from unittest.mock import patch, MagicMock
 
 from data_processor import AlbumDataProcessor
@@ -77,9 +69,6 @@ class TestAlbumDataProcessor(unittest.TestCase):
         # Cover art URLs
         base = "https://coverartarchive.org/release/rel-1/front"
         self.assertEqual(out["cover_art_url"], base)
-        self.assertEqual(out["cover_art_url_250"], base + "-250")
-        self.assertEqual(out["cover_art_url_500"], base + "-500")
-        self.assertEqual(out["cover_art_url_1200"], base + "-1200")
 
     def test_row_to_album_missing_required_returns_none(self):
         row_missing_id = {"title": "X"}
