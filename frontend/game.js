@@ -172,6 +172,10 @@ class AlbumGuessrGame {
 
             this.mysteryAlbum = await this.algoliaIndex.getObject(releaseGroupId, { attributesToRetrieve: attrs });
             this.normalizeAlbumContributors(this.mysteryAlbum);
+            // Pre-compute continents for the mystery album (derived from countries)
+            if (Array.isArray(this.mysteryAlbum.countries)) {
+                this.mysteryAlbum.continents = this.getContinentsForCountryCodes(this.mysteryAlbum.countries);
+            }
             console.log('Loaded mystery album from mistery-albums.jsonl');
             console.log(this.mysteryAlbum);
             return this.mysteryAlbum;
@@ -405,6 +409,11 @@ class AlbumGuessrGame {
         this.guessCount++;
         const isCorrect = this.selectedResult.objectID === this.mysteryAlbum.objectID;
         
+        // Derive continents for the selected result so UI can render that section
+        if (Array.isArray(this.selectedResult.countries)) {
+            this.selectedResult.continents = this.getContinentsForCountryCodes(this.selectedResult.countries);
+        }
+
         const guess = {
             album: this.selectedResult,
             correct: isCorrect,
@@ -478,6 +487,29 @@ class AlbumGuessrGame {
                 }
             }
         });
+
+        // Additional derived clue: continents overlap (from countries)
+        try {
+            const guessCountries = Array.isArray(guess.countries) ? guess.countries : [];
+            const mysteryCountries = Array.isArray(mystery.countries) ? mystery.countries : [];
+            if (guessCountries.length > 0 && mysteryCountries.length > 0) {
+                const guessContinents = this.getContinentsForCountryCodes(guessCountries);
+                const mysteryContinents = this.getContinentsForCountryCodes(mysteryCountries);
+                const setMystery = new Set(mysteryContinents);
+                const overlap = guessContinents.filter(c => setMystery.has(c));
+                if (overlap.length > 0) {
+                    const cat = GAME_CONFIG.clueCategories.find(c => c.key === 'continents');
+                    sharedClues.push({
+                        category: 'continents',
+                        label: cat ? cat.label : 'Continents',
+                        icon: cat ? cat.icon : 'bi-globe-europe-africa',
+                        values: Array.from(new Set(overlap))
+                    });
+                }
+            }
+        } catch (e) {
+            // ignore continent errors
+        }
 
         return sharedClues;
     }
@@ -638,16 +670,44 @@ class AlbumGuessrGame {
             return;
         }
 
-        const cluesHTML = Array.from(this.discoveredClues.entries()).map(([category, values]) => {
-            const categoryConfig = GAME_CONFIG.clueCategories.find(c => c.key === category);
-            if (!categoryConfig) return '';
+        const cluesHTML = GAME_CONFIG.clueCategories.map(catConf => {
+            // Skip rendering a standalone continents panel; we merge continents under countries
+            if (catConf.key === 'continents') return '';
+
+            if (catConf.key === 'countries') {
+                const countriesSet = this.discoveredClues.get('countries') || new Set();
+                const continentsSet = this.discoveredClues.get('continents') || new Set();
+                if (countriesSet.size === 0 && continentsSet.size === 0) return '';
+
+                const countriesHTML = Array.from(countriesSet).map(code => {
+                    const c = String(code);
+                    return `<span class="clue-value">${this.escapeHtml(this.getCountryName(c))}</span>`;
+                }).join('');
+                const continentsHTML = Array.from(continentsSet).map(name => {
+                    return `<span class="clue-value">${this.escapeHtml(String(name))}</span>`;
+                }).join('');
+
+                return `
+                    <div class="clue-category">
+                        <div class="clue-category-title">
+                            <i class="bi ${catConf.icon}"></i>
+                            ${catConf.label}
+                        </div>
+                        <div class="clue-values">
+                            ${countriesHTML}${continentsHTML}
+                        </div>
+                    </div>
+                `;
+            }
+
+            const values = this.discoveredClues.get(catConf.key);
+            if (!values || values.size === 0) return '';
 
             let valuesHTML = '';
-            if (category === 'contributors') {
+            if (catConf.key === 'contributors') {
                 const nameToDetail = this.buildContributorDetailMap();
                 valuesHTML = Array.from(values).map(name => {
                     const safeName = this.escapeHtml(name);
-                    // Render musician name only (no avatar), preserving data-name for potential future use
                     return `
                         <span class="clue-value clue-musician" data-name="${safeName}">
                             <span class="clue-musician-name">${safeName}</span>
@@ -657,16 +717,15 @@ class AlbumGuessrGame {
             } else {
                 valuesHTML = Array.from(values).map(value => {
                     const v = String(value);
-                    const rendered = category === 'countries' ? this.getCountryName(v) : v;
-                    return `<span class="clue-value">${this.escapeHtml(rendered)}</span>`;
+                    return `<span class="clue-value">${this.escapeHtml(v)}</span>`;
                 }).join('');
             }
 
             return `
                 <div class="clue-category">
                     <div class="clue-category-title">
-                        <i class="bi ${categoryConfig.icon}"></i>
-                        ${categoryConfig.label}
+                        <i class="bi ${catConf.icon}"></i>
+                        ${catConf.label}
                     </div>
                     <div class="clue-values">
                         ${valuesHTML}
@@ -769,7 +828,7 @@ class AlbumGuessrGame {
                     const revealed = revealedByCategory.get(catKey) || new Set();
 
                     const guessValues = Array.isArray(guessVal) ? guessVal : [guessVal];
-                    const valuesHTML = guessValues.map(v => {
+                    const countryChipsHTML = guessValues.map(v => {
                         const vStr = String(v);
                         const display = catKey === 'countries' ? this.getCountryName(vStr) : vStr;
                         const isCommon = revealed.has(vStr);
@@ -777,7 +836,18 @@ class AlbumGuessrGame {
                         return `<span class="guess-chip ${cls}">${this.escapeHtml(display)}</span>`;
                     }).join('');
 
+                    let continentsChipsHTML = '';
+                    if (catKey === 'countries') {
+                        const continents = this.getContinentsForCountryCodes(guessValues);
+                        const continentsRevealed = revealedByCategory.get('continents') || new Set();
+                        continentsChipsHTML = continents.map(name => {
+                            const cls = continentsRevealed.has(String(name)) ? 'guess-chip-hit' : 'guess-chip-miss';
+                            return `<span class="guess-chip ${cls}">${this.escapeHtml(String(name))}</span>`;
+                        }).join('');
+                    }
+
                     // Only render section if there is at least one value
+                    const valuesHTML = countryChipsHTML + continentsChipsHTML;
                     if (valuesHTML) {
                         sections.push(`
                             <div class="guess-attr">
@@ -951,6 +1021,60 @@ class AlbumGuessrGame {
             // ignore and fallback
         }
         return regionCode;
+    }
+
+    // --- Continents mapping utilities ---
+    getContinentsForCountryCodes(codes) {
+        if (!Array.isArray(codes)) return [];
+        const map = this.getContinentCountryMap();
+        const continents = new Set();
+        codes.forEach(code => {
+            const cc = String(code || '').toUpperCase();
+            for (const [continent, set] of map.entries()) {
+                if (set.has(cc)) {
+                    continents.add(continent);
+                }
+            }
+        });
+        return Array.from(continents);
+    }
+
+    getContinentCountryMap() {
+        if (this._continentCountryMap) return this._continentCountryMap;
+
+        // Define ISO 3166-1 alpha-2 country codes by continent (not exhaustive comments; data-driven)
+        const AF = [
+            'DZ','AO','BJ','BW','BF','BI','CM','CV','CF','TD','KM','CG','CD','CI','DJ','EG','GQ','ER','ET','GA','GM','GH','GN','GW','KE','LS','LR','LY','MG','MW','ML','MR','MU','MA','MZ','NA','NE','NG','RE','RW','ST','SN','SC','SL','SO','ZA','SS','SD','SZ','TZ','TG','TN','UG','EH','YT','ZM','ZW'
+        ];
+        const EU = [
+            'AL','AD','AT','BY','BE','BA','BG','HR','CY','CZ','DK','EE','FO','FI','FR','DE','GI','GR','GG','HU','IS','IE','IM','IT','JE','LV','LI','LT','LU','MT','MD','MC','ME','NL','MK','NO','PL','PT','RO','RU','SM','RS','SK','SI','ES','SE','CH','TR','UA','GB','VA','AX','XK'
+        ];
+        const AS = [
+            'AF','AM','AZ','BH','BD','BT','BN','KH','CN','GE','HK','IN','ID','IR','IQ','IL','JP','JO','KZ','KW','KG','LA','LB','MO','MY','MV','MN','MM','NP','KP','OM','PK','PS','PH','QA','SA','SG','KR','LK','SY','TW','TJ','TH','TL','TM','AE','UZ','VN','YE'
+        ];
+        const NA = [
+            'US','CA','MX','GL','BM','PM','AG','AI','AW','BS','BB','BQ','KY','CU','CW','DM','DO','GD','GP','HT','JM','MQ','MS','PR','BL','KN','MF','SX','TT','VC','VG','VI','LC','BZ','CR','SV','GT','HN','NI','PA','TC'
+        ];
+        const SA = [
+            'AR','BO','BR','CL','CO','EC','FK','GF','GY','PE','PY','SR','UY','VE'
+        ];
+        const OC = [
+            'AS','AU','CK','FJ','PF','GU','KI','MH','FM','NR','NC','NZ','NU','NF','MP','PW','PG','PN','WS','SB','TK','TO','TV','UM','VU','WF'
+        ];
+        const AN = [
+            'AQ','BV','GS','HM','TF'
+        ];
+
+        const map = new Map();
+        map.set('Africa', new Set(AF));
+        map.set('Europe', new Set(EU));
+        map.set('Asia', new Set(AS));
+        map.set('North America', new Set(NA));
+        map.set('South America', new Set(SA));
+        map.set('Oceania', new Set(OC));
+        map.set('Antarctica', new Set(AN));
+        this._continentCountryMap = map;
+        return map;
     }
 
     caseInsensitiveArrayIntersection(arrA, arrB) {
