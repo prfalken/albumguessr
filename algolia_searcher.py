@@ -1,21 +1,31 @@
-from config import Config
 from algolia import AlgoliaApp
+
+from loguru import logger
 
 
 class AlgoliaSearcher(AlgoliaApp):
     """Handles indexing album data to Algolia with full implementation."""
 
-    def search_albums(self, query: str, params: dict = None) -> dict:
+    def search_albums(self, query: str, params: dict = None) -> list[dict]:
         """Search albums in the Algolia index."""
-        response = self.client.search(
-            search_method_params={
-                "requests": [
-                    {
-                        "indexName": self.index_name,
-                        "query": query,
-                        "optionalFilters": "release_year:1985",
-                    },
+        response = self.client.search_single_index(
+            index_name=self.index_name,
+            search_params={
+                "query": query,
+                **(params or {}),
+                "attributesToRetrieve": [
+                    "title",
+                    "main_artist",
                 ],
             },
         )
-        return response.to_dict().get("results", [])[0].get("hits", [])
+        hits = response.hits
+        results = []
+        if hits:
+            for hit in hits:
+                results.append(
+                    {
+                        "title": hit.to_dict().get("title"),
+                    }
+                )
+        return results
