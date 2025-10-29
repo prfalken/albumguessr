@@ -94,6 +94,13 @@ class AlbumDataProcessor:
         if secondary_names:
             album["secondary_types"] = [self.clean_text(s) for s in secondary_names if s]
 
+        # Primary label from earliest release in the group
+        primary_label = row.get("primary_label")
+        if primary_label:
+            cleaned_label = self.clean_text(primary_label)
+            if cleaned_label:
+                album["label"] = cleaned_label
+
         # Musicians (contributors across recordings of the album)
         musician_names = row.get("musician_names") or []
         if musician_names:

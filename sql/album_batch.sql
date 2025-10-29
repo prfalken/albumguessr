@@ -13,6 +13,7 @@ SELECT
     sec_types.secondary_names,
     mus.musician_names,
     mus.musician_details,
+    pl.primary_label,
     caa.cover_release_gid
 FROM musicbrainz.release_group rg
 JOIN musicbrainz.release_group_primary_type rpt ON rpt.id = rg.type
@@ -71,6 +72,26 @@ LEFT JOIN LATERAL (
     FROM per_artist
     JOIN musicbrainz.artist a2 ON a2.id = per_artist.artist_id
 ) mus ON TRUE
+LEFT JOIN LATERAL (
+    WITH r_with_min AS (
+        SELECT
+            r.id AS release_id,
+            COALESCE(MIN(rev.date_year), 9999) AS y,
+            COALESCE(MIN(rev.date_month), 12) AS m,
+            COALESCE(MIN(rev.date_day), 31) AS d
+        FROM musicbrainz.release r
+        LEFT JOIN musicbrainz.release_event rev ON rev.release = r.id
+        WHERE r.release_group = rg.id
+        GROUP BY r.id
+    )
+    SELECT l.name AS primary_label
+    FROM r_with_min rw
+    JOIN musicbrainz.release r ON r.id = rw.release_id
+    JOIN musicbrainz.release_label rl ON rl.release = r.id
+    JOIN musicbrainz.label l ON l.id = rl.label
+    ORDER BY rw.y, rw.m, rw.d, rl.catalog_number NULLS LAST
+    LIMIT 1
+) pl ON TRUE
 LEFT JOIN LATERAL (
     SELECT rel_choice.rel_gid AS cover_release_gid
     FROM (

@@ -21,6 +21,8 @@ class AlbumGuessrGame {
         this.initializeDOM();
         // Kick off auth flow wiring after DOM is available
         this.postDomAuthSetup();
+        // Ensure label is part of the clue categories
+        this.ensureLabelClueCategory();
         this.initializeGame();
         this.bindEvents();
     }
@@ -129,6 +131,19 @@ class AlbumGuessrGame {
             });
     }
 
+    ensureLabelClueCategory() {
+        try {
+            if (typeof GAME_CONFIG === 'object' && GAME_CONFIG && Array.isArray(GAME_CONFIG.clueCategories)) {
+                const exists = GAME_CONFIG.clueCategories.some(c => c && c.key === 'label');
+                if (!exists) {
+                    GAME_CONFIG.clueCategories.push({ key: 'label', label: 'Label', icon: 'bi-vinyl' });
+                }
+            }
+        } catch (e) {
+            // no-op if GAME_CONFIG is not defined or malformed
+        }
+    }
+
     async selectDailyAlbum() {
         // Pick a random line from mistery-albums.jsonl and use its id as Algolia objectID
         try {
@@ -152,7 +167,7 @@ class AlbumGuessrGame {
             const attrs = [
                 'objectID', 'title', 'artists', 'genres', 'release_year', 'countries', 'tags',
                 'contributors', 'rating_value', 'rating_count', 'rating',
-                'cover_art_url'
+                'cover_art_url', 'label'
             ];
 
             this.mysteryAlbum = await this.algoliaIndex.getObject(releaseGroupId, { attributesToRetrieve: attrs });
@@ -299,7 +314,7 @@ class AlbumGuessrGame {
                 hitsPerPage: 20,
                 attributesToRetrieve: [
                     'objectID', 'title', 'artists', 'genres', 'release_year', 'countries', 'contributors',
-                    'cover_art_url'
+                    'cover_art_url', 'label'
                 ]
             });
 
