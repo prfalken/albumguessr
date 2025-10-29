@@ -203,6 +203,112 @@
             </div>
         </main>
 
+        <!-- HTML Templates (UI structure lives here; JS only clones and fills) -->
+        <section style="display:none" aria-hidden="true">
+            <!-- Search Result Item -->
+            <template id="tpl-search-result">
+                <div class="search-result">
+                    <img class="search-result-thumb" alt="Cover">
+                    <div class="search-result-thumb placeholder"></div>
+                    <div class="search-result-text">
+                        <div class="search-result-title"></div>
+                        <div class="search-result-artist"></div>
+                        <div class="search-result-meta"></div>
+                    </div>
+                </div>
+            </template>
+
+            <!-- Clues: empty state -->
+            <template id="tpl-no-clues">
+                <div class="no-clues">
+                    <i class="bi bi-search"></i>
+                    <p>Make a first guess to reveal clues...</p>
+                </div>
+            </template>
+
+            <!-- Clue Category Card -->
+            <template id="tpl-clue-category">
+                <div class="clue-category">
+                    <div class="clue-category-title">
+                        <i></i>
+                        <span class="clue-category-label"></span>
+                    </div>
+                    <div class="clue-values"></div>
+                </div>
+            </template>
+
+            <!-- Clue Value Chip -->
+            <template id="tpl-clue-value">
+                <span class="clue-value"></span>
+            </template>
+
+            <!-- Guess Item -->
+            <template id="tpl-guess-item">
+                <div class="guess-item">
+                    <div class="guess-header">
+                        <img class="guess-cover" alt="Cover">
+                        <div class="guess-cover placeholder"></div>
+                        <div class="guess-basic">
+                            <div class="guess-title"></div>
+                            <div class="guess-artist"></div>
+                        </div>
+                        <div class="guess-clues"></div>
+                    </div>
+                    <div class="guess-details"></div>
+                </div>
+            </template>
+
+            <!-- Guess Attribute Section -->
+            <template id="tpl-guess-attr">
+                <div class="guess-attr">
+                    <div class="guess-attr-title"><i></i> <span class="guess-attr-label"></span></div>
+                    <div class="guess-attr-values"></div>
+                </div>
+            </template>
+
+            <!-- Guess Chip -->
+            <template id="tpl-guess-chip">
+                <span class="guess-chip"></span>
+            </template>
+
+            <!-- Victory Modal: Mystery Album Block -->
+            <template id="tpl-mystery-album">
+                <div>
+                    <div class="mystery-album-title"></div>
+                    <div class="mystery-album-artist"></div>
+                    <img class="mystery-album-cover" alt="Cover">
+                    <div class="mystery-album-meta"></div>
+                </div>
+            </template>
+
+            <!-- User History Item -->
+            <template id="tpl-history-item">
+                <div class="history-item">
+                    <img class="history-cover" alt="Cover">
+                    <div class="history-text">
+                        <div class="history-title"></div>
+                        <div class="history-artist"></div>
+                        <div class="history-meta"></div>
+                    </div>
+                    <div class="history-actions"></div>
+                </div>
+            </template>
+
+            <!-- User History: empty and error states -->
+            <template id="tpl-history-empty">
+                <div class="no-clues" style="padding: 1rem;">
+                    <i class="bi bi-inbox"></i>
+                    <p>No wins saved yet. Find a mystery album!</p>
+                </div>
+            </template>
+            <template id="tpl-history-error">
+                <div class="no-clues" style="padding: 1rem;">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <p>Unable to load history. Try again later.</p>
+                </div>
+            </template>
+        </section>
+
         <footer class="footer">
             <button class="footer-button" id="instructions-button">
                 <i class="bi bi-question-circle"></i>

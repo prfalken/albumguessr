@@ -85,6 +85,21 @@ class AlbumGuessrGame {
             userHistoryList: document.getElementById('user-history-list')
         };
 
+        // HTML templates: UI structure is defined in HTML, JS only clones and fills
+        this.templates = {
+            searchResult: document.getElementById('tpl-search-result'),
+            clueCategory: document.getElementById('tpl-clue-category'),
+            clueValue: document.getElementById('tpl-clue-value'),
+            guessItem: document.getElementById('tpl-guess-item'),
+            guessAttr: document.getElementById('tpl-guess-attr'),
+            guessChip: document.getElementById('tpl-guess-chip'),
+            mysteryAlbum: document.getElementById('tpl-mystery-album'),
+            historyItem: document.getElementById('tpl-history-item'),
+            noClues: document.getElementById('tpl-no-clues'),
+            historyEmpty: document.getElementById('tpl-history-empty'),
+            historyError: document.getElementById('tpl-history-error')
+        };
+
         // Show refresh-based info
         this.elements.gameDate.textContent = 'New mystery on each refresh';
     }
@@ -339,39 +354,60 @@ class AlbumGuessrGame {
             return;
         }
 
-        const resultsHTML = this.searchResults.map((album, index) => {
-            const coverUrl = this.getCoverUrl(album, 250);
-            return `
-            <div class="search-result ${index === 0 ? 'selected' : ''}" data-album-id="${album.objectID}" data-index="${index}">
-                ${coverUrl ? `<img class=\"search-result-thumb\" src=\"${coverUrl}\" alt=\"Cover\">` : `<div class=\"search-result-thumb placeholder\"></div>`}
-                <div class="search-result-text">
-                    <div class="search-result-title">${this.escapeHtml(album.title)}</div>
-                    <div class="search-result-artist">${this.escapeHtml(album.artists ? album.artists.join(', ') : 'Unknown artist')}</div>
-                    <div class="search-result-meta">
-                        ${album.release_year ? `<span>${album.release_year}</span>` : ''}
-                        ${album.genres && album.genres.length > 0 ? `<span>${album.genres[0]}</span>` : ''}
-                        ${album.countries && album.countries.length > 0 ? `<span>${this.escapeHtml(this.getCountryName(album.countries[0]))}</span>` : ''}
-                    </div>
-                </div>
-            </div>`;
-        }).join('');
+        const container = this.elements.searchResults;
+        container.replaceChildren();
+        this.searchResults.forEach((album, index) => {
+            const tpl = this.templates.searchResult;
+            if (!tpl) return;
+            const el = tpl.content.firstElementChild.cloneNode(true);
+            el.dataset.albumId = album.objectID;
+            el.dataset.index = String(index);
+            if (index === 0) el.classList.add('selected');
 
-        this.elements.searchResults.innerHTML = resultsHTML;
-        this.elements.searchResults.classList.add('show');
+            const coverUrl = this.getCoverUrl(album, 250);
+            const img = el.querySelector('img.search-result-thumb');
+            const placeholder = el.querySelector('.search-result-thumb.placeholder');
+            if (coverUrl && img) {
+                img.src = coverUrl;
+                img.style.display = '';
+                if (placeholder) placeholder.style.display = 'none';
+            } else {
+                if (img) img.style.display = 'none';
+                if (placeholder) placeholder.style.display = 'inline-block';
+            }
+
+            const titleEl = el.querySelector('.search-result-title');
+            const artistEl = el.querySelector('.search-result-artist');
+            const metaEl = el.querySelector('.search-result-meta');
+            if (titleEl) titleEl.textContent = album.title || '';
+            if (artistEl) artistEl.textContent = (album.artists && album.artists.length > 0) ? album.artists.join(', ') : 'Unknown artist';
+            if (metaEl) {
+                metaEl.replaceChildren();
+                const parts = [];
+                if (album.release_year) parts.push(String(album.release_year));
+                if (album.genres && album.genres.length > 0) parts.push(String(album.genres[0]));
+                if (album.countries && album.countries.length > 0) parts.push(this.getCountryName(album.countries[0]));
+                parts.forEach(text => {
+                    const span = document.createElement('span');
+                    span.textContent = text;
+                    metaEl.appendChild(span);
+                });
+            }
+
+            el.addEventListener('click', () => {
+                const albumId = el.dataset.albumId;
+                const albumObj = this.searchResults.find(a => a.objectID === albumId);
+                this.selectedResult = albumObj || null;
+                this.updateSelectedResult(index);
+                this.submitGuess();
+            });
+
+            container.appendChild(el);
+        });
+        container.classList.add('show');
 
         // Set first result as selected by default
         this.selectedResult = this.searchResults[0];
-
-        // Bind click events to search results
-        this.elements.searchResults.querySelectorAll('.search-result').forEach(result => {
-            result.addEventListener('click', () => {
-                const albumId = result.dataset.albumId;
-                const album = this.searchResults.find(a => a.objectID === albumId);
-                this.selectedResult = album;
-                this.updateSelectedResult(parseInt(result.dataset.index));
-                this.submitGuess();
-            });
-        });
     }
 
     navigateSearchResults(direction) {
@@ -660,245 +696,269 @@ class AlbumGuessrGame {
     }
 
     updateCluesBoard() {
+        const container = this.elements.cluesContainer;
+        container.replaceChildren();
+
         if (this.discoveredClues.size === 0) {
-            this.elements.cluesContainer.innerHTML = `
-                <div class="no-clues">
-                    <i class="bi bi-search"></i>
-                    <p>Make a first guess to reveal clues...</p>
-                </div>
-            `;
+            const tpl = this.templates.noClues;
+            if (tpl) container.appendChild(tpl.content.firstElementChild.cloneNode(true));
             return;
         }
 
-        const cluesHTML = GAME_CONFIG.clueCategories.map(catConf => {
-            // Skip rendering a standalone continents panel; we merge continents under countries
-            if (catConf.key === 'continents') return '';
+        GAME_CONFIG.clueCategories.forEach(catConf => {
+            // Skip standalone continents panel; continents merge under countries
+            if (catConf.key === 'continents') return;
 
             if (catConf.key === 'countries') {
                 const countriesSet = this.discoveredClues.get('countries') || new Set();
                 const continentsSet = this.discoveredClues.get('continents') || new Set();
-                if (countriesSet.size === 0 && continentsSet.size === 0) return '';
+                if (countriesSet.size === 0 && continentsSet.size === 0) return;
 
-                const countriesHTML = Array.from(countriesSet).map(code => {
-                    const c = String(code);
-                    return `<span class="clue-value">${this.escapeHtml(this.getCountryName(c))}</span>`;
-                }).join('');
-                const continentsHTML = Array.from(continentsSet).map(name => {
-                    return `<span class="clue-value">${this.escapeHtml(String(name))}</span>`;
-                }).join('');
-
-                return `
-                    <div class="clue-category">
-                        <div class="clue-category-title">
-                            <i class="bi ${catConf.icon}"></i>
-                            ${catConf.label}
-                        </div>
-                        <div class="clue-values">
-                            ${countriesHTML}${continentsHTML}
-                        </div>
-                    </div>
-                `;
+                const catEl = this.templates.clueCategory.content.firstElementChild.cloneNode(true);
+                const titleIcon = catEl.querySelector('.clue-category-title i');
+                const titleLabel = catEl.querySelector('.clue-category-label');
+                if (titleIcon) titleIcon.className = `bi ${catConf.icon}`;
+                if (titleLabel) titleLabel.textContent = catConf.label;
+                const valuesEl = catEl.querySelector('.clue-values');
+                if (valuesEl) {
+                    Array.from(countriesSet).forEach(code => {
+                        const chip = this.templates.clueValue.content.firstElementChild.cloneNode(true);
+                        chip.textContent = this.getCountryName(String(code));
+                        valuesEl.appendChild(chip);
+                    });
+                    Array.from(continentsSet).forEach(name => {
+                        const chip = this.templates.clueValue.content.firstElementChild.cloneNode(true);
+                        chip.textContent = String(name);
+                        valuesEl.appendChild(chip);
+                    });
+                }
+                container.appendChild(catEl);
+                return;
             }
 
             const values = this.discoveredClues.get(catConf.key);
-            if (!values || values.size === 0) return '';
+            if (!values || values.size === 0) return;
 
-            let valuesHTML = '';
-            if (catConf.key === 'contributors') {
-                const nameToDetail = this.buildContributorDetailMap();
-                valuesHTML = Array.from(values).map(name => {
-                    const safeName = this.escapeHtml(name);
-                    return `
-                        <span class="clue-value clue-musician" data-name="${safeName}">
-                            <span class="clue-musician-name">${safeName}</span>
-                        </span>
-                    `;
-                }).join('');
-            } else {
-                valuesHTML = Array.from(values).map(value => {
-                    const v = String(value);
-                    return `<span class="clue-value">${this.escapeHtml(v)}</span>`;
-                }).join('');
+            const catEl = this.templates.clueCategory.content.firstElementChild.cloneNode(true);
+            const titleIcon = catEl.querySelector('.clue-category-title i');
+            const titleLabel = catEl.querySelector('.clue-category-label');
+            if (titleIcon) titleIcon.className = `bi ${catConf.icon}`;
+            if (titleLabel) titleLabel.textContent = catConf.label;
+            const valuesEl = catEl.querySelector('.clue-values');
+            if (valuesEl) {
+                Array.from(values).forEach(value => {
+                    const chip = this.templates.clueValue.content.firstElementChild.cloneNode(true);
+                    if (catConf.key === 'contributors') chip.classList.add('clue-musician');
+                    chip.textContent = String(value);
+                    valuesEl.appendChild(chip);
+                });
             }
-
-            return `
-                <div class="clue-category">
-                    <div class="clue-category-title">
-                        <i class="bi ${catConf.icon}"></i>
-                        ${catConf.label}
-                    </div>
-                    <div class="clue-values">
-                        ${valuesHTML}
-                    </div>
-                </div>
-            `;
-        }).join('');
-
-        this.elements.cluesContainer.innerHTML = cluesHTML;
+            container.appendChild(catEl);
+        });
     }
 
     updateGuessesHistory() {
+        const container = this.elements.guessesContainer;
         if (this.guesses.length === 0) {
-            this.elements.guessesContainer.innerHTML = '';
+            container.replaceChildren();
             return;
         }
 
-		const guessesHTML = this.guesses.slice().reverse().map(guess => {
+        container.replaceChildren();
+        this.guesses.slice().reverse().forEach(guess => {
+            const itemEl = this.templates.guessItem.content.firstElementChild.cloneNode(true);
+            if (guess.correct) itemEl.classList.add('victory');
+
             const coverUrl = this.getCoverUrl(guess.album, 250);
-            // Build per-attribute chips: green for common values, red for guessed-only values
-            let detailedCluesHTML = '';
+            const img = itemEl.querySelector('img.guess-cover');
+            const placeholder = itemEl.querySelector('.guess-cover.placeholder');
+            if (coverUrl && img) {
+                img.src = coverUrl;
+                img.style.display = '';
+                if (placeholder) placeholder.style.display = 'none';
+            } else {
+                if (img) img.style.display = 'none';
+                if (placeholder) placeholder.style.display = 'inline-block';
+            }
+
+            const titleEl = itemEl.querySelector('.guess-title');
+            const artistEl = itemEl.querySelector('.guess-artist');
+            if (titleEl) titleEl.textContent = guess.album.title || '';
+            if (artistEl) artistEl.textContent = (guess.album.artists && guess.album.artists.length > 0) ? guess.album.artists.join(', ') : 'Unknown artist';
+
+            const cluesEl = itemEl.querySelector('.guess-clues');
+            if (cluesEl) {
+                cluesEl.replaceChildren();
+                if (guess.correct) {
+                    cluesEl.classList.add('victory');
+                    const icon = document.createElement('i');
+                    icon.className = 'bi bi-trophy-fill';
+                    const text = document.createTextNode(' Victory!');
+                    cluesEl.appendChild(icon);
+                    cluesEl.appendChild(text);
+                } else {
+                    const icon = document.createElement('i');
+                    icon.className = 'bi bi-lightbulb';
+                    const text = document.createTextNode(` ${guess.cluesRevealed.length} clue(s)`);
+                    cluesEl.appendChild(icon);
+                    cluesEl.appendChild(text);
+                }
+            }
+
             if (!guess.correct) {
                 const categories = GAME_CONFIG.clueCategories.map(c => c.key);
                 const revealedByCategory = new Map();
                 (guess.cluesRevealed || []).forEach(c => revealedByCategory.set(c.category, new Set(c.values)));
 
-                const sections = [];
-                categories.forEach(catKey => {
-                    if (catKey === 'release_year') {
-                        // Year special-case: show chip relative to mystery year when available
-                        const gy = guess.album.release_year;
-                        const my = this.mysteryAlbum && this.mysteryAlbum.release_year;
-                        if (!gy) return;
-                        let cls = 'guess-chip-miss';
-                        let label = String(gy);
-                        if (my) {
-                            const gyi = parseInt(gy);
-                            const myi = parseInt(my);
-                            if (!isNaN(gyi) && !isNaN(myi)) {
-                                if (gyi === myi) {
-                                    cls = 'guess-chip-hit';
-                                } else if (gyi < myi) {
-                                    cls = 'guess-chip-miss';
-                                    label = `${gyi} (before)`;
-                                } else if (gyi > myi) {
-                                    cls = 'guess-chip-miss';
-                                    label = `${gyi} (after)`;
+                const detailsEl = itemEl.querySelector('.guess-details');
+                if (detailsEl) {
+                    categories.forEach(catKey => {
+                        if (catKey === 'release_year') {
+                            const gy = guess.album.release_year;
+                            const my = this.mysteryAlbum && this.mysteryAlbum.release_year;
+                            if (!gy) return;
+                            let cls = 'guess-chip-miss';
+                            let label = String(gy);
+                            if (my) {
+                                const gyi = parseInt(gy);
+                                const myi = parseInt(my);
+                                if (!isNaN(gyi) && !isNaN(myi)) {
+                                    if (gyi === myi) {
+                                        cls = 'guess-chip-hit';
+                                    } else if (gyi < myi) {
+                                        label = `${gyi} (before)`;
+                                    } else if (gyi > myi) {
+                                        label = `${gyi} (after)`;
+                                    }
                                 }
                             }
+                            const catConf = GAME_CONFIG.clueCategories.find(c => c.key === 'release_year');
+                            const attrEl = this.templates.guessAttr.content.firstElementChild.cloneNode(true);
+                            const icon = attrEl.querySelector('.guess-attr-title i');
+                            const lab = attrEl.querySelector('.guess-attr-label');
+                            if (icon) icon.className = `bi ${catConf.icon}`;
+                            if (lab) lab.textContent = catConf.label;
+                            const valuesEl = attrEl.querySelector('.guess-attr-values');
+                            const chip = this.templates.guessChip.content.firstElementChild.cloneNode(true);
+                            chip.classList.add(cls);
+                            chip.textContent = label;
+                            valuesEl.appendChild(chip);
+                            detailsEl.appendChild(attrEl);
+                            return;
                         }
-                        const catConf = GAME_CONFIG.clueCategories.find(c => c.key === 'release_year');
-                        sections.push(`
-                            <div class="guess-attr">
-                                <div class="guess-attr-title"><i class="bi ${catConf.icon}"></i> ${catConf.label}</div>
-                                <div class="guess-attr-values">
-                                    <span class="guess-chip ${cls}">${this.escapeHtml(label)}</span>
-                                </div>
-                            </div>
-                        `);
-                        return;
-                    }
 
-                    if (catKey === 'total_length_seconds') {
-                        const gl = guess.album.total_length_seconds;
-                        const ml = this.mysteryAlbum && this.mysteryAlbum.total_length_seconds;
-                        if (!gl) return;
-                        let cls = 'guess-chip-miss';
-                        let label = this.formatSeconds(gl);
-                        if (ml) {
-                            const gli = parseInt(gl);
-                            const mli = parseInt(ml);
-                            if (!isNaN(gli) && !isNaN(mli)) {
-                                if (gli === mli) {
-                                    cls = 'guess-chip-hit';
-                                } else if (gli < mli) {
-                                    cls = 'guess-chip-miss';
-                                    label = `${this.formatSeconds(gl)} (shorter)`;
-                                } else if (gli > mli) {
-                                    cls = 'guess-chip-miss';
-                                    label = `${this.formatSeconds(gl)} (longer)`;
+                        if (catKey === 'total_length_seconds') {
+                            const gl = guess.album.total_length_seconds;
+                            const ml = this.mysteryAlbum && this.mysteryAlbum.total_length_seconds;
+                            if (!gl) return;
+                            let cls = 'guess-chip-miss';
+                            let label = this.formatSeconds(gl);
+                            if (ml) {
+                                const gli = parseInt(gl);
+                                const mli = parseInt(ml);
+                                if (!isNaN(gli) && !isNaN(mli)) {
+                                    if (gli === mli) {
+                                        cls = 'guess-chip-hit';
+                                    } else if (gli < mli) {
+                                        label = `${this.formatSeconds(gl)} (shorter)`;
+                                    } else if (gli > mli) {
+                                        label = `${this.formatSeconds(gl)} (longer)`;
+                                    }
                                 }
                             }
+                            const catConf = GAME_CONFIG.clueCategories.find(c => c.key === 'total_length_seconds');
+                            const attrEl = this.templates.guessAttr.content.firstElementChild.cloneNode(true);
+                            const icon = attrEl.querySelector('.guess-attr-title i');
+                            const lab = attrEl.querySelector('.guess-attr-label');
+                            if (icon) icon.className = `bi ${catConf.icon}`;
+                            if (lab) lab.textContent = catConf.label;
+                            const valuesEl = attrEl.querySelector('.guess-attr-values');
+                            const chip = this.templates.guessChip.content.firstElementChild.cloneNode(true);
+                            chip.classList.add(cls);
+                            chip.textContent = label;
+                            valuesEl.appendChild(chip);
+                            detailsEl.appendChild(attrEl);
+                            return;
                         }
-                        const catConf = GAME_CONFIG.clueCategories.find(c => c.key === 'total_length_seconds');
-                        sections.push(`
-                            <div class="guess-attr">
-                                <div class="guess-attr-title"><i class="bi ${catConf.icon}"></i> ${catConf.label}</div>
-                                <div class="guess-attr-values">
-                                    <span class="guess-chip ${cls}">${this.escapeHtml(label)}</span>
-                                </div>
-                            </div>
-                        `);
-                        return;
-                    }
 
-                    const guessVal = guess.album[catKey];
-                    const mysteryVal = this.mysteryAlbum ? this.mysteryAlbum[catKey] : undefined;
-                    if (!guessVal) return;
-                    const catConf = GAME_CONFIG.clueCategories.find(c => c.key === catKey);
-                    const revealed = revealedByCategory.get(catKey) || new Set();
+                        const guessVal = guess.album[catKey];
+                        if (!guessVal) return;
+                        const catConf = GAME_CONFIG.clueCategories.find(c => c.key === catKey);
+                        const revealed = revealedByCategory.get(catKey) || new Set();
 
-                    const guessValues = Array.isArray(guessVal) ? guessVal : [guessVal];
-                    const countryChipsHTML = guessValues.map(v => {
-                        const vStr = String(v);
-                        const display = catKey === 'countries' ? this.getCountryName(vStr) : vStr;
-                        const isCommon = revealed.has(vStr);
-                        const cls = isCommon ? 'guess-chip-hit' : 'guess-chip-miss';
-                        return `<span class="guess-chip ${cls}">${this.escapeHtml(display)}</span>`;
-                    }).join('');
+                        const guessValues = Array.isArray(guessVal) ? guessVal : [guessVal];
+                        const chips = [];
+                        guessValues.forEach(v => {
+                            const vStr = String(v);
+                            const display = catKey === 'countries' ? this.getCountryName(vStr) : vStr;
+                            const isCommon = revealed.has(vStr);
+                            const chip = this.templates.guessChip.content.firstElementChild.cloneNode(true);
+                            chip.classList.add(isCommon ? 'guess-chip-hit' : 'guess-chip-miss');
+                            chip.textContent = display;
+                            chips.push(chip);
+                        });
 
-                    let continentsChipsHTML = '';
-                    if (catKey === 'countries') {
-                        const continents = this.getContinentsForCountryCodes(guessValues);
-                        const continentsRevealed = revealedByCategory.get('continents') || new Set();
-                        continentsChipsHTML = continents.map(name => {
-                            const cls = continentsRevealed.has(String(name)) ? 'guess-chip-hit' : 'guess-chip-miss';
-                            return `<span class="guess-chip ${cls}">${this.escapeHtml(String(name))}</span>`;
-                        }).join('');
-                    }
+                        if (catKey === 'countries') {
+                            const continents = this.getContinentsForCountryCodes(guessValues);
+                            const continentsRevealed = revealedByCategory.get('continents') || new Set();
+                            continents.forEach(name => {
+                                const chip = this.templates.guessChip.content.firstElementChild.cloneNode(true);
+                                chip.classList.add(continentsRevealed.has(String(name)) ? 'guess-chip-hit' : 'guess-chip-miss');
+                                chip.textContent = String(name);
+                                chips.push(chip);
+                            });
+                        }
 
-                    // Only render section if there is at least one value
-                    const valuesHTML = countryChipsHTML + continentsChipsHTML;
-                    if (valuesHTML) {
-                        sections.push(`
-                            <div class="guess-attr">
-                                <div class="guess-attr-title"><i class="bi ${catConf.icon}"></i> ${catConf.label}</div>
-                                <div class="guess-attr-values">${valuesHTML}</div>
-                            </div>
-                        `);
-                    }
-                });
-
-                if (sections.length > 0) {
-                    detailedCluesHTML = `<div class="guess-details">${sections.join('')}</div>`;
+                        if (chips.length > 0) {
+                            const attrEl = this.templates.guessAttr.content.firstElementChild.cloneNode(true);
+                            const icon = attrEl.querySelector('.guess-attr-title i');
+                            const lab = attrEl.querySelector('.guess-attr-label');
+                            if (icon) icon.className = `bi ${catConf.icon}`;
+                            if (lab) lab.textContent = catConf.label;
+                            const valuesEl = attrEl.querySelector('.guess-attr-values');
+                            chips.forEach(ch => valuesEl.appendChild(ch));
+                            detailsEl.appendChild(attrEl);
+                        }
+                    });
                 }
             }
 
-            return `
-            <div class="guess-item ${guess.correct ? 'victory' : ''}">
-                <div class="guess-header">
-                    ${coverUrl ? `<img class=\"guess-cover\" src=\"${coverUrl}\" alt=\"Cover\">` : `<div class=\"guess-cover placeholder\"></div>`}
-                    <div class="guess-basic">
-                        <div class="guess-title">${this.escapeHtml(guess.album.title)}</div>
-                        <div class="guess-artist">${this.escapeHtml(guess.album.artists ? guess.album.artists.join(', ') : 'Unknown artist')}</div>
-                    </div>
-                    <div class="guess-clues ${guess.correct ? 'victory' : ''}">
-                        ${guess.correct ? 
-                            '<i class="bi bi-trophy-fill"></i> Victory!' : 
-                            `<i class=\"bi bi-lightbulb\"></i> ${guess.cluesRevealed.length} clue(s)`
-                        }
-                    </div>
-                </div>
-                ${!guess.correct ? detailedCluesHTML : ''}
-            </div>`;
-        }).join('');
-
-        this.elements.guessesContainer.innerHTML = guessesHTML;
+            container.appendChild(itemEl);
+        });
     }
 
     showVictoryModal() {
-        // Display mystery album
-        const coverUrl = this.getCoverUrl(this.mysteryAlbum, 250);
-        const mysteryAlbumHTML = `
-            <div class="mystery-album-title">${this.escapeHtml(this.mysteryAlbum.title)}</div>
-            <div class="mystery-album-artist">${this.escapeHtml(this.mysteryAlbum.artists ? this.mysteryAlbum.artists.join(', ') : 'Unknown artist')}</div>
-            ${coverUrl ? `<img class="mystery-album-cover" src="${coverUrl}" alt="Cover">` : ''}
-            <div class="mystery-album-meta">
-                ${this.mysteryAlbum.release_year ? `<span>📅 ${this.mysteryAlbum.release_year}</span>` : ''}
-                ${this.mysteryAlbum.genres && this.mysteryAlbum.genres.length > 0 ? `<span>🎵 ${this.mysteryAlbum.genres[0]}</span>` : ''}
-                ${this.mysteryAlbum.countries && this.mysteryAlbum.countries.length > 0 ? `<span>🌍 ${this.escapeHtml(this.getCountryName(this.mysteryAlbum.countries[0]))}</span>` : ''}
-            </div>
-        `;
-        this.elements.mysteryAlbumDisplay.innerHTML = mysteryAlbumHTML;
+        // Display mystery album using template
+        const block = this.templates.mysteryAlbum.content.firstElementChild.cloneNode(true);
+        const titleEl = block.querySelector('.mystery-album-title');
+        const artistEl = block.querySelector('.mystery-album-artist');
+        const coverEl = block.querySelector('.mystery-album-cover');
+        const metaEl = block.querySelector('.mystery-album-meta');
+
+        if (titleEl) titleEl.textContent = this.mysteryAlbum.title || '';
+        if (artistEl) artistEl.textContent = (this.mysteryAlbum.artists && this.mysteryAlbum.artists.length > 0) ? this.mysteryAlbum.artists.join(', ') : 'Unknown artist';
+        if (coverEl) {
+            const coverUrl = this.getCoverUrl(this.mysteryAlbum, 250);
+            if (coverUrl) {
+                coverEl.src = coverUrl;
+                coverEl.style.display = '';
+            } else {
+                coverEl.style.display = 'none';
+            }
+        }
+        if (metaEl) {
+            metaEl.replaceChildren();
+            const parts = [];
+            if (this.mysteryAlbum.release_year) parts.push(`📅 ${this.mysteryAlbum.release_year}`);
+            if (this.mysteryAlbum.genres && this.mysteryAlbum.genres.length > 0) parts.push(`🎵 ${this.mysteryAlbum.genres[0]}`);
+            if (this.mysteryAlbum.countries && this.mysteryAlbum.countries.length > 0) parts.push(`🌍 ${this.getCountryName(this.mysteryAlbum.countries[0])}`);
+            parts.forEach(text => {
+                const span = document.createElement('span');
+                span.textContent = text;
+                metaEl.appendChild(span);
+            });
+        }
+        this.elements.mysteryAlbumDisplay.replaceChildren(block);
 
         // Update stats
         this.elements.finalGuesses.textContent = this.guessCount;
@@ -1170,7 +1230,7 @@ class AlbumGuessrGame {
 
         if (!this.authenticatedUser) {
             subtitleEl.textContent = 'Log in to save and see your history';
-            listEl.innerHTML = '';
+            listEl.replaceChildren();
             return;
         }
 
@@ -1178,14 +1238,23 @@ class AlbumGuessrGame {
         try {
             const history = await this.fetchUserHistoryFromApi();
             if (!history || history.length === 0) {
-                listEl.innerHTML = `<div class="no-clues" style="padding: 1rem;">
-                    <i class="bi bi-inbox"></i>
-                    <p>No wins saved yet. Find a mystery album!</p>
-                </div>`;
+                listEl.replaceChildren();
+                const tpl = this.templates.historyEmpty;
+                if (tpl) listEl.appendChild(tpl.content.firstElementChild.cloneNode(true));
                 return;
             }
-            const html = history.map(item => {
-                const cover = item.coverUrl ? `<img class="history-cover" src="${this.escapeHtml(item.coverUrl)}" alt="Cover">` : `<div class="history-cover"></div>`;
+            listEl.replaceChildren();
+            history.forEach(item => {
+                const el = this.templates.historyItem.content.firstElementChild.cloneNode(true);
+                const cover = el.querySelector('.history-cover');
+                if (cover) {
+                    if (item.coverUrl) {
+                        cover.src = item.coverUrl;
+                        cover.style.display = '';
+                    } else {
+                        cover.style.display = 'none';
+                    }
+                }
                 const date = item.timestamp ? new Date(item.timestamp) : null;
                 const meta = [
                     item.release_year ? String(item.release_year) : null,
@@ -1193,25 +1262,20 @@ class AlbumGuessrGame {
                     date && !isNaN(date.getTime()) ? date.toLocaleDateString() : null
                 ].filter(Boolean).join(' • ');
                 const artist = (item.artists && item.artists.length > 0) ? item.artists.join(', ') : 'Unknown artist';
-                return `
-                    <div class="history-item">
-                        ${cover}
-                        <div class="history-text">
-                            <div class="history-title">${this.escapeHtml(item.title)}</div>
-                            <div class="history-artist">${this.escapeHtml(artist)}</div>
-                            <div class="history-meta">${this.escapeHtml(meta)}</div>
-                        </div>
-                        <div class="history-actions"></div>
-                    </div>
-                `;
-            }).join('');
-            listEl.innerHTML = html;
+
+                const titleEl = el.querySelector('.history-title');
+                const artistEl = el.querySelector('.history-artist');
+                const metaEl = el.querySelector('.history-meta');
+                if (titleEl) titleEl.textContent = item.title || '';
+                if (artistEl) artistEl.textContent = artist;
+                if (metaEl) metaEl.textContent = meta;
+                listEl.appendChild(el);
+            });
         } catch (e) {
             console.warn('history render failed:', e);
-            listEl.innerHTML = `<div class="no-clues" style="padding: 1rem;">
-                <i class="bi bi-exclamation-triangle"></i>
-                <p>Unable to load history. Try again later.</p>
-            </div>`;
+            listEl.replaceChildren();
+            const tplErr = this.templates.historyError;
+            if (tplErr) listEl.appendChild(tplErr.content.firstElementChild.cloneNode(true));
         }
     }
 }
