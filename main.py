@@ -12,7 +12,6 @@ from loguru import logger
 
 from config import Config
 
-from syncapp import MusicAlbumSyncApp
 from algoliasearch.search.client import SearchClientSync
 from algolia import AlgoliaApp
 from algolia_indexer import AlgoliaIndexer
@@ -93,21 +92,22 @@ def main():
     algolia_indexer = AlgoliaIndexer(config, algolia_client)
     algolia_searcher = AlgoliaSearcher(config, algolia_client)
 
-    app = MusicAlbumSyncApp(config, data_processor, algolia_app, algolia_indexer, algolia_searcher)
-
     # Validate environment
-    if not app.validate_environment():
+    try:
+        config.validate()
+    except ValueError as e:
+        logger.error(f"Environment validation failed: {e}")
         sys.exit(1)
 
     # Handle different command modes
     if args.stats:
-        app.show_index_stats()
+        algolia_app.get_index_stats()
     elif args.clear_index:
-        app.algolia_app.clear_index()
+        algolia_app.clear_index()
     elif args.configure:
-        app.algolia_app.configure_index_settings()
+        algolia_app.configure_index_settings()
     elif args.search:
-        results = app.algolia_searcher.search_albums(args.search)
+        results = algolia_searcher.search_albums(args.search)
         logger.info("Search results:")
         for result in results:
             logger.info(
@@ -118,12 +118,12 @@ def main():
     else:
         logger.info("Starting DB-driven sync (MusicBrainz → Algolia)")
         total_indexed = 0
-        for batch in app.data_processor.stream_albums_from_db(
+        for batch in data_processor.stream_albums_from_db(
             batch_size=args.batch_size, max_records=args.max_records
         ):
             if not batch:
                 continue
-            app.algolia_indexer.batch_index_records(batch)
+            algolia_indexer.batch_index_records(batch)
             total_indexed += len(batch)
             logger.info(f"Indexed so far: {total_indexed}")
         logger.info(f"Completed DB sync. Total indexed: {total_indexed}")
