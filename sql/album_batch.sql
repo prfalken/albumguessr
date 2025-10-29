@@ -14,7 +14,9 @@ SELECT
     mus.musician_names,
     mus.musician_details,
     pl.primary_label,
-    caa.cover_release_gid
+    caa.cover_release_gid,
+    len.track_count,
+    len.total_length_ms
 FROM musicbrainz.release_group rg
 JOIN musicbrainz.release_group_primary_type rpt ON rpt.id = rg.type
 LEFT JOIN musicbrainz.release_group_meta rgm ON rgm.id = rg.id
@@ -109,6 +111,32 @@ LEFT JOIN LATERAL (
         LIMIT 1
     ) rel_choice
 ) caa ON TRUE
+LEFT JOIN LATERAL (
+    -- Compute track count and total length (ms) from the earliest-dated release in the group
+    WITH r_with_min AS (
+        SELECT
+            r.id AS release_id,
+            COALESCE(MIN(rev.date_year), 9999) AS y,
+            COALESCE(MIN(rev.date_month), 12) AS m,
+            COALESCE(MIN(rev.date_day), 31) AS d
+        FROM musicbrainz.release r
+        LEFT JOIN musicbrainz.release_event rev ON rev.release = r.id
+        WHERE r.release_group = rg.id
+        GROUP BY r.id
+    ), earliest AS (
+        SELECT release_id
+        FROM r_with_min
+        ORDER BY y, m, d
+        LIMIT 1
+    )
+    SELECT
+        COUNT(t.id) AS track_count,
+        SUM(rec.length) AS total_length_ms
+    FROM earliest e
+    JOIN musicbrainz.medium m ON m.release = e.release_id
+    JOIN musicbrainz.track t ON t.medium = m.id
+    JOIN musicbrainz.recording rec ON rec.id = t.recording
+) len ON TRUE
 WHERE rpt.name = 'Album' AND rg.id > %s AND sec_types.secondary_names IS NULL
 ORDER BY rg.id
 LIMIT %s

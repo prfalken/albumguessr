@@ -157,6 +157,17 @@ class AlbumDataProcessor:
         if album.get("genres"):
             album["primary_genre"] = album["genres"][0]
 
+        # Album length (seconds) derived from SQL total_length_ms
+        total_length_ms = row.get("total_length_ms")
+        if total_length_ms is not None:
+            try:
+                # MusicBrainz stores milliseconds in recording.length; sum may be None
+                secs = int(int(total_length_ms) / 1000)
+                if secs > 0:
+                    album["total_length_seconds"] = secs
+            except Exception:
+                pass
+
         # Remove null/empty
         album = {k: v for k, v in album.items() if v not in (None, "") and v != []}
         # Cover art URLs (Cover Art Archive) using a representative release gid when available

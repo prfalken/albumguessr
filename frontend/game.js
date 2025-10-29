@@ -167,7 +167,7 @@ class AlbumGuessrGame {
             const attrs = [
                 'objectID', 'title', 'artists', 'genres', 'release_year', 'countries', 'tags',
                 'contributors', 'rating_value', 'rating_count', 'rating',
-                'cover_art_url', 'label'
+                'cover_art_url', 'label', 'total_length_seconds'
             ];
 
             this.mysteryAlbum = await this.algoliaIndex.getObject(releaseGroupId, { attributesToRetrieve: attrs });
@@ -314,7 +314,7 @@ class AlbumGuessrGame {
                 hitsPerPage: 20,
                 attributesToRetrieve: [
                     'objectID', 'title', 'artists', 'genres', 'release_year', 'countries', 'contributors',
-                    'cover_art_url', 'label'
+                    'cover_art_url', 'label', 'total_length_seconds'
                 ]
             });
 
@@ -427,6 +427,8 @@ class AlbumGuessrGame {
 
         // Update year hint if we have any year information
         this.updateYearHint();
+        // Update length hint if we have any length information
+        this.updateLengthHint();
 
         this.updateUI();
         this.elements.albumSearch.value = '';
@@ -445,6 +447,8 @@ class AlbumGuessrGame {
         GAME_CONFIG.clueCategories.forEach(category => {
             // Skip release_year as it's handled separately
             if (category.key === 'release_year') return;
+            // Skip total_length_seconds as it's handled separately (longer/shorter)
+            if (category.key === 'total_length_seconds') return;
             
             const guessValue = guess[category.key];
             const mysteryValue = mystery[category.key];
@@ -534,6 +538,69 @@ class AlbumGuessrGame {
                 this.discoveredClues.set('release_year', new Set());
             }
             this.discoveredClues.set('release_year', new Set([yearHint]));
+        }
+    }
+
+    formatSeconds(totalSeconds) {
+        if (totalSeconds == null || isNaN(Number(totalSeconds))) return '';
+        const s = Math.max(0, parseInt(totalSeconds, 10));
+        const hours = Math.floor(s / 3600);
+        const minutes = Math.floor((s % 3600) / 60);
+        const seconds = s % 60;
+        if (hours > 0) {
+            return `${hours}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        }
+        return `${minutes}:${String(seconds).padStart(2, '0')}`;
+    }
+
+    updateLengthHint() {
+        // Check if mystery album has a total length
+        if (!this.mysteryAlbum.total_length_seconds) return;
+
+        const mysteryLen = parseInt(this.mysteryAlbum.total_length_seconds);
+        if (isNaN(mysteryLen) || mysteryLen <= 0) return;
+
+        // Collect all guesses that have length data
+        const allLenGuesses = this.guesses
+            .map(g => g.album.total_length_seconds)
+            .filter(v => v && !isNaN(parseInt(v)))
+            .map(v => parseInt(v));
+
+        if (allLenGuesses.length === 0) return;
+
+        // Exact match
+        const exactMatch = allLenGuesses.includes(mysteryLen);
+        if (exactMatch) {
+            if (!this.discoveredClues.has('total_length_seconds')) {
+                this.discoveredClues.set('total_length_seconds', new Set());
+            }
+            this.discoveredClues.set('total_length_seconds', new Set([this.formatSeconds(mysteryLen)]));
+            return;
+        }
+
+        allLenGuesses.sort((a, b) => a - b);
+
+        const shorter = allLenGuesses.filter(v => v < mysteryLen);
+        const longer = allLenGuesses.filter(v => v > mysteryLen);
+
+        let lenHint = null;
+        if (shorter.length > 0 && longer.length > 0) {
+            const maxShorter = Math.max(...shorter);
+            const minLonger = Math.min(...longer);
+            lenHint = `between ${this.formatSeconds(maxShorter)} and ${this.formatSeconds(minLonger)}`;
+        } else if (shorter.length > 0) {
+            const maxShorter = Math.max(...shorter);
+            lenHint = `longer than ${this.formatSeconds(maxShorter)}`;
+        } else if (longer.length > 0) {
+            const minLonger = Math.min(...longer);
+            lenHint = `shorter than ${this.formatSeconds(minLonger)}`;
+        }
+
+        if (lenHint) {
+            if (!this.discoveredClues.has('total_length_seconds')) {
+                this.discoveredClues.set('total_length_seconds', new Set());
+            }
+            this.discoveredClues.set('total_length_seconds', new Set([lenHint]));
         }
     }
 
@@ -651,6 +718,39 @@ class AlbumGuessrGame {
                             }
                         }
                         const catConf = GAME_CONFIG.clueCategories.find(c => c.key === 'release_year');
+                        sections.push(`
+                            <div class="guess-attr">
+                                <div class="guess-attr-title"><i class="bi ${catConf.icon}"></i> ${catConf.label}</div>
+                                <div class="guess-attr-values">
+                                    <span class="guess-chip ${cls}">${this.escapeHtml(label)}</span>
+                                </div>
+                            </div>
+                        `);
+                        return;
+                    }
+
+                    if (catKey === 'total_length_seconds') {
+                        const gl = guess.album.total_length_seconds;
+                        const ml = this.mysteryAlbum && this.mysteryAlbum.total_length_seconds;
+                        if (!gl) return;
+                        let cls = 'guess-chip-miss';
+                        let label = this.formatSeconds(gl);
+                        if (ml) {
+                            const gli = parseInt(gl);
+                            const mli = parseInt(ml);
+                            if (!isNaN(gli) && !isNaN(mli)) {
+                                if (gli === mli) {
+                                    cls = 'guess-chip-hit';
+                                } else if (gli < mli) {
+                                    cls = 'guess-chip-miss';
+                                    label = `${this.formatSeconds(gl)} (shorter)`;
+                                } else if (gli > mli) {
+                                    cls = 'guess-chip-miss';
+                                    label = `${this.formatSeconds(gl)} (longer)`;
+                                }
+                            }
+                        }
+                        const catConf = GAME_CONFIG.clueCategories.find(c => c.key === 'total_length_seconds');
                         sections.push(`
                             <div class="guess-attr">
                                 <div class="guess-attr-title"><i class="bi ${catConf.icon}"></i> ${catConf.label}</div>
