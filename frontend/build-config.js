@@ -42,7 +42,8 @@ function main() {
     `        { key: 'genres', label: 'Genres', icon: 'bi-music-note-list', description: 'Shared musical genres' },\n` +
     `        { key: 'release_year', label: 'Year', icon: 'bi-calendar-fill', description: 'Release year' },\n` +
     `        { key: 'countries', label: 'Countries', icon: 'bi-globe', description: 'Countries of origin' },\n` +
-    `        { key: 'musicians', label: 'Musicians', icon: 'bi-people-fill', description: 'Shared musicians/contributors' }\n` +
+    `        { key: 'contributors', label: 'Contributors', icon: 'bi-people-fill', description: 'Shared contributors' },\n` +
+    `        { key: 'instruments', label: 'Instruments', icon: 'bi-music-note-beamed', description: 'Shared instruments' }\n` +
     `    ]\n` +
     `};\n\n` +
     `if (typeof module !== 'undefined' && module.exports) {\n` +

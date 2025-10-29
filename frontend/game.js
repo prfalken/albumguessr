@@ -151,11 +151,12 @@ class AlbumGuessrGame {
 
             const attrs = [
                 'objectID', 'title', 'artists', 'genres', 'release_year', 'countries', 'tags',
-                'musicians', 'musicians_details', 'rating_value', 'rating_count', 'rating',
+                'contributors', 'rating_value', 'rating_count', 'rating',
                 'cover_art_url_250', 'cover_art_url_500', 'cover_art_url_1200', 'cover_art_url'
             ];
 
             this.mysteryAlbum = await this.algoliaIndex.getObject(releaseGroupId, { attributesToRetrieve: attrs });
+            this.normalizeAlbumContributors(this.mysteryAlbum);
             console.log('Loaded mystery album from mistery-albums.jsonl');
             console.log(this.mysteryAlbum);
             return this.mysteryAlbum;
@@ -297,12 +298,15 @@ class AlbumGuessrGame {
             const searchResponse = await this.algoliaIndex.search(query, {
                 hitsPerPage: 20,
                 attributesToRetrieve: [
-                    'objectID', 'title', 'artists', 'genres', 'release_year', 'countries', 'musicians',
+                    'objectID', 'title', 'artists', 'genres', 'release_year', 'countries', 'contributors',
                     'cover_art_url_250', 'cover_art_url_500', 'cover_art_url_1200', 'cover_art_url'
                 ]
             });
 
-            this.searchResults = searchResponse.hits;
+            this.searchResults = searchResponse.hits.map(hit => {
+                this.normalizeAlbumContributors(hit);
+                return hit;
+            });
             this.displaySearchResults();
             this.elements.searchSubmit.disabled = this.searchResults.length === 0;
         } catch (error) {
@@ -435,7 +439,11 @@ class AlbumGuessrGame {
 
                 if (Array.isArray(guessValue) && Array.isArray(mysteryValue)) {
                     // Find intersection for arrays
-                    matches = guessValue.filter(value => mysteryValue.includes(value));
+                    if (category.key === 'contributors' || category.key === 'instruments') {
+                        matches = this.caseInsensitiveArrayIntersection(guessValue, mysteryValue);
+                    } else {
+                        matches = guessValue.filter(value => mysteryValue.includes(value));
+                    }
                 } else if (guessValue === mysteryValue) {
                     // Direct match for non-arrays
                     matches = [guessValue];
@@ -553,8 +561,8 @@ class AlbumGuessrGame {
             if (!categoryConfig) return '';
 
             let valuesHTML = '';
-            if (category === 'musicians') {
-                const nameToDetail = this.buildMusicianDetailMap();
+            if (category === 'contributors') {
+                const nameToDetail = this.buildContributorDetailMap();
                 valuesHTML = Array.from(values).map(name => {
                     const safeName = this.escapeHtml(name);
                     // Render musician name only (no avatar), preserving data-name for potential future use
@@ -767,9 +775,9 @@ class AlbumGuessrGame {
         return album.cover_art_url_250 || album.cover_art_url_500 || album.cover_art_url_1200 || album.cover_art_url || null;
     }
 
-    buildMusicianDetailMap() {
+    buildContributorDetailMap() {
         const map = new Map();
-        const details = (this.mysteryAlbum && this.mysteryAlbum.musicians_details) ? this.mysteryAlbum.musicians_details : [];
+        const details = (this.mysteryAlbum && this.mysteryAlbum.contributors_details) ? this.mysteryAlbum.contributors_details : [];
         if (Array.isArray(details)) {
             details.forEach(d => {
                 if (d && d.name) {
@@ -778,6 +786,22 @@ class AlbumGuessrGame {
             });
         }
         return map;
+    }
+
+    normalizeAlbumContributors(album) {
+        if (!album || !Array.isArray(album.contributors)) return;
+        const validDetails = album.contributors.filter(c => c && (typeof c.name === 'string' || Array.isArray(c.instruments)));
+        const names = validDetails.map(c => c.name).filter(Boolean);
+        const instrumentsSet = new Set();
+        validDetails.forEach(c => {
+            const list = Array.isArray(c.instruments) ? c.instruments : [];
+            list.forEach(inst => {
+                if (inst) instrumentsSet.add(String(inst));
+            });
+        });
+        album.contributors_details = validDetails;
+        album.contributors = names;
+        album.instruments = Array.from(instrumentsSet);
     }
 
     escapeHtml(text) {
@@ -808,6 +832,13 @@ class AlbumGuessrGame {
             // ignore and fallback
         }
         return regionCode;
+    }
+
+    caseInsensitiveArrayIntersection(arrA, arrB) {
+        // Returns values from arrA that case-insensitively exist in arrB, preserving arrA's original casing
+        if (!Array.isArray(arrA) || !Array.isArray(arrB)) return [];
+        const setB = new Set(arrB.map(v => String(v).toLowerCase()));
+        return arrA.filter(v => setB.has(String(v).toLowerCase()));
     }
 
     debounce(func, wait) {
