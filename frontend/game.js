@@ -694,9 +694,11 @@ class AlbumGuessrGame {
 
     showVictoryModal() {
         // Display mystery album
+        const coverUrl = this.getCoverUrl(this.mysteryAlbum);
         const mysteryAlbumHTML = `
             <div class="mystery-album-title">${this.escapeHtml(this.mysteryAlbum.title)}</div>
             <div class="mystery-album-artist">${this.escapeHtml(this.mysteryAlbum.artists ? this.mysteryAlbum.artists.join(', ') : 'Unknown artist')}</div>
+            ${coverUrl ? `<img class="mystery-album-cover" src="${coverUrl}" alt="Cover">` : ''}
             <div class="mystery-album-meta">
                 ${this.mysteryAlbum.release_year ? `<span>📅 ${this.mysteryAlbum.release_year}</span>` : ''}
                 ${this.mysteryAlbum.genres && this.mysteryAlbum.genres.length > 0 ? `<span>🎵 ${this.mysteryAlbum.genres[0]}</span>` : ''}

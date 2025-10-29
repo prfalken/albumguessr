@@ -664,6 +664,17 @@ body {
     margin-bottom: 1rem;
 }
 
+.mystery-album-cover {
+    width: 200px;
+    height: 200px;
+    border-radius: 8px;
+    object-fit: cover;
+    background: var(--border-light);
+    border: 1px solid var(--border);
+    display: block;
+    margin: 0.5rem auto 1rem;
+}
+
 .mystery-album-meta {
     display: flex;
     justify-content: center;
