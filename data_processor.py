@@ -99,28 +99,30 @@ class AlbumDataProcessor:
         if musician_names:
             album["musicians"] = [self.clean_text(n) for n in musician_names if n]
 
-        # Detailed musicians info - removed for now, not used in the index
-        # musician_details = row.get("musician_details") or []
-        # if musician_details:
-        #     normalized_details = []
-        #     for md in musician_details:
-        #         if not isinstance(md, dict):
-        #             continue
-        #         name = self.clean_text(md.get("name"))
-        #         instruments = md.get("instruments") or []
-        #         instruments = [self.clean_text(i) for i in instruments if i]
-        #         detail_obj = {
-        #             k: v
-        #             for k, v in {
-        #                 "name": name,
-        #                 "instruments": instruments,
-        #             }.items()
-        #             if v not in (None, "") and v != []
-        #         }
-        #         if detail_obj:
-        #             normalized_details.append(detail_obj)
-        #     if normalized_details:
-        #         album["musicians_details"] = normalized_details
+        # Contributors info
+        contributors = row.get("musician_details") or []
+        if contributors:
+            normalized_details = []
+            for md in contributors:
+                if not isinstance(md, dict):
+                    continue
+                if not md.get("instruments"):
+                    continue
+                name = self.clean_text(md.get("name"))
+                instruments = md.get("instruments") or []
+                instruments = [self.clean_text(i) for i in instruments if i]
+                detail_obj = {
+                    k: v
+                    for k, v in {
+                        "name": name,
+                        "instruments": instruments,
+                    }.items()
+                    if v not in (None, "") and v != []
+                }
+                if detail_obj:
+                    normalized_details.append(detail_obj)
+            if normalized_details:
+                album["contributors"] = normalized_details
 
         # Ratings
         if rating_value is not None:
@@ -163,6 +165,7 @@ class AlbumDataProcessor:
         self.processed_count += 1
         if len(json.dumps(album)) > 10000:
             logger.warning(f"Album is too big: {json.dumps(album, ensure_ascii=False)}")
+            return None
         return album
 
     def stream_albums_from_db(
