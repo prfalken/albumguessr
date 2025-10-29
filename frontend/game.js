@@ -152,7 +152,7 @@ class AlbumGuessrGame {
             const attrs = [
                 'objectID', 'title', 'artists', 'genres', 'release_year', 'countries', 'tags',
                 'contributors', 'rating_value', 'rating_count', 'rating',
-                'cover_art_url_250', 'cover_art_url_500', 'cover_art_url_1200', 'cover_art_url'
+                'cover_art_url'
             ];
 
             this.mysteryAlbum = await this.algoliaIndex.getObject(releaseGroupId, { attributesToRetrieve: attrs });
@@ -299,7 +299,7 @@ class AlbumGuessrGame {
                 hitsPerPage: 20,
                 attributesToRetrieve: [
                     'objectID', 'title', 'artists', 'genres', 'release_year', 'countries', 'contributors',
-                    'cover_art_url_250', 'cover_art_url_500', 'cover_art_url_1200', 'cover_art_url'
+                    'cover_art_url'
                 ]
             });
 
@@ -321,7 +321,7 @@ class AlbumGuessrGame {
         }
 
         const resultsHTML = this.searchResults.map((album, index) => {
-            const coverUrl = this.getCoverUrl(album);
+            const coverUrl = this.getCoverUrl(album, 250);
             return `
             <div class="search-result ${index === 0 ? 'selected' : ''}" data-album-id="${album.objectID}" data-index="${index}">
                 ${coverUrl ? `<img class=\"search-result-thumb\" src=\"${coverUrl}\" alt=\"Cover\">` : `<div class=\"search-result-thumb placeholder\"></div>`}
@@ -603,7 +603,7 @@ class AlbumGuessrGame {
         }
 
 		const guessesHTML = this.guesses.slice().reverse().map(guess => {
-            const coverUrl = this.getCoverUrl(guess.album);
+            const coverUrl = this.getCoverUrl(guess.album, 250);
             // Build per-attribute chips: green for common values, red for guessed-only values
             let detailedCluesHTML = '';
             if (!guess.correct) {
@@ -702,7 +702,7 @@ class AlbumGuessrGame {
 
     showVictoryModal() {
         // Display mystery album
-        const coverUrl = this.getCoverUrl(this.mysteryAlbum);
+        const coverUrl = this.getCoverUrl(this.mysteryAlbum, 250);
         const mysteryAlbumHTML = `
             <div class="mystery-album-title">${this.escapeHtml(this.mysteryAlbum.title)}</div>
             <div class="mystery-album-artist">${this.escapeHtml(this.mysteryAlbum.artists ? this.mysteryAlbum.artists.join(', ') : 'Unknown artist')}</div>
@@ -770,9 +770,13 @@ class AlbumGuessrGame {
         alert(message); // Simple error handling - could be improved with custom modal
     }
 
-    getCoverUrl(album) {
-        if (!album) return null;
-        return album.cover_art_url_250 || album.cover_art_url_500 || album.cover_art_url_1200 || album.cover_art_url || null;
+    getCoverUrl(album, size = 250) {
+        if (!album || !album.cover_art_url) return null;
+        const base = album.cover_art_url;
+        if (!size) return base;
+        // Avoid double-appending if a sized URL is already provided
+        if (/-\d{3,4}$/.test(base)) return base;
+        return `${base}-${size}`;
     }
 
     buildContributorDetailMap() {
@@ -906,7 +910,7 @@ class AlbumGuessrGame {
             title: this.mysteryAlbum.title,
             artists: Array.isArray(this.mysteryAlbum.artists) ? this.mysteryAlbum.artists : [],
             release_year: this.mysteryAlbum.release_year || null,
-            coverUrl: this.getCoverUrl(this.mysteryAlbum),
+            coverUrl: this.getCoverUrl(this.mysteryAlbum, 250),
             guesses: this.guessCount
         };
 
