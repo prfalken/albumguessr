@@ -5,21 +5,18 @@ Data processor for cleaning and transforming music album data for Algolia indexi
 import json
 import re
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 from pathlib import Path
-
-from tqdm import tqdm
-import psycopg2
-from psycopg2.extras import RealDictCursor
-from config import Config
-
 from loguru import logger
+from psycopg2.extras import RealDictCursor
+import psycopg2.extensions
 
 
 class AlbumDataProcessor:
     """Processes and cleans music album data for Algolia indexing."""
 
-    def __init__(self):
+    def __init__(self, db: psycopg2.extensions.connection):
+        self.db: psycopg2.extensions.connection = db
         self.processed_count = 0
         self.error_count = 0
         self.all_genres = self.get_all_genres()
@@ -40,22 +37,12 @@ class AlbumDataProcessor:
     def get_all_genres(self) -> List[str]:
         """Get all genres from the database."""
         all_genres = {}
-        with self._connect_db() as conn:
+        with self.db as conn:
             with conn.cursor(cursor_factory=RealDictCursor) as cursor:
                 cursor.execute("SELECT id, name FROM musicbrainz.genre")
                 for row in cursor.fetchall():
                     all_genres[row["name"]] = row["id"]
         return all_genres
-
-    def _connect_db(self):
-        """Create a PostgreSQL connection using Config settings."""
-        return psycopg2.connect(
-            host=Config.DB_HOST,
-            port=Config.DB_PORT,
-            dbname=Config.DB_NAME,
-            user=Config.DB_USER,
-            password=Config.DB_PASSWORD,
-        )
 
     def _build_album_batch_sql(self) -> str:
         """SQL selecting release groups of primary type 'Album' with metadata, tags, artists, and countries."""
@@ -188,29 +175,28 @@ class AlbumDataProcessor:
         total_yielded = 0
         last_id = 0
 
-        with self._connect_db() as conn:
-            with conn.cursor(cursor_factory=RealDictCursor) as cur:
-                while True:
-                    cur.execute(sql, (last_id, batch_size))
-                    rows = cur.fetchall()
-                    if not rows:
-                        break
+        with self.db.cursor(cursor_factory=RealDictCursor) as cursor:
+            while True:
+                cursor.execute(sql, (last_id, batch_size))
+                rows = cursor.fetchall()
+                if not rows:
+                    break
 
-                    processed_batch: List[Dict[str, Any]] = []
-                    for row in rows:
-                        album = self._row_to_album(row)
-                        if album:
-                            processed_batch.append(album)
+                processed_batch: List[Dict[str, Any]] = []
+                for row in rows:
+                    album = self._row_to_album(row)
+                    if album:
+                        processed_batch.append(album)
 
-                    if not processed_batch:
-                        # Advance last_id even if nothing processed to avoid infinite loop
-                        last_id = rows[-1]["rg_id"]
-                        continue
-
-                    total_yielded += len(processed_batch)
-                    yield processed_batch
-
+                if not processed_batch:
+                    # Advance last_id even if nothing processed to avoid infinite loop
                     last_id = rows[-1]["rg_id"]
+                    continue
 
-                    if max_records is not None and total_yielded >= max_records:
-                        break
+                total_yielded += len(processed_batch)
+                yield processed_batch
+
+                last_id = rows[-1]["rg_id"]
+
+                if max_records is not None and total_yielded >= max_records:
+                    break

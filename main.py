@@ -9,7 +9,7 @@ processes the data, and indexes it to Algolia for search functionality.
 import argparse
 import sys
 from loguru import logger
-
+import psycopg2
 from config import Config
 
 from algoliasearch.search.client import SearchClientSync
@@ -85,7 +85,14 @@ def main():
 
     # Create app instance
     config = Config()
-    data_processor = AlbumDataProcessor()
+    db = psycopg2.connect(
+        host=Config.DB_HOST,
+        port=Config.DB_PORT,
+        dbname=Config.DB_NAME,
+        user=Config.DB_USER,
+        password=Config.DB_PASSWORD,
+    )
+    data_processor = AlbumDataProcessor(db)
 
     algolia_client = SearchClientSync(config.ALGOLIA_APPLICATION_ID, config.ALGOLIA_API_KEY)
     algolia_app = AlgoliaApp(config, algolia_client)
