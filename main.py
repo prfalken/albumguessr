@@ -12,48 +12,12 @@ from loguru import logger
 
 from config import Config
 
+from syncapp import MusicAlbumSyncApp
 from algoliasearch.search.client import SearchClientSync
 from algolia import AlgoliaApp
 from algolia_indexer import AlgoliaIndexer
 from algolia_searcher import AlgoliaSearcher
 from data_processor import AlbumDataProcessor
-
-
-class MusicAlbumSyncApp:
-    """Main application class for Music Album sync."""
-
-    def __init__(self):
-        self.config = Config()
-        self.data_processor = AlbumDataProcessor()
-
-        self.algolia_client = SearchClientSync(self.config.ALGOLIA_APPLICATION_ID, self.config.ALGOLIA_API_KEY)
-        self.algolia_app = AlgoliaApp(self.config, self.algolia_client)
-        self.algolia_indexer = AlgoliaIndexer(self.config, self.algolia_client)
-        self.algolia_searcher = AlgoliaSearcher(self.config, self.algolia_client)
-
-    def validate_environment(self) -> bool:
-        """Validate that all required environment variables are set."""
-        try:
-            self.config.validate()
-            return True
-        except ValueError as e:
-            logger.error(f"Environment validation failed: {e}")
-            logger.error("Please create a .env file with the following variables:")
-            logger.error("   - ALGOLIA_APPLICATION_ID: Your Algolia application ID")
-            logger.error("   - ALGOLIA_API_KEY: Your Algolia admin API key")
-            logger.error("   - ALGOLIA_INDEX_NAME: Name for your albums index (optional, defaults to 'albums')")
-            logger.error("\n💡 You can copy .env.example to .env and fill in your credentials.")
-            return False
-
-    def show_index_stats(self):
-        """Show current index statistics."""
-        logger.info("Getting index statistics...")
-        try:
-            stats = self.algolia_app.get_index_stats()
-            logger.info(stats)
-
-        except Exception as e:
-            logger.error(f"Failed to get index stats: {e}")
 
 
 def main():
@@ -121,7 +85,15 @@ def main():
     args = parser.parse_args()
 
     # Create app instance
-    app = MusicAlbumSyncApp()
+    config = Config()
+    data_processor = AlbumDataProcessor()
+
+    algolia_client = SearchClientSync(config.ALGOLIA_APPLICATION_ID, config.ALGOLIA_API_KEY)
+    algolia_app = AlgoliaApp(config, algolia_client)
+    algolia_indexer = AlgoliaIndexer(config, algolia_client)
+    algolia_searcher = AlgoliaSearcher(config, algolia_client)
+
+    app = MusicAlbumSyncApp(config, data_processor, algolia_app, algolia_indexer, algolia_searcher)
 
     # Validate environment
     if not app.validate_environment():
