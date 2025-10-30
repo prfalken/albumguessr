@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AlbumGuessr - Album of the Day</title>
+    <title>AlbumGuessr - Discover the mystery album</title>
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
@@ -12,7 +12,10 @@
     <a href="#main-content" class="skip-link">Skip to content</a>
     <div class="container">
         <div id="site-header"></div>
-        
+        <div class="subtitle">
+            <p>Find the mystery album using the revealed clues.</p>
+            <div class="date" id="game-date"></div>
+        </div>
 
         <main id="main-content" class="game-container">
             <div class="content-grid">
@@ -23,8 +26,9 @@
                             <i class="bi bi-music-note-beamed"></i>
                             <span id="guess-count">0</span> guesses
                         </div>
-                        <div class="status-subtitle">
-                            <div class="date" id="game-date"></div>
+                        <div class="mystery-indicator">
+                            <i class="bi bi-question-circle"></i>
+                            <span>Mystery album</span>
                         </div>
                     </div>
 
@@ -69,6 +73,8 @@
                         </div>
                     </div>
                 </div>
+
+                
             </div>
 
             <!-- Victory Modal -->
@@ -82,7 +88,7 @@
                     </div>
                     <div class="modal-body">
                         <div class="victory-message">
-                            <p>You found the album of the day!</p>
+                            <p>You found the mystery album!</p>
                         </div>
                         <div class="mystery-album" id="mystery-album-display">
                             <!-- Mystery album info will be displayed here -->
@@ -98,71 +104,79 @@
                             </div>
                         </div>
                         <div class="share-section">
+                            <button class="share-button" id="play-again-button">
+                                <i class="bi bi-arrow-repeat"></i>
+                                Play again
+                            </button>
                             <button class="share-button" id="share-button">
                                 <i class="bi bi-share"></i>
                                 Share your result
                             </button>
+                        </div>
+                        <div class="next-game">
+                            <p>Refresh the page for a new mystery album!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Instructions Modal -->
+            <div class="modal" id="instructions-modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>How to play</h2>
+                        <button class="close-button" id="close-instructions">
+                            <i class="bi bi-x"></i>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="instructions">
+                            <div class="instruction">
+                                <i class="bi bi-search"></i>
+                                <div>
+                                    <h3>Search and submit</h3>
+                                    <p>Type the name of an album or a song and submit it as a guess</p>
+                                </div>
+                            </div>
+                            <div class="instruction">
+                                <i class="bi bi-lightbulb"></i>
+                                <div>
+                                    <h3>Reveal clues</h3>
+                                    <p>Each guess reveals attributes shared with the mystery album: artist, genre, year, label...</p>
+                                </div>
+                            </div>
+                            <div class="instruction">
+                                <i class="bi bi-puzzle"></i>
+                                <div>
+                                    <h3>Narrow it down</h3>
+                                    <p>Use accumulated clues to eliminate possibilities and get closer to the mystery album</p>
+                                </div>
+                            </div>
+                            <div class="instruction">
+                                <i class="bi bi-trophy"></i>
+                                <div>
+                                    <h3>Find the mystery album</h3>
+                                    <p>When you identify the right album, you win! A new mystery awaits on each refresh</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="game-rules">
+                            <h4>Game rules</h4>
+                            <ul>
+                                <li>No limit on guesses — explore as much as you like</li>
+                                <li>Clues only show similarities, never differences</li>
+                                <li>A new mystery album on every refresh</li>
+                                <li>Free game open to everyone</li>
+                            </ul>
                         </div>
                     </div>
                 </div>
             </div>
         </main>
 
-        <!-- Instructions Modal -->
-        <div class="modal" id="instructions-modal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h2>How to play</h2>
-                    <button class="close-button" id="close-instructions">
-                        <i class="bi bi-x"></i>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <div class="instructions">
-                        <div class="instruction">
-                            <i class="bi bi-search"></i>
-                            <div>
-                                <h3>Search and submit</h3>
-                                <p>Type the name of an album or a song and submit it as a guess</p>
-                            </div>
-                        </div>
-                        <div class="instruction">
-                            <i class="bi bi-lightbulb"></i>
-                            <div>
-                                <h3>Reveal clues</h3>
-                                <p>Each guess reveals attributes shared with the mystery album: artist, genre, year, label...</p>
-                            </div>
-                        </div>
-                        <div class="instruction">
-                            <i class="bi bi-puzzle"></i>
-                            <div>
-                                <h3>Narrow it down</h3>
-                                <p>Use accumulated clues to eliminate possibilities and get closer to the mystery album</p>
-                            </div>
-                        </div>
-                        <div class="instruction">
-                            <i class="bi bi-trophy"></i>
-                            <div>
-                                <h3>Find the mystery album</h3>
-                                <p>When you identify the right album, you win! A new mystery awaits every day</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="game-rules">
-                        <h4>Game rules</h4>
-                        <ul>
-                            <li>No limit on guesses — explore as much as you like</li>
-                            <li>Clues only show similarities, never differences</li>
-                            <li>One mystery album per day</li>
-                            <li>Free game open to everyone</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- HTML Templates (same as index) -->
+        <!-- HTML Templates (UI structure lives here; JS only clones and fills) -->
         <section style="display:none" aria-hidden="true">
+            <!-- Search Result Item -->
             <template id="tpl-search-result">
                 <div class="search-result">
                     <img class="search-result-thumb" alt="Cover">
@@ -174,12 +188,16 @@
                     </div>
                 </div>
             </template>
+
+            <!-- Clues: empty state -->
             <template id="tpl-no-clues">
                 <div class="no-clues">
                     <i class="bi bi-search"></i>
                     <p>Make a first guess to reveal clues...</p>
                 </div>
             </template>
+
+            <!-- Clue Category Card -->
             <template id="tpl-clue-category">
                 <div class="clue-category">
                     <div class="clue-category-title">
@@ -189,9 +207,13 @@
                     <div class="clue-values"></div>
                 </div>
             </template>
+
+            <!-- Clue Value Chip -->
             <template id="tpl-clue-value">
                 <span class="clue-value"></span>
             </template>
+
+            <!-- Guess Item -->
             <template id="tpl-guess-item">
                 <div class="guess-item">
                     <div class="guess-header">
@@ -206,15 +228,21 @@
                     <div class="guess-details"></div>
                 </div>
             </template>
+
+            <!-- Guess Attribute Section -->
             <template id="tpl-guess-attr">
                 <div class="guess-attr">
                     <div class="guess-attr-title"><i></i> <span class="guess-attr-label"></span></div>
                     <div class="guess-attr-values"></div>
                 </div>
             </template>
+
+            <!-- Guess Chip -->
             <template id="tpl-guess-chip">
                 <span class="guess-chip"></span>
             </template>
+
+            <!-- Victory Modal: Mystery Album Block -->
             <template id="tpl-mystery-album">
                 <div>
                     <div class="mystery-album-title"></div>
@@ -223,6 +251,7 @@
                     <div class="mystery-album-meta"></div>
                 </div>
             </template>
+
             <!-- User History Item -->
             <template id="tpl-history-item">
                 <div class="history-item">
@@ -235,6 +264,7 @@
                     <div class="history-actions"></div>
                 </div>
             </template>
+
             <!-- User History: empty and error states -->
             <template id="tpl-history-empty">
                 <div class="no-clues" style="padding: 1rem;">
@@ -256,7 +286,7 @@
     <!-- Loading Spinner -->
     <div class="loading" id="loading">
         <div class="spinner"></div>
-        <p>Loading the album of the day...</p>
+        <p>Loading the mystery album...</p>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/algoliasearch@4.14.3/dist/algoliasearch.umd.js"></script>
@@ -265,8 +295,5 @@
     <script src="includes.js"></script>
     <script src="nav.js"></script>
     <script src="game.js"></script>
-    <script src="daily.js"></script>
 </body>
 </html>
-
-
