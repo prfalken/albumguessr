@@ -128,8 +128,12 @@ class AlbumGuessrGame {
             const hasAuthParams = window.location.search.includes('code=') && window.location.search.includes('state=');
             if (hasAuthParams) {
                 try {
-                    await this.auth0Client.handleRedirectCallback();
-                } finally {
+                    const result = await this.auth0Client.handleRedirectCallback();
+                    // Redirect to the page the user was on before login
+                    const returnTo = (result.appState && result.appState.returnTo) ? result.appState.returnTo : '/';
+                    window.history.replaceState({}, document.title, returnTo);
+                } catch (e) {
+                    console.warn('Auth0 redirect callback failed:', e);
                     window.history.replaceState({}, document.title, window.location.pathname);
                 }
             }
@@ -349,7 +353,8 @@ class AlbumGuessrGame {
             return;
         }
         await client.loginWithRedirect({
-            authorizationParams: { redirect_uri: window.location.origin }
+            authorizationParams: { redirect_uri: window.location.origin },
+            appState: { returnTo: window.location.pathname }
         });
     }
 
