@@ -374,6 +374,13 @@ class AlbumGuessrGame {
         if (isAuthenticated && this.authenticatedUser) {
             if (this.elements.userAvatar) {
                 this.elements.userAvatar.src = this.authenticatedUser.picture || '';
+                // Add error handler to prevent repeated failed loads
+                this.elements.userAvatar.onerror = () => {
+                    this.elements.userAvatar.style.display = 'none';
+                    this.elements.userAvatar.onerror = null; // Prevent infinite loop
+                };
+                // Reset display in case it was hidden before
+                this.elements.userAvatar.style.display = '';
             }
             if (this.elements.userName) {
                 this.elements.userName.textContent = this.authenticatedUser.name || this.authenticatedUser.email || '';
