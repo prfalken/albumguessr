@@ -161,32 +161,45 @@ class AlbumGuessrGame {
 
     async selectDailyAlbum() {
         // Fetch a random scheduled album from the database via Netlify Function
-        try {
-            const res = await fetch('/.netlify/functions/randomAlbum', { cache: 'no-store' });
-            if (!res.ok) throw new Error('Failed to load random album');
-            const data = await res.json();
-            const objectID = data && data.objectID;
-            if (!objectID) throw new Error('Invalid album payload');
+        const maxAttempts = 5;
+        let lastError = null;
+        for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+            try {
+                const res = await fetch('/.netlify/functions/randomAlbum', { cache: 'no-store' });
+                if (!res.ok) throw new Error('Failed to load random album');
+                const data = await res.json();
+                const objectID = data && data.objectID;
+                if (!objectID) throw new Error('Invalid album payload');
 
-            if (!this.algoliaIndex) throw new Error('Algolia index not initialized');
+                if (!this.algoliaIndex) throw new Error('Algolia index not initialized');
 
-            const attrs = [
-                'objectID', 'title', 'artists', 'genres', 'release_year', 'countries', 'tags',
-                'contributors', 'rating_value', 'rating_count', 'rating',
-                'cover_art_url', 'label', 'total_length_seconds'
-            ];
+                const attrs = [
+                    'objectID', 'title', 'artists', 'genres', 'release_year', 'countries', 'tags',
+                    'contributors', 'rating_value', 'rating_count', 'rating',
+                    'cover_art_url', 'label', 'total_length_seconds'
+                ];
 
-            this.mysteryAlbum = await this.algoliaIndex.getObject(objectID, { attributesToRetrieve: attrs });
-            this.normalizeAlbumContributors(this.mysteryAlbum);
-            if (Array.isArray(this.mysteryAlbum.countries)) {
-                this.mysteryAlbum.continents = this.getContinentsForCountryCodes(this.mysteryAlbum.countries);
+                this.mysteryAlbum = await this.algoliaIndex.getObject(objectID, { attributesToRetrieve: attrs });
+                this.normalizeAlbumContributors(this.mysteryAlbum);
+                if (Array.isArray(this.mysteryAlbum.countries)) {
+                    this.mysteryAlbum.continents = this.getContinentsForCountryCodes(this.mysteryAlbum.countries);
+                }
+                console.log('Random mystery album:', this.mysteryAlbum);
+                return this.mysteryAlbum;
+            } catch (error) {
+                lastError = error;
+                const isAlgolia404 = error && (error.status === 404 || error.code === 404) && String(error.message || '').includes('ObjectID does not exist');
+                if (isAlgolia404) {
+                    // Try picking another random album
+                    console.warn(`Random pick ${attempt}/${maxAttempts} failed (missing in index), retrying...`);
+                    continue;
+                }
+                console.error('Failed to select random album:', error);
+                throw error;
             }
-            console.log('Random mystery album:', this.mysteryAlbum);
-            return this.mysteryAlbum;
-        } catch (error) {
-            console.error('Failed to select random album:', error);
-            throw error;
         }
+        console.error('Failed to select random album after retries:', lastError);
+        throw lastError || new Error('Failed to select random album');
     }
     
     hashCode(str) {
