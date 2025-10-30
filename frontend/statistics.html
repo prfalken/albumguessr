@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AlbumGuessr - Statistics</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+</head>
+<body>
+    <a href="#main-content" class="skip-link">Skip to content</a>
+    <div class="container">
+        <header class="header">
+            <div class="logo">
+                <i class="bi bi-vinyl-fill"></i>
+                <h1>AlbumGuessr</h1>
+            </div>
+            <div class="subtitle">
+                <p>Your saved wins and recent history</p>
+            </div>
+            <nav class="site-nav" aria-label="Primary">
+                <button class="nav-toggle" aria-expanded="false" aria-controls="primary-nav">
+                    <i class="bi bi-list" aria-hidden="true"></i>
+                    <span class="visually-hidden">Menu</span>
+                </button>
+                <ul id="primary-nav" class="nav-list">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">
+                            <i class="bi bi-controller" aria-hidden="true"></i>
+                            <span>The Game</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="statistics.html" aria-current="page">
+                            <i class="bi bi-bar-chart-line" aria-hidden="true"></i>
+                            <span>Statistics</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            <div class="auth-controls">
+                <button class="footer-button" id="btn-login">
+                    <i class="bi bi-box-arrow-in-right"></i>
+                    Log in
+                </button>
+                <button class="footer-button" id="btn-logout" style="display:none">
+                    <i class="bi bi-box-arrow-right"></i>
+                    Log out
+                </button>
+                <div class="user-profile" id="user-profile" style="display:none">
+                    <img id="user-avatar" class="user-avatar" alt="Avatar" />
+                    <span id="user-name"></span>
+                </div>
+            </div>
+        </header>
+
+        <main id="main-content" class="game-container">
+            <div class="content-grid" style="grid-template-columns: 1fr;">
+                <section class="user-history" aria-labelledby="stats-title">
+                    <div class="user-history-header">
+                        <h3 id="stats-title"><i class="bi bi-person-lines-fill"></i> Your found albums</h3>
+                        <div class="user-history-subtitle" id="user-history-subtitle">Log in to save and see your history</div>
+                    </div>
+                    <div class="user-history-list" id="user-history-list"></div>
+                </section>
+            </div>
+
+            <!-- Templates needed for statistics rendering -->
+            <section style="display:none" aria-hidden="true">
+                <template id="tpl-history-item">
+                    <div class="history-item">
+                        <img class="history-cover" alt="Cover">
+                        <div class="history-text">
+                            <div class="history-title"></div>
+                            <div class="history-artist"></div>
+                            <div class="history-meta"></div>
+                        </div>
+                        <div class="history-actions"></div>
+                    </div>
+                </template>
+                <template id="tpl-history-empty">
+                    <div class="no-clues" style="padding: 1rem;">
+                        <i class="bi bi-inbox"></i>
+                        <p>No wins saved yet. Find a mystery album!</p>
+                    </div>
+                </template>
+                <template id="tpl-history-error">
+                    <div class="no-clues" style="padding: 1rem;">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        <p>Unable to load history. Try again later.</p>
+                    </div>
+                </template>
+            </section>
+        </main>
+
+        <footer class="footer">
+            <div class="footer-text">
+                <p>A musical deduction game • Inspired by <a href="https://1jour1film.fr" target="_blank">1jour1film</a></p>
+            </div>
+        </footer>
+    </div>
+
+    <script src="https://cdn.auth0.com/js/auth0-spa-js/2.1/auth0-spa-js.production.js"></script>
+    <script src="config.js"></script>
+    <script src="nav.js"></script>
+    <script src="stats.js"></script>
+</body>
+</html>
+
