@@ -141,6 +141,65 @@ python -m http.server 8000
 # then open http://localhost:8000 in your browser
 ```
 
+## Local development (frontend + Netlify Functions)
+
+The Album of the Day API (`/.netlify/functions/albumOfTheDay`) and user history API require a Functions runtime. When serving with a plain static server (e.g., `python -m http.server`), requests to `/.netlify/functions/*` will 404. Use Netlify Dev for local emulation.
+
+### Prerequisites
+
+- Node 20 (matches `netlify.toml`)
+- Netlify CLI: `npm i -g netlify-cli` (or use `npx netlify`)
+
+### Configure environment (single .env at repo root)
+
+Place all variables in a single `.env` at the repository root. Netlify Dev loads this file and exposes it to both the frontend build step (`frontend/build-config.js`) and the Functions runtime.
+
+```env
+# Algolia (backend indexing)
+ALGOLIA_APPLICATION_ID=your_algolia_app_id
+ALGOLIA_API_KEY=your_algolia_admin_api_key
+ALGOLIA_INDEX_NAME=albumguessr
+
+# Algolia (browser/search-only) — used to generate frontend/config.js
+ALGOLIA_SEARCH_API_KEY=your_algolia_search_only_key
+
+# Netlify Functions (Postgres via Neon) — required for APIs
+# Example (Neon): postgres://user:password@host/db?sslmode=require
+NETLIFY_DATABASE_URL=postgres://...
+
+# Optional Auth0 (only if you enable auth + history)
+AUTH0_DOMAIN=your-tenant.eu.auth0.com
+AUTH0_CLIENT_ID=abc123
+AUTH0_AUDIENCE=your-api-audience
+```
+
+Then install frontend deps and start Netlify Dev from the repo root (it will use the `frontend/` base from `netlify.toml`):
+
+```bash
+cd /Users/julien.dehee/git/albumguessr
+npm --prefix frontend install
+npx netlify dev
+# opens http://localhost:8888 by default
+```
+
+Open:
+
+- Site: `http://localhost:8888/album-of-the-day.html`
+- Function: `http://localhost:8888/.netlify/functions/albumOfTheDay`
+
+Quick verification:
+
+```bash
+curl -i http://localhost:8888/.netlify/functions/albumOfTheDay
+```
+
+Notes:
+
+- To use a different port, run `npx netlify dev --port 8000`.
+- If `NETLIFY_DATABASE_URL` is missing, the function responds `500 missing_env:NETLIFY_DATABASE_URL`.
+- When using a plain static server, `/.netlify/functions/*` will return `404 File not found` — this is expected; switch to Netlify Dev.
+- Do not expose the admin `ALGOLIA_API_KEY` in code shipped to the browser. The generated `frontend/config.js` only includes the search-only key.
+
 ## Project structure
 
 ```

@@ -11,3 +11,11 @@ CREATE TABLE IF NOT EXISTS user_album_history (
   PRIMARY KEY (user_id, object_id)
 );
 
+
+-- Mystery album of the day schedule
+-- One row per calendar day with the selected album's Algolia objectID
+CREATE TABLE IF NOT EXISTS mystery_album_schedule (
+  schedule_date DATE PRIMARY KEY,
+  object_id TEXT NOT NULL
+);
+
