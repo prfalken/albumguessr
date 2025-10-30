@@ -11,55 +11,10 @@
 <body>
     <a href="#main-content" class="skip-link">Skip to content</a>
     <div class="container">
-        <header class="header">
-            <div class="logo">
-                <i class="bi bi-vinyl-fill"></i>
-                <h1>AlbumGuessr</h1>
-            </div>
-            <div class="subtitle">
-                <p>Your saved wins and recent history</p>
-            </div>
-            <nav class="site-nav" aria-label="Primary">
-                <button class="nav-toggle" aria-expanded="false" aria-controls="primary-nav">
-                    <i class="bi bi-list" aria-hidden="true"></i>
-                    <span class="visually-hidden">Menu</span>
-                </button>
-                <ul id="primary-nav" class="nav-list">
-                    <li class="nav-item">
-                        <a class="nav-link" href="index.html">
-                            <i class="bi bi-controller" aria-hidden="true"></i>
-                            <span>The Game</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="statistics.html" aria-current="page">
-                            <i class="bi bi-bar-chart-line" aria-hidden="true"></i>
-                            <span>Statistics</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="album-of-the-day.html">
-                            <i class="bi bi-calendar-event" aria-hidden="true"></i>
-                            <span>Album of the Day</span>
-                        </a>
-                    </li>
-                </ul>
-            </nav>
-            <div class="auth-controls">
-                <button class="footer-button" id="btn-login">
-                    <i class="bi bi-box-arrow-in-right"></i>
-                    Log in
-                </button>
-                <button class="footer-button" id="btn-logout" style="display:none">
-                    <i class="bi bi-box-arrow-right"></i>
-                    Log out
-                </button>
-                <div class="user-profile" id="user-profile" style="display:none">
-                    <img id="user-avatar" class="user-avatar" alt="Avatar" />
-                    <span id="user-name"></span>
-                </div>
-            </div>
-        </header>
+        <div id="site-header"></div>
+        <div class="subtitle">
+            <p>Your saved wins and recent history</p>
+        </div>
 
         <main id="main-content" class="game-container">
             <div class="stats-grid">
@@ -108,15 +63,12 @@
             </section>
         </main>
 
-        <footer class="footer">
-            <div class="footer-text">
-                <p>A musical deduction game • Inspired by <a href="https://1jour1film.fr" target="_blank">1jour1film</a></p>
-            </div>
-        </footer>
+        <div id="site-footer"></div>
     </div>
 
     <script src="https://cdn.auth0.com/js/auth0-spa-js/2.1/auth0-spa-js.production.js"></script>
     <script src="config.js"></script>
+    <script src="includes.js"></script>
     <script src="nav.js"></script>
     <script src="stats.js"></script>
 </body>

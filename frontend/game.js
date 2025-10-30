@@ -25,6 +25,21 @@ class AlbumGuessrGame {
         this.ensureLabelClueCategory();
         this.initializeGame();
         this.bindEvents();
+
+        // Re-wire auth controls after header injection
+        document.addEventListener('albumguessr:header-ready', async () => {
+            this.elements.btnLogin = document.getElementById('btn-login');
+            this.elements.btnLogout = document.getElementById('btn-logout');
+            this.elements.userProfile = document.getElementById('user-profile');
+            this.elements.userAvatar = document.getElementById('user-avatar');
+            this.elements.userName = document.getElementById('user-name');
+            this.bindAuthButtons();
+            try {
+                await this.ensureAuth0Client();
+                const authed = this.auth0Client ? await this.auth0Client.isAuthenticated() : false;
+                this.updateAuthUI(!!authed);
+            } catch (_) {}
+        });
     }
 
     initializeAlgolia() {
@@ -263,10 +278,14 @@ class AlbumGuessrGame {
         });
 
         // Auth buttons
-        if (this.elements.btnLogin) {
+        this.bindAuthButtons();
+    }
+
+    bindAuthButtons() {
+        if (this.elements && this.elements.btnLogin) {
             this.elements.btnLogin.addEventListener('click', () => this.login());
         }
-        if (this.elements.btnLogout) {
+        if (this.elements && this.elements.btnLogout) {
             this.elements.btnLogout.addEventListener('click', () => this.logout());
         }
     }
