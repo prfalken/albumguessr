@@ -254,21 +254,29 @@ class AlbumGuessrGame {
         }
         
         // Instructions modal
-        this.elements.instructionsButton.addEventListener('click', this.showInstructionsModal.bind(this));
-        this.elements.closeInstructions.addEventListener('click', this.hideInstructionsModal.bind(this));
+        if (this.elements.instructionsButton) {
+            this.elements.instructionsButton.addEventListener('click', this.showInstructionsModal.bind(this));
+        }
+        if (this.elements.closeInstructions) {
+            this.elements.closeInstructions.addEventListener('click', this.hideInstructionsModal.bind(this));
+        }
 
         // Close modals on background click
-        this.elements.victoryModal.addEventListener('click', (e) => {
-            if (e.target === this.elements.victoryModal) {
-                this.hideVictoryModal();
-            }
-        });
+        if (this.elements.victoryModal) {
+            this.elements.victoryModal.addEventListener('click', (e) => {
+                if (e.target === this.elements.victoryModal) {
+                    this.hideVictoryModal();
+                }
+            });
+        }
 
-        this.elements.instructionsModal.addEventListener('click', (e) => {
-            if (e.target === this.elements.instructionsModal) {
-                this.hideInstructionsModal();
-            }
-        });
+        if (this.elements.instructionsModal) {
+            this.elements.instructionsModal.addEventListener('click', (e) => {
+                if (e.target === this.elements.instructionsModal) {
+                    this.hideInstructionsModal();
+                }
+            });
+        }
 
         // Close search results when clicking outside
         document.addEventListener('click', (e) => {
@@ -293,7 +301,13 @@ class AlbumGuessrGame {
     async ensureAuth0Client() {
         if (this.auth0Client) return this.auth0Client;
         try {
-            if (typeof AUTH0_CONFIG === 'object' && AUTH0_CONFIG && typeof auth0 !== 'undefined') {
+            if (typeof AUTH0_CONFIG === 'object' && AUTH0_CONFIG) {
+                if (typeof auth0 === 'undefined') {
+                    await this.loadAuth0Library();
+                }
+                if (typeof auth0 === 'undefined') {
+                    return null;
+                }
                 this.auth0Client = await auth0.createAuth0Client(AUTH0_CONFIG);
                 return this.auth0Client;
             }
@@ -303,9 +317,37 @@ class AlbumGuessrGame {
         return null;
     }
 
+    async loadAuth0Library() {
+        // Dynamically load Auth0 SPA SDK if the CDN script failed to load
+        return new Promise((resolve) => {
+            try {
+                if (typeof auth0 !== 'undefined') return resolve();
+                const existing = document.querySelector('script[data-auth0-spa]');
+                if (existing) {
+                    existing.addEventListener('load', () => resolve());
+                    existing.addEventListener('error', () => resolve());
+                    return;
+                }
+                const script = document.createElement('script');
+                script.src = 'https://cdn.auth0.com/js/auth0-spa-js/2.1/auth0-spa-js.production.js';
+                script.async = true;
+                script.defer = true;
+                script.setAttribute('data-auth0-spa', 'true');
+                script.onload = () => resolve();
+                script.onerror = () => resolve();
+                document.head.appendChild(script);
+            } catch (_) {
+                resolve();
+            }
+        });
+    }
+
     async login() {
         const client = await this.ensureAuth0Client();
-        if (!client) return;
+        if (!client) {
+            alert('Login is currently unavailable. Please try again later.');
+            return;
+        }
         await client.loginWithRedirect({
             authorizationParams: { redirect_uri: window.location.origin }
         });
@@ -313,7 +355,10 @@ class AlbumGuessrGame {
 
     async logout() {
         const client = await this.ensureAuth0Client();
-        if (!client) return;
+        if (!client) {
+            alert('Logout is currently unavailable. Please try again later.');
+            return;
+        }
         client.logout({ logoutParams: { returnTo: window.location.origin } });
     }
 
