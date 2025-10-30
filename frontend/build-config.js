@@ -41,6 +41,7 @@ function main() {
     `        { key: 'artists', label: 'Artists', icon: 'bi-person-fill', description: 'Shared artists' },\n` +
     `        { key: 'genres', label: 'Genres', icon: 'bi-music-note-list', description: 'Shared musical genres' },\n` +
     `        { key: 'release_year', label: 'Year', icon: 'bi-calendar-fill', description: 'Release year' },\n` +
+    `        { key: 'total_length_seconds', label: 'Length', icon: 'bi-stopwatch', description: 'Total runtime' },\n` +
     `        { key: 'countries', label: 'Countries', icon: 'bi-globe', description: 'Countries of origin' },\n` +
     `        { key: 'continents', label: 'Continents', icon: 'bi-globe-europe-africa', description: 'Continents of origin' },\n` +
     `        { key: 'contributors', label: 'Contributors', icon: 'bi-people-fill', description: 'Shared contributors' },\n` +
