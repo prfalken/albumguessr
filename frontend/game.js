@@ -160,22 +160,13 @@ class AlbumGuessrGame {
     }
 
     async selectDailyAlbum() {
-        // Pick a random line from mistery-albums.jsonl and use its id as Algolia objectID
+        // Fetch a random scheduled album from the database via Netlify Function
         try {
-            const response = await fetch('mistery-albums.jsonl', { cache: 'no-store' });
-            if (!response.ok) throw new Error('Failed to load mistery-albums.jsonl');
-
-            const text = await response.text();
-            const lines = text
-                .split('\n')
-                .map(l => l.trim())
-                .filter(l => l.length > 0);
-
-            if (lines.length === 0) throw new Error('Empty mistery-albums.jsonl');
-
-            const randomIndex = Math.floor(Math.random() * lines.length);
-            const randomEntry = JSON.parse(lines[randomIndex]);
-            const releaseGroupId = randomEntry.id; // Use as Algolia objectID
+            const res = await fetch('/.netlify/functions/randomAlbum', { cache: 'no-store' });
+            if (!res.ok) throw new Error('Failed to load random album');
+            const data = await res.json();
+            const objectID = data && data.objectID;
+            if (!objectID) throw new Error('Invalid album payload');
 
             if (!this.algoliaIndex) throw new Error('Algolia index not initialized');
 
@@ -185,14 +176,12 @@ class AlbumGuessrGame {
                 'cover_art_url', 'label', 'total_length_seconds'
             ];
 
-            this.mysteryAlbum = await this.algoliaIndex.getObject(releaseGroupId, { attributesToRetrieve: attrs });
+            this.mysteryAlbum = await this.algoliaIndex.getObject(objectID, { attributesToRetrieve: attrs });
             this.normalizeAlbumContributors(this.mysteryAlbum);
-            // Pre-compute continents for the mystery album (derived from countries)
             if (Array.isArray(this.mysteryAlbum.countries)) {
                 this.mysteryAlbum.continents = this.getContinentsForCountryCodes(this.mysteryAlbum.countries);
             }
-            console.log('Loaded mystery album from mistery-albums.jsonl');
-            console.log(this.mysteryAlbum);
+            console.log('Random mystery album:', this.mysteryAlbum);
             return this.mysteryAlbum;
         } catch (error) {
             console.error('Failed to select random album:', error);

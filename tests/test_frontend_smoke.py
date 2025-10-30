@@ -83,10 +83,7 @@ class FrontendSmokeTest(unittest.TestCase):
             self.assertEqual(r_cfg.status_code, 200)
             self.assertIn("ALGOLIA_CONFIG", r_cfg.text)
 
-            # Data file for game
-            r_data = requests.get(base_url + "/mistery-albums.jsonl", timeout=2)
-            self.assertEqual(r_data.status_code, 200)
-            self.assertGreater(len(r_data.text.strip()), 0)
+            # JSONL file no longer required; game now fetches random album via API
         finally:
             stop_static_server(server)
 

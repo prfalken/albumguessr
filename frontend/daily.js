@@ -31,6 +31,7 @@ class AlbumGuessrDailyGame extends AlbumGuessrGame {
             if (Array.isArray(this.mysteryAlbum.countries)) {
                 this.mysteryAlbum.continents = this.getContinentsForCountryCodes(this.mysteryAlbum.countries);
             }
+            console.log('Daily mystery album:', this.mysteryAlbum);
             return this.mysteryAlbum;
         } catch (error) {
             console.error('Failed to load album of the day:', error);
