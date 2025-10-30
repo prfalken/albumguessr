@@ -295,27 +295,11 @@ class AlbumGuessrStats {
             currentStreak = byDay.has(sortedDays[sortedDays.length-1]) ? 1 : 0;
         }
 
-        // artist frequency
-        const artistCount = new Map();
-        history.forEach(h => {
-            const arr = Array.isArray(h.artists) ? h.artists : [];
-            arr.forEach(a => {
-                const key = String(a||'').trim();
-                if (!key) return;
-                artistCount.set(key, (artistCount.get(key)||0)+1);
-            });
-        });
-        const favoriteArtist = Array.from(artistCount.entries()).sort((a,b)=>b[1]-a[1])[0] || null;
-
         // year stats
         const years = history.map(h => Number(h.release_year)).filter(n => !isNaN(n) && n > 0);
         const oldestYear = years.length ? Math.min(...years) : null;
         const newestYear = years.length ? Math.max(...years) : null;
         const avgYear = years.length ? Math.round(years.reduce((a,b)=>a+b,0)/years.length) : null;
-
-        // playful score
-        const efficiency = guessesList.length ? (5 - Math.min(5, Math.max(1, avgGuesses))) / 4 : 0; // 0..1
-        const score = Math.max(0, Math.round(50 + efficiency*40 + Math.min(bestStreak, 10)*1)); // 50..100 approx
 
         return {
             totalWins,
@@ -324,11 +308,9 @@ class AlbumGuessrStats {
             slowest,
             bestStreak,
             currentStreak,
-            favoriteArtist,
             oldestYear,
             newestYear,
-            avgYear,
-            score
+            avgYear
         };
     }
 
@@ -365,9 +347,6 @@ class AlbumGuessrStats {
         cards.push(make('bi-bar-chart', 'Average guesses', `${stats.avgGuesses || 0}`));
         cards.push(make('bi-fire', 'Best streak', `${stats.bestStreak} day(s)`));
         cards.push(make('bi-activity', 'Current streak', `${stats.currentStreak} day(s)`));
-        if (stats.favoriteArtist) {
-            cards.push(make('bi-person-heart', 'Favorite artist', stats.favoriteArtist[0], `${stats.favoriteArtist[1]} win(s)`));
-        }
         if (stats.oldestYear || stats.newestYear) {
             cards.push(make('bi-calendar2', 'Oldest win year', stats.oldestYear ? String(stats.oldestYear) : '—'));
             cards.push(make('bi-calendar-event', 'Newest win year', stats.newestYear ? String(stats.newestYear) : '—'));
@@ -375,7 +354,6 @@ class AlbumGuessrStats {
         if (stats.avgYear) {
             cards.push(make('bi-calendar3', 'Average year', String(stats.avgYear)));
         }
-        cards.push(make('bi-stars', 'AlbumGuessr score', `${stats.score}/100`, 'For fun only ✨'));
 
         return cards;
     }
