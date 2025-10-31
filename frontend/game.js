@@ -382,7 +382,11 @@ class AlbumGuessrGame {
                 this.elements.userAvatar.style.display = '';
             }
             if (this.elements.userName) {
-                this.elements.userName.textContent = this.authenticatedUser.name || this.authenticatedUser.email || '';
+                // Show custom username if set, otherwise fall back to name or email
+                const displayName = this.authenticatedUser.user_metadata?.custom_username || 
+                                   this.authenticatedUser.name || 
+                                   this.authenticatedUser.email || '';
+                this.elements.userName.textContent = displayName;
             }
             show(this.elements.userProfile, true);
         } else {

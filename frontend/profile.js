@@ -1,4 +1,4 @@
-class AlbumGuessrStats {
+class AlbumGuessrProfile {
     constructor() {
         this.auth0Client = null;
         this.authenticatedUser = null;
@@ -20,6 +20,7 @@ class AlbumGuessrStats {
                 await this.ensureAuth0Client();
                 const authed = this.auth0Client ? await this.auth0Client.isAuthenticated() : false;
                 this.updateAuthUI(!!authed);
+                this.renderUserProfile();
                 this.renderUserHistory();
                 this.renderUserStats();
             } catch (_) {}
@@ -34,6 +35,14 @@ class AlbumGuessrStats {
             userProfile: document.getElementById('user-profile'),
             userAvatar: document.getElementById('user-avatar'),
             userName: document.getElementById('user-name'),
+            // Profile elements
+            profileAvatar: document.getElementById('profile-avatar'),
+            profileEmail: document.getElementById('profile-email'),
+            currentUsername: document.getElementById('current-username'),
+            newUsername: document.getElementById('new-username'),
+            usernameForm: document.getElementById('username-form'),
+            usernameMessage: document.getElementById('username-message'),
+            btnSaveUsername: document.getElementById('btn-save-username'),
             // History elements
             userHistorySubtitle: document.getElementById('user-history-subtitle'),
             userHistoryList: document.getElementById('user-history-list'),
@@ -51,6 +60,9 @@ class AlbumGuessrStats {
 
     bindEvents() {
         this.bindAuthButtons();
+        if (this.elements.usernameForm) {
+            this.elements.usernameForm.addEventListener('submit', (e) => this.handleUsernameChange(e));
+        }
     }
 
     bindAuthButtons() {
@@ -66,10 +78,10 @@ class AlbumGuessrStats {
         try {
             if (typeof AUTH0_CONFIG === 'object' && AUTH0_CONFIG && typeof auth0 !== 'undefined') {
                 this.auth0Client = await auth0.createAuth0Client(AUTH0_CONFIG);
-                console.log('Auth0 initialized (stats)');
+                console.log('Auth0 initialized (profile)');
             }
         } catch (error) {
-            console.warn('Auth0 initialization failed or skipped (stats):', error);
+            console.warn('Auth0 initialization failed or skipped (profile):', error);
         }
     }
 
@@ -85,7 +97,7 @@ class AlbumGuessrStats {
                 return this.auth0Client;
             }
         } catch (e) {
-            console.warn('Unable to create Auth0 client (stats):', e);
+            console.warn('Unable to create Auth0 client (profile):', e);
         }
         return null;
     }
@@ -123,11 +135,10 @@ class AlbumGuessrStats {
             if (hasAuthParams) {
                 try {
                     const result = await this.auth0Client.handleRedirectCallback();
-                    // Redirect to the page the user was on before login
-                    const returnTo = (result.appState && result.appState.returnTo) ? result.appState.returnTo : '/';
+                    const returnTo = (result.appState && result.appState.returnTo) ? result.appState.returnTo : '/profile.html';
                     window.history.replaceState({}, document.title, returnTo);
                 } catch (e) {
-                    console.warn('Auth0 redirect callback failed (stats):', e);
+                    console.warn('Auth0 redirect callback failed (profile):', e);
                     window.history.replaceState({}, document.title, window.location.pathname);
                 }
             }
@@ -139,10 +150,11 @@ class AlbumGuessrStats {
                 this.authenticatedUser = null;
             }
             this.updateAuthUI(isAuthenticated);
+            this.renderUserProfile();
             this.renderUserHistory();
             this.renderUserStats();
         } catch (err) {
-            console.warn('Auth0 post-DOM setup skipped or failed (stats):', err);
+            console.warn('Auth0 post-DOM setup skipped or failed (profile):', err);
         }
     }
 
@@ -153,12 +165,10 @@ class AlbumGuessrStats {
         if (isAuthenticated && this.authenticatedUser) {
             if (this.elements.userAvatar) {
                 this.elements.userAvatar.src = this.authenticatedUser.picture || '';
-                // Add error handler to prevent repeated failed loads
                 this.elements.userAvatar.onerror = () => {
                     this.elements.userAvatar.style.display = 'none';
-                    this.elements.userAvatar.onerror = null; // Prevent infinite loop
+                    this.elements.userAvatar.onerror = null;
                 };
-                // Reset display in case it was hidden before
                 this.elements.userAvatar.style.display = '';
             }
             if (this.elements.userName) {
@@ -207,8 +217,131 @@ class AlbumGuessrStats {
         try {
             return await client.getTokenSilently({ authorizationParams: { audience } });
         } catch (e) {
-            console.warn('Failed to obtain API token (stats):', e);
+            console.warn('Failed to obtain API token (profile):', e);
             return null;
+        }
+    }
+
+    renderUserProfile() {
+        if (!this.authenticatedUser) {
+            // Redirect to home if not authenticated
+            window.location.href = 'index.html';
+            return;
+        }
+
+        const avatarEl = this.elements.profileAvatar;
+        const emailEl = this.elements.profileEmail;
+        const currentUsernameEl = this.elements.currentUsername;
+
+        if (avatarEl && this.authenticatedUser.picture) {
+            avatarEl.src = this.authenticatedUser.picture;
+            avatarEl.onerror = () => {
+                avatarEl.style.display = 'none';
+                avatarEl.onerror = null;
+            };
+        }
+
+        if (emailEl) {
+            emailEl.textContent = this.authenticatedUser.email || '';
+        }
+
+        if (currentUsernameEl) {
+            // Use custom_username from user_metadata if available, otherwise fall back to name or email
+            const customUsername = this.authenticatedUser.user_metadata?.custom_username;
+            currentUsernameEl.value = customUsername || this.authenticatedUser.name || this.authenticatedUser.email || '';
+        }
+    }
+
+    async handleUsernameChange(e) {
+        e.preventDefault();
+        
+        const newUsername = this.elements.newUsername.value.trim();
+        const messageEl = this.elements.usernameMessage;
+        const submitBtn = this.elements.btnSaveUsername;
+
+        if (!newUsername || newUsername.length < 3) {
+            this.showMessage('Username must be at least 3 characters long', 'error');
+            return;
+        }
+
+        // Disable form while processing
+        submitBtn.disabled = true;
+        this.showMessage('Updating username...', 'info');
+
+        try {
+            const token = await this.getApiAccessToken();
+            if (!token) {
+                this.showMessage('Authentication failed. Please log in again.', 'error');
+                submitBtn.disabled = false;
+                return;
+            }
+
+            const response = await fetch('/.netlify/functions/updateProfile', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ name: newUsername })
+            });
+
+            if (!response.ok) {
+                let errorMsg = 'Failed to update username';
+                try {
+                    const errorData = await response.json();
+                    console.error('Update profile error:', errorData);
+                    errorMsg = errorData.error || errorData.message || errorMsg;
+                } catch (e) {
+                    const errorText = await response.text();
+                    console.error('Update profile error (text):', errorText);
+                    errorMsg = errorText || errorMsg;
+                }
+                throw new Error(errorMsg);
+            }
+
+            // Update local user object with custom username in metadata
+            if (!this.authenticatedUser.user_metadata) {
+                this.authenticatedUser.user_metadata = {};
+            }
+            this.authenticatedUser.user_metadata.custom_username = newUsername;
+            
+            this.elements.currentUsername.value = newUsername;
+            this.elements.newUsername.value = '';
+            
+            // Update header display
+            if (this.elements.userName) {
+                this.elements.userName.textContent = newUsername;
+            }
+
+            this.showMessage('Username updated successfully! Refresh the page to see changes everywhere.', 'success');
+        } catch (error) {
+            console.error('Username update failed:', error);
+            this.showMessage('Failed to update username. Please try again.', 'error');
+        } finally {
+            submitBtn.disabled = false;
+        }
+    }
+
+    showMessage(text, type) {
+        const messageEl = this.elements.usernameMessage;
+        if (!messageEl) return;
+
+        messageEl.textContent = text;
+        messageEl.className = 'form-message';
+        
+        if (type === 'success') {
+            messageEl.classList.add('success');
+        } else if (type === 'error') {
+            messageEl.classList.add('error');
+        } else {
+            messageEl.classList.add('info');
+        }
+
+        if (type === 'success') {
+            setTimeout(() => {
+                messageEl.textContent = '';
+                messageEl.className = 'form-message';
+            }, 5000);
         }
     }
 
@@ -222,7 +355,7 @@ class AlbumGuessrStats {
         if (!res.ok) {
             let details = '';
             try { details = await res.text(); } catch {}
-            console.warn('history_get_failed_response (stats):', res.status, details);
+            console.warn('history_get_failed_response (profile):', res.status, details);
             throw new Error('history_get_failed');
         }
         return await res.json();
@@ -277,7 +410,7 @@ class AlbumGuessrStats {
                 listEl.appendChild(el);
             });
         } catch (e) {
-            console.warn('history render failed (stats):', e);
+            console.warn('history render failed (profile):', e);
             listEl.replaceChildren();
             const tplErr = this.templates.historyError;
             if (tplErr) listEl.appendChild(tplErr.content.firstElementChild.cloneNode(true));
@@ -299,7 +432,6 @@ class AlbumGuessrStats {
             const history = await this.fetchUserHistoryFromApi();
             listEl.replaceChildren();
             if (!history || history.length === 0) {
-                // No stats if no history
                 return;
             }
 
@@ -307,7 +439,7 @@ class AlbumGuessrStats {
             const cards = this.buildStatCards(stats);
             cards.forEach(card => listEl.appendChild(card));
         } catch (e) {
-            console.warn('stats render failed:', e);
+            console.warn('stats render failed (profile):', e);
             listEl.replaceChildren();
         }
     }
@@ -335,7 +467,6 @@ class AlbumGuessrStats {
         });
 
         const sortedDays = Array.from(byDay.keys()).sort();
-        // streaks based on at least one win per consecutive day
         let bestStreak = 0, currentStreak = 0;
         let prev = null;
         const toDateObj = (k) => new Date(`${k}T00:00:00Z`);
@@ -356,17 +487,14 @@ class AlbumGuessrStats {
             prev = k;
         });
 
-        // current streak only if last day is today or yesterday continuation
         const today = new Date();
         const todayKey = `${today.getUTCFullYear()}-${String(today.getUTCMonth()+1).padStart(2,'0')}-${String(today.getUTCDate()).padStart(2,'0')}`;
         const yesterday = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()-1));
         const yesterdayKey = `${yesterday.getUTCFullYear()}-${String(yesterday.getUTCMonth()+1).padStart(2,'0')}-${String(yesterday.getUTCDate()).padStart(2,'0')}`;
         if (!byDay.has(todayKey) && !byDay.has(yesterdayKey)) {
-            // streak not active
             currentStreak = byDay.has(sortedDays[sortedDays.length-1]) ? 1 : 0;
         }
 
-        // year stats
         const years = history.map(h => Number(h.release_year)).filter(n => !isNaN(n) && n > 0);
         const oldestYear = years.length ? Math.min(...years) : null;
         const newestYear = years.length ? Math.max(...years) : null;
@@ -431,7 +559,6 @@ class AlbumGuessrStats {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    new AlbumGuessrStats();
+    new AlbumGuessrProfile();
 });
-
 
