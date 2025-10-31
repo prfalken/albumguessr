@@ -16,11 +16,47 @@ export class AuthManager {
     async initializeAuth0() {
         try {
             if (typeof AUTH0_CONFIG === 'object' && AUTH0_CONFIG && typeof auth0 !== 'undefined') {
+                this.clearStaleAuthCache();
                 this.auth0Client = await auth0.createAuth0Client(AUTH0_CONFIG);
                 console.log('Auth0 initialized');
             }
         } catch (error) {
             console.warn('Auth0 initialization failed or skipped:', error);
+        }
+    }
+
+    /**
+     * Clear stale Auth0 cache if client ID has changed
+     * This prevents "Unknown client" errors when Auth0 config is updated
+     */
+    clearStaleAuthCache() {
+        try {
+            if (!AUTH0_CONFIG || !AUTH0_CONFIG.clientId) return;
+            
+            const currentClientId = AUTH0_CONFIG.clientId;
+            const cacheKey = 'auth0.client_id';
+            const cachedClientId = localStorage.getItem(cacheKey);
+            
+            if (cachedClientId && cachedClientId !== currentClientId) {
+                console.warn(`Auth0 client ID mismatch detected. Clearing stale cache. Old: ${cachedClientId}, New: ${currentClientId}`);
+                
+                // Clear all Auth0-related items from localStorage
+                const keysToRemove = [];
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key && (key.startsWith('@@auth0') || key.startsWith('auth0.'))) {
+                        keysToRemove.push(key);
+                    }
+                }
+                keysToRemove.forEach(key => localStorage.removeItem(key));
+                
+                console.log(`Cleared ${keysToRemove.length} Auth0 cache entries`);
+            }
+            
+            // Store current client ID for future checks
+            localStorage.setItem(cacheKey, currentClientId);
+        } catch (error) {
+            console.warn('Failed to clear stale Auth0 cache:', error);
         }
     }
 
@@ -36,6 +72,7 @@ export class AuthManager {
                     await this.loadAuth0Library();
                 }
                 if (typeof auth0 === 'undefined') return null;
+                this.clearStaleAuthCache();
                 this.auth0Client = await auth0.createAuth0Client(AUTH0_CONFIG);
                 return this.auth0Client;
             }
