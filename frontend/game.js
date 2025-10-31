@@ -86,6 +86,7 @@ class AlbumGuessrGame {
             finalClues: document.getElementById('final-clues'),
             shareButton: document.getElementById('share-button'),
             playAgainButton: document.getElementById('play-again-button'),
+            showRankingsButton: document.getElementById('show-rankings-button'),
             closeVictory: document.getElementById('close-victory'),
             instructionsModal: document.getElementById('instructions-modal'),
             instructionsButton: document.getElementById('instructions-button'),
@@ -260,6 +261,9 @@ class AlbumGuessrGame {
         if (this.elements.playAgainButton) {
             this.elements.playAgainButton.addEventListener('click', () => window.location.reload());
         }
+        if (this.elements.showRankingsButton) {
+            this.elements.showRankingsButton.addEventListener('click', () => window.location.href = '/ranking.html');
+        }
         
         // Instructions modal
         if (this.elements.instructionsButton) {
@@ -429,7 +433,7 @@ class AlbumGuessrGame {
         if (query.length < 2) {
             this.hideSearchResults();
             this.selectedResult = null;
-            this.elements.searchSubmit.disabled = true;
+            if (this.elements.searchSubmit) this.elements.searchSubmit.disabled = true;
             return;
         }
 
@@ -447,7 +451,7 @@ class AlbumGuessrGame {
                 return hit;
             });
             this.displaySearchResults();
-            this.elements.searchSubmit.disabled = this.searchResults.length === 0;
+            if (this.elements.searchSubmit) this.elements.searchSubmit.disabled = this.searchResults.length === 0;
         } catch (error) {
             console.error('Search error:', error);
         }
@@ -584,7 +588,7 @@ class AlbumGuessrGame {
         this.elements.albumSearch.value = '';
         this.hideSearchResults();
         this.selectedResult = null;
-        this.elements.searchSubmit.disabled = true;
+        if (this.elements.searchSubmit) this.elements.searchSubmit.disabled = true;
 
         if (this.gameOver) {
             setTimeout(() => this.showVictoryModal(), 1000);
