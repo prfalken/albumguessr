@@ -796,12 +796,13 @@ class AlbumGuessrGame {
                 if (countriesSet.size === 0 && continentsSet.size === 0) return;
 
                 const catEl = this.templates.clueCategory.content.firstElementChild.cloneNode(true);
-                const titleIcon = catEl.querySelector('.clue-category-title i');
-                const titleLabel = catEl.querySelector('.clue-category-label');
-                if (titleIcon) titleIcon.className = `bi ${catConf.icon}`;
-                if (titleLabel) titleLabel.textContent = catConf.label;
                 const valuesEl = catEl.querySelector('.clue-values');
                 if (valuesEl) {
+                    // Single icon before all values
+                    const iconEl = document.createElement('i');
+                    iconEl.className = `bi ${catConf.icon}`;
+                    valuesEl.appendChild(iconEl);
+
                     Array.from(countriesSet).forEach(code => {
                         const chip = this.templates.clueValue.content.firstElementChild.cloneNode(true);
                         chip.textContent = this.getCountryName(String(code));
@@ -821,12 +822,13 @@ class AlbumGuessrGame {
             if (!values || values.size === 0) return;
 
             const catEl = this.templates.clueCategory.content.firstElementChild.cloneNode(true);
-            const titleIcon = catEl.querySelector('.clue-category-title i');
-            const titleLabel = catEl.querySelector('.clue-category-label');
-            if (titleIcon) titleIcon.className = `bi ${catConf.icon}`;
-            if (titleLabel) titleLabel.textContent = catConf.label;
             const valuesEl = catEl.querySelector('.clue-values');
             if (valuesEl) {
+                // Single icon before all values
+                const iconEl = document.createElement('i');
+                iconEl.className = `bi ${catConf.icon}`;
+                valuesEl.appendChild(iconEl);
+
                 Array.from(values).forEach(value => {
                     const chip = this.templates.clueValue.content.firstElementChild.cloneNode(true);
                     if (catConf.key === 'contributors') chip.classList.add('clue-musician');

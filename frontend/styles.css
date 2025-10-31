@@ -511,8 +511,10 @@ header .contenu {
 }
 
 .clues-container {
-    display: grid;
-    gap: 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 1rem;
+    align-items: flex-start;
 }
 
 .no-clues {
@@ -528,11 +530,13 @@ header .contenu {
 }
 
 .clue-category {
-    background: var(--clue-background);
-    border: 1px solid var(--clue-border);
+    background: transparent;
+    border: none;
     border-radius: var(--radius);
-    padding: 1rem;
+    padding: 0;
     animation: clueReveal 0.5s ease;
+    display: inline-flex;
+    align-items: center;
 }
 
 .clue-category-title {
@@ -548,16 +552,22 @@ header .contenu {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
+    align-items: center;
+}
+
+/* Category icon before the chips */
+.clue-values > i {
+    color: #ffd41d;
 }
 
 .clue-value {
-    background: white;
-    color: var(--clue-border);
+    background: #ffd41d;
+    color: #000;
     padding: 0.25rem 0.75rem;
     border-radius: calc(var(--radius) / 2);
     font-size: 0.9rem;
     font-weight: 500;
-    border: 1px solid var(--clue-border);
+    border: none;
 }
 
 .clue-value.clue-musician {
@@ -1144,10 +1154,6 @@ footer .contenu {
 
 /* Responsive Design */
 @media (max-width: 640px) {
-    .container {
-        
-    }
-    
     
     .game-status {
         flex-direction: column;
