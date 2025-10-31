@@ -38,6 +38,7 @@ class AlbumGuessrGame {
                 await this.ensureAuth0Client();
                 const authed = this.auth0Client ? await this.auth0Client.isAuthenticated() : false;
                 this.updateAuthUI(!!authed);
+                await this.refreshHeaderUsernameFromDb();
             } catch (_) {}
         });
     }
@@ -147,6 +148,7 @@ class AlbumGuessrGame {
             }
             this.updateAuthUI(isAuthenticated);
             this.renderUserHistory();
+            await this.refreshHeaderUsernameFromDb();
         } catch (err) {
             console.warn('Auth0 post-DOM setup skipped or failed:', err);
         }
@@ -398,6 +400,24 @@ class AlbumGuessrGame {
         if (isAuthenticated && this.gameWon && !this.winSaved) {
             this.saveWinToHistory();
         }
+    }
+
+    async refreshHeaderUsernameFromDb() {
+        try {
+            if (!this.authenticatedUser || !this.elements || !this.elements.userName) return;
+            const token = await this.getApiAccessToken();
+            if (!token) return;
+            const response = await fetch('/.netlify/functions/updateProfile', {
+                method: 'GET',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!response.ok) return;
+            const profileData = await response.json();
+            const dbUsername = profileData && profileData.custom_username;
+            if (dbUsername) {
+                this.elements.userName.textContent = String(dbUsername);
+            }
+        } catch (_) {}
     }
 
     async handleSearchInput(event) {

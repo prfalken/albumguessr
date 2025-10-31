@@ -23,6 +23,7 @@ class AlbumGuessrProfile {
                 await this.renderUserProfile();
                 this.renderUserHistory();
                 this.renderUserStats();
+                await this.refreshHeaderUsernameFromDb();
             } catch (_) {}
         });
     }
@@ -153,6 +154,7 @@ class AlbumGuessrProfile {
             await this.renderUserProfile();
             this.renderUserHistory();
             this.renderUserStats();
+            await this.refreshHeaderUsernameFromDb();
         } catch (err) {
             console.warn('Auth0 post-DOM setup skipped or failed (profile):', err);
         }
@@ -187,6 +189,24 @@ class AlbumGuessrProfile {
         const histSubtitle = this.elements.userHistorySubtitle;
         if (statsSubtitle) statsSubtitle.textContent = isAuthenticated ? 'Your personal game stats' : 'Log in to see your stats';
         if (histSubtitle) histSubtitle.textContent = isAuthenticated ? 'Recent wins saved to your account' : 'Log in to save and see your history';
+    }
+
+    async refreshHeaderUsernameFromDb() {
+        try {
+            if (!this.authenticatedUser || !this.elements || !this.elements.userName) return;
+            const token = await this.getApiAccessToken();
+            if (!token) return;
+            const response = await fetch('/.netlify/functions/updateProfile', {
+                method: 'GET',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!response.ok) return;
+            const profileData = await response.json();
+            const dbUsername = profileData && profileData.custom_username;
+            if (dbUsername) {
+                this.elements.userName.textContent = String(dbUsername);
+            }
+        } catch (_) {}
     }
 
     async login() {

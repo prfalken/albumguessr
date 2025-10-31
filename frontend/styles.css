@@ -227,15 +227,15 @@ header .contenu {
     font-size: 1rem;
 }
 
-    .avatar{
-        width: 30px;
-        height: 30px;
-        margin:0px;
-        padding:0px;
-        border-radius: 50%;
-        vertical-align: middle;
-        object-fit: cover;
-    }
+.avatar{
+    width: 30px;
+    height: 30px;
+    margin:0px;
+    padding:0px;
+    border-radius: 50%;
+    vertical-align: middle;
+    object-fit: cover;
+}
 
 /* Inline subtitle inside status bar */
 .status-subtitle {
@@ -1105,6 +1105,13 @@ footer .contenu {
 }
 
 /* Sidebar: User History */
+.user-profile .user-name {
+    margin-left: 8px;
+    color: black;
+    font-size: 0.9rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
 .user-history {
     background: var(--surface);
     border-radius: var(--radius-lg);
@@ -1209,154 +1216,8 @@ footer .contenu {
     font-weight: 500;
 }
 
-/* Toast Notifications */
-.toast-container {
-    position: fixed;
-    bottom: 2rem;
-    right: 2rem;
-    z-index: 3000;
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    max-width: 400px;
-    pointer-events: none;
-}
-
-.toast {
-    background: white;
-    border-radius: var(--radius);
-    padding: 1rem 1.25rem;
-    box-shadow: var(--shadow-lg);
-    display: flex;
-    align-items: flex-start;
-    gap: 0.75rem;
-    animation: slideIn 0.3s ease-out;
-    pointer-events: auto;
-    border-left: 4px solid var(--primary-color);
-}
-
-.toast.toast-info {
-    border-left-color: #3b82f6;
-}
-
-.toast.toast-success {
-    border-left-color: var(--secondary-color);
-}
-
-.toast.toast-warning {
-    border-left-color: var(--accent-color);
-}
-
-.toast-icon {
-    font-size: 1.25rem;
-    flex-shrink: 0;
-    margin-top: 0.125rem;
-}
-
-.toast-info .toast-icon {
-    color: #3b82f6;
-}
-
-.toast-success .toast-icon {
-    color: var(--secondary-color);
-}
-
-.toast-warning .toast-icon {
-    color: var(--accent-color);
-}
-
-.toast-content {
-    flex: 1;
-    min-width: 0;
-}
-
-.toast-title {
-    font-weight: 600;
-    font-size: 0.875rem;
-    color: #1e293b;
-    margin-bottom: 0.25rem;
-}
-
-.toast-message {
-    font-size: 0.8125rem;
-    color: #64748b;
-    line-height: 1.4;
-}
-
-.toast-action {
-    margin-top: 0.5rem;
-}
-
-.toast-action a {
-    color: #3b82f6;
-    text-decoration: none;
-    font-weight: 500;
-    font-size: 0.8125rem;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.25rem;
-    transition: color 0.2s;
-}
-
-.toast-action a:hover {
-    color: #2563eb;
-    text-decoration: underline;
-}
-
-.toast-close {
-    background: none;
-    border: none;
-    color: #94a3b8;
-    cursor: pointer;
-    padding: 0;
-    font-size: 1.25rem;
-    line-height: 1;
-    transition: color 0.2s;
-    flex-shrink: 0;
-}
-
-.toast-close:hover {
-    color: #64748b;
-}
-
-@keyframes slideIn {
-    from {
-        transform: translateX(120%);
-        opacity: 0;
-    }
-    to {
-        transform: translateX(0);
-        opacity: 1;
-    }
-}
-
-.toast.toast-exit {
-    animation: slideOut 0.3s ease-in forwards;
-}
-
-@keyframes slideOut {
-    from {
-        transform: translateX(0);
-        opacity: 1;
-    }
-    to {
-        transform: translateX(120%);
-        opacity: 0;
-    }
-}
-
 /* Responsive Design */
 @media (max-width: 640px) {
-    .toast-container {
-        bottom: 1rem;
-        right: 1rem;
-        left: 1rem;
-        max-width: none;
-    }
-    
-    .toast {
-        padding: 0.875rem 1rem;
-    }
     
     .game-status {
         flex-direction: column;
@@ -1590,248 +1451,5 @@ footer .contenu {
 
     .username-form {
         max-width: 100%;
-    }
-}
-
-/* Ranking Page Styles */
-.ranking-container {
-    max-width: 1100px;
-    margin: 2rem auto;
-    padding: 0 1rem;
-}
-
-.ranking-table-wrapper {
-    background: linear-gradient(135deg, #4a3f6b 0%, #5d4a7f 100%);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-lg);
-    overflow: hidden;
-    padding: 2rem;
-}
-
-.ranking-table {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-}
-
-.ranking-table thead {
-    background: rgba(255, 255, 255, 0.05);
-}
-
-.ranking-table thead th {
-    padding: 1rem;
-    text-align: left;
-    font-weight: 600;
-    color: white;
-    font-size: 0.95rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
-}
-
-.ranking-table thead th:first-child {
-    width: 100px;
-    text-align: center;
-}
-
-.ranking-table thead th:nth-child(3),
-.ranking-table thead th:nth-child(4),
-.ranking-table thead th:nth-child(5) {
-    text-align: center;
-}
-
-.ranking-table tbody tr {
-    background: rgba(255, 255, 255, 0.05);
-    transition: all 0.2s ease;
-}
-
-.ranking-table tbody tr:hover {
-    background: rgba(255, 255, 255, 0.1);
-    transform: translateX(4px);
-}
-
-.ranking-table tbody tr:not(:last-child) {
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.ranking-table tbody td {
-    padding: 1rem;
-    color: white;
-    vertical-align: middle;
-}
-
-.ranking-rank {
-    text-align: center;
-    font-weight: 700;
-    font-size: 1.5rem;
-    color: rgba(255, 255, 255, 0.7);
-}
-
-.ranking-medal {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.medal-icon {
-    position: relative;
-    width: 50px;
-    height: 50px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-}
-
-.medal-1 {
-    background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
-}
-
-.medal-2 {
-    background: linear-gradient(135deg, #c0c0c0 0%, #e8e8e8 100%);
-}
-
-.medal-3 {
-    background: linear-gradient(135deg, #cd7f32 0%, #e8a87c 100%);
-}
-
-.medal-decoration {
-    position: absolute;
-    top: -8px;
-    font-size: 1.2rem;
-}
-
-.medal-number {
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: #333;
-    margin-top: 8px;
-}
-
-.ranking-user-container {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-}
-
-.ranking-avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 2px solid rgba(255, 255, 255, 0.2);
-    background: rgba(255, 255, 255, 0.1);
-}
-
-.ranking-avatar-initials {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    font-size: 0.9rem;
-    color: white;
-    border: 2px solid rgba(255, 255, 255, 0.2);
-}
-
-.ranking-username-text {
-    font-weight: 500;
-    font-size: 1rem;
-}
-
-.ranking-attempts,
-.ranking-time,
-.ranking-time-valid {
-    text-align: center;
-    font-weight: 500;
-}
-
-.ranking-current-user {
-    background: rgba(255, 212, 29, 0.15) !important;
-    border-left: 4px solid var(--accent-color) !important;
-}
-
-.ranking-current-user:hover {
-    background: rgba(255, 212, 29, 0.25) !important;
-}
-
-.ranking-empty {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 4rem 2rem;
-    text-align: center;
-    background: var(--surface);
-    border-radius: var(--radius-lg);
-    border: 1px solid var(--border);
-}
-
-.ranking-empty i {
-    font-size: 4rem;
-    color: var(--text-secondary);
-    margin-bottom: 1rem;
-    opacity: 0.5;
-}
-
-.ranking-empty p {
-    color: var(--text-secondary);
-    font-size: 1.1rem;
-}
-
-.ranking-loading .spinner {
-    margin: 0 auto;
-}
-
-@media (max-width: 768px) {
-    .ranking-table-wrapper {
-        padding: 1rem;
-        overflow-x: auto;
-    }
-
-    .ranking-table {
-        min-width: 600px;
-    }
-
-    .ranking-table thead th,
-    .ranking-table tbody td {
-        padding: 0.75rem 0.5rem;
-        font-size: 0.85rem;
-    }
-
-    .ranking-avatar,
-    .ranking-avatar-initials {
-        width: 32px;
-        height: 32px;
-    }
-
-    .medal-icon {
-        width: 40px;
-        height: 40px;
-    }
-
-    .medal-decoration {
-        font-size: 1rem;
-    }
-
-    .medal-number {
-        font-size: 1rem;
-    }
-}
-
-@media (max-width: 640px) {
-    .ranking-container {
-        padding: 0 0.5rem;
-    }
-
-    .ranking-table thead th:nth-child(4) {
-        display: none;
-    }
-
-    .ranking-table tbody td:nth-child(4) {
-        display: none;
     }
 }
