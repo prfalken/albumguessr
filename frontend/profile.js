@@ -26,12 +26,22 @@ class AlbumGuessrProfile {
             this.authManager.bindAuthButtons(this.elements);
             try {
                 const authed = await this.authManager.isAuthenticated();
+                if (authed) {
+                    try {
+                        const profileData = await this.apiClient.fetchProfile();
+                        const dbUsername = profileData && profileData.custom_username;
+                        this.authManager.setCustomUsername(dbUsername);
+                    } catch (profileErr) {
+                        console.warn('Failed to fetch profile:', profileErr);
+                    }
+                }
                 this.authManager.updateAuthUI(this.elements, authed);
                 await this.renderUserProfile();
                 this.renderUserHistory();
                 this.renderUserStats();
-                await this.refreshHeaderUsernameFromDb();
-            } catch (_) {}
+            } catch (err) {
+                console.warn('Auth setup failed:', err);
+            }
         });
     }
 
@@ -80,11 +90,19 @@ class AlbumGuessrProfile {
     async postDomAuthSetup() {
         try {
             const isAuthenticated = await this.authManager.postDomAuthSetup();
+            if (isAuthenticated) {
+                try {
+                    const profileData = await this.apiClient.fetchProfile();
+                    const dbUsername = profileData && profileData.custom_username;
+                    this.authManager.setCustomUsername(dbUsername);
+                } catch (profileErr) {
+                    console.warn('Failed to fetch profile:', profileErr);
+                }
+            }
             this.updateAuthUI(isAuthenticated);
             await this.renderUserProfile();
             this.renderUserHistory();
             this.renderUserStats();
-            await this.refreshHeaderUsernameFromDb();
         } catch (err) {
             console.warn('Auth0 post-DOM setup skipped or failed (profile):', err);
         }
@@ -97,17 +115,6 @@ class AlbumGuessrProfile {
         const histSubtitle = this.elements.userHistorySubtitle;
         if (statsSubtitle) statsSubtitle.textContent = isAuthenticated ? 'Your personal game stats' : 'Log in to see your stats';
         if (histSubtitle) histSubtitle.textContent = isAuthenticated ? 'Recent wins saved to your account' : 'Log in to save and see your history';
-    }
-
-    async refreshHeaderUsernameFromDb() {
-        try {
-            if (!this.authManager.authenticatedUser || !this.elements || !this.elements.userName) return;
-            const profileData = await this.apiClient.fetchProfile();
-            const dbUsername = profileData && profileData.custom_username;
-            if (dbUsername) {
-                this.elements.userName.textContent = String(dbUsername);
-            }
-        } catch (_) {}
     }
 
     async renderUserProfile() {
@@ -185,14 +192,13 @@ class AlbumGuessrProfile {
             }
             this.authManager.authenticatedUser.user_metadata.custom_username = newUsername;
             
+            // Update auth manager custom username and refresh header display
+            this.authManager.setCustomUsername(newUsername);
+            this.authManager.updateAuthUI(this.elements, true);
+            
             // Refresh current username from database to ensure consistency
             await this.renderUserProfile();
             this.elements.newUsername.value = '';
-            
-            // Update header display
-            if (this.elements.userName) {
-                this.elements.userName.textContent = newUsername;
-            }
 
             this.showMessage('Username updated successfully!', 'success');
         } catch (error) {

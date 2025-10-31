@@ -6,6 +6,7 @@ export class AuthManager {
     constructor() {
         this.auth0Client = null;
         this.authenticatedUser = null;
+        this.customUsername = null;
     }
 
     /**
@@ -176,16 +177,21 @@ export class AuthManager {
         show(elements.navStatistics, !!isAuthenticated);
         
         if (isAuthenticated && this.authenticatedUser) {
-            if (elements.userAvatar) {
-                elements.userAvatar.src = this.authenticatedUser.picture || '';
-                elements.userAvatar.onerror = () => {
-                    elements.userAvatar.style.display = 'none';
-                    elements.userAvatar.onerror = null;
-                };
+            if (elements.userAvatar && this.authenticatedUser.picture) {
+                // Only set src if it's different to avoid unnecessary reloads
+                if (elements.userAvatar.src !== this.authenticatedUser.picture) {
+                    elements.userAvatar.src = this.authenticatedUser.picture;
+                    elements.userAvatar.onerror = () => {
+                        elements.userAvatar.style.display = 'none';
+                        elements.userAvatar.onerror = null;
+                    };
+                }
                 elements.userAvatar.style.display = '';
+            } else if (elements.userAvatar) {
+                elements.userAvatar.style.display = 'none';
             }
             if (elements.userName) {
-                const displayName = this.authenticatedUser.user_metadata?.custom_username || 
+                const displayName = this.customUsername || 
                                    this.authenticatedUser.name || 
                                    this.authenticatedUser.email || '';
                 elements.userName.textContent = displayName;
@@ -209,6 +215,14 @@ export class AuthManager {
         if (elements.btnLogout) {
             elements.btnLogout.addEventListener('click', () => this.logout());
         }
+    }
+
+    /**
+     * Set custom username from database
+     * @param {string|null} username - Custom username or null to clear
+     */
+    setCustomUsername(username) {
+        this.customUsername = username;
     }
 
     /**

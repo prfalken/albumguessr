@@ -42,9 +42,20 @@ export class AlbumGuessrGame {
             this.authManager.bindAuthButtons(this.elements);
             try {
                 const authed = await this.authManager.isAuthenticated();
+                if (authed) {
+                    try {
+                        const profileData = await this.apiClient.fetchProfile();
+                        const dbUsername = profileData && profileData.custom_username;
+                        this.authManager.setCustomUsername(dbUsername);
+                    } catch (profileErr) {
+                        console.warn('Failed to fetch profile:', profileErr);
+                    }
+                }
                 this.authManager.updateAuthUI(this.elements, authed);
-                await this.refreshHeaderUsernameFromDb();
-            } catch (_) {}
+                this.renderUserHistory();
+            } catch (err) {
+                console.warn('Auth setup failed:', err);
+            }
         });
     }
 
@@ -125,9 +136,17 @@ export class AlbumGuessrGame {
     async postDomAuthSetup() {
         try {
             const isAuthenticated = await this.authManager.postDomAuthSetup();
+            if (isAuthenticated) {
+                try {
+                    const profileData = await this.apiClient.fetchProfile();
+                    const dbUsername = profileData && profileData.custom_username;
+                    this.authManager.setCustomUsername(dbUsername);
+                } catch (profileErr) {
+                    console.warn('Failed to fetch profile:', profileErr);
+                }
+            }
             this.authManager.updateAuthUI(this.elements, isAuthenticated);
             this.renderUserHistory();
-            await this.refreshHeaderUsernameFromDb();
         } catch (err) {
             console.warn('Auth0 post-DOM setup skipped or failed:', err);
         }
@@ -275,18 +294,6 @@ export class AlbumGuessrGame {
 
         // Auth buttons
         this.authManager.bindAuthButtons(this.elements);
-    }
-
-
-    async refreshHeaderUsernameFromDb() {
-        try {
-            if (!this.authManager.authenticatedUser || !this.elements || !this.elements.userName) return;
-            const profileData = await this.apiClient.fetchProfile();
-            const dbUsername = profileData && profileData.custom_username;
-            if (dbUsername) {
-                this.elements.userName.textContent = String(dbUsername);
-            }
-        } catch (_) {}
     }
 
     async handleSearchInput(event) {

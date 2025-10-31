@@ -26,10 +26,21 @@ class AlbumGuessrStats {
             this.authManager.bindAuthButtons(this.elements);
             try {
                 const authed = await this.authManager.isAuthenticated();
+                if (authed) {
+                    try {
+                        const profileData = await this.apiClient.fetchProfile();
+                        const dbUsername = profileData && profileData.custom_username;
+                        this.authManager.setCustomUsername(dbUsername);
+                    } catch (profileErr) {
+                        console.warn('Failed to fetch profile:', profileErr);
+                    }
+                }
                 this.authManager.updateAuthUI(this.elements, authed);
                 this.renderUserHistory();
                 this.renderUserStats();
-            } catch (_) {}
+            } catch (err) {
+                console.warn('Auth setup failed:', err);
+            }
         });
     }
 
@@ -67,6 +78,15 @@ class AlbumGuessrStats {
     async postDomAuthSetup() {
         try {
             const isAuthenticated = await this.authManager.postDomAuthSetup();
+            if (isAuthenticated) {
+                try {
+                    const profileData = await this.apiClient.fetchProfile();
+                    const dbUsername = profileData && profileData.custom_username;
+                    this.authManager.setCustomUsername(dbUsername);
+                } catch (profileErr) {
+                    console.warn('Failed to fetch profile:', profileErr);
+                }
+            }
             this.updateAuthUI(isAuthenticated);
             this.renderUserHistory();
             this.renderUserStats();
