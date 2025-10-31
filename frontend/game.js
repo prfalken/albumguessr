@@ -89,6 +89,7 @@ class AlbumGuessrGame {
             instructionsButton: document.getElementById('instructions-button'),
             closeInstructions: document.getElementById('close-instructions'),
             loading: document.getElementById('loading'),
+            toastContainer: document.getElementById('toast-container'),
             // Auth controls
             btnLogin: document.getElementById('btn-login'),
             btnLogout: document.getElementById('btn-logout'),
@@ -1313,7 +1314,12 @@ class AlbumGuessrGame {
             artists: Array.isArray(this.mysteryAlbum.artists) ? this.mysteryAlbum.artists : [],
             release_year: this.mysteryAlbum.release_year || null,
             coverUrl: this.getCoverUrl(this.mysteryAlbum, 250),
-            guesses: this.guessCount
+            guesses: this.guessCount,
+            userProfile: {
+                custom_username: this.authenticatedUser.user_metadata?.custom_username || null,
+                email: this.authenticatedUser.email || null,
+                picture: this.authenticatedUser.picture || null
+            }
         };
 
         this.saveHistoryToApi(entry)
@@ -1321,6 +1327,21 @@ class AlbumGuessrGame {
                 if (ok) {
                     this.winSaved = true;
                     this.renderUserHistory();
+                    
+                    // Show toast suggesting username setup if user doesn't have a custom username
+                    const hasCustomUsername = this.authenticatedUser.user_metadata?.custom_username;
+                    if (!hasCustomUsername) {
+                        this.showToast({
+                            title: 'Customize Your Profile',
+                            message: 'Set a custom username to personalize your appearance on the leaderboard!',
+                            type: 'info',
+                            duration: 8000,
+                            action: {
+                                text: 'Set Username',
+                                href: '/profile.html'
+                            }
+                        });
+                    }
                 }
             })
             .catch(err => console.warn('save history error:', err));
@@ -1380,5 +1401,86 @@ class AlbumGuessrGame {
             const tplErr = this.templates.historyError;
             if (tplErr) listEl.appendChild(tplErr.content.firstElementChild.cloneNode(true));
         }
+    }
+
+    /**
+     * Show a toast notification
+     * @param {Object} options - Toast options
+     * @param {string} options.title - Toast title
+     * @param {string} options.message - Toast message
+     * @param {string} options.type - Toast type: 'info', 'success', 'warning' (default: 'info')
+     * @param {number} options.duration - Duration in ms (default: 6000, 0 for persistent)
+     * @param {Object} options.action - Optional action link { text, href }
+     */
+    showToast({ title, message, type = 'info', duration = 6000, action = null }) {
+        if (!this.elements.toastContainer) return;
+
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+
+        // Icon based on type
+        const iconMap = {
+            info: 'bi-info-circle-fill',
+            success: 'bi-check-circle-fill',
+            warning: 'bi-exclamation-circle-fill'
+        };
+        const iconClass = iconMap[type] || iconMap.info;
+
+        toast.innerHTML = `
+            <i class="bi ${iconClass} toast-icon"></i>
+            <div class="toast-content">
+                <div class="toast-title">${this.escapeHtml(title)}</div>
+                <div class="toast-message">${this.escapeHtml(message)}</div>
+                ${action ? `<div class="toast-action"><a href="${this.escapeHtml(action.href)}">${this.escapeHtml(action.text)} <i class="bi bi-arrow-right"></i></a></div>` : ''}
+            </div>
+            <button class="toast-close" aria-label="Close notification">×</button>
+        `;
+
+        // Close button handler
+        const closeBtn = toast.querySelector('.toast-close');
+        closeBtn.addEventListener('click', () => this.removeToast(toast));
+
+        // Action link handler (if present)
+        if (action) {
+            const actionLink = toast.querySelector('.toast-action a');
+            actionLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                window.location.href = action.href;
+            });
+        }
+
+        // Add to container
+        this.elements.toastContainer.appendChild(toast);
+
+        // Auto-remove after duration (if not persistent)
+        if (duration > 0) {
+            setTimeout(() => this.removeToast(toast), duration);
+        }
+    }
+
+    /**
+     * Remove a toast notification
+     * @param {HTMLElement} toast - Toast element to remove
+     */
+    removeToast(toast) {
+        if (!toast || !toast.parentElement) return;
+        
+        toast.classList.add('toast-exit');
+        setTimeout(() => {
+            if (toast.parentElement) {
+                toast.parentElement.removeChild(toast);
+            }
+        }, 300); // Match animation duration
+    }
+
+    /**
+     * Escape HTML to prevent XSS
+     * @param {string} text - Text to escape
+     * @returns {string} Escaped text
+     */
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
     }
 }

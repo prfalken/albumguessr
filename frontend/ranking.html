@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AlbumGuessr - Daily Ranking</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+</head>
+<body>
+    <div class="container">
+        <div id="site-header"></div>
+        <div class="subtitle">
+            <h1 style="color: white; font-size: 2.5rem; margin-bottom: 0.5rem;">Daily Ranking</h1>
+            <p id="ranking-subtitle">Here are the players who found the album the fastest.</p>
+        </div>
+
+        <main id="main-content" class="game-container">
+            <div class="ranking-container">
+                <div class="ranking-table-wrapper">
+                    <table class="ranking-table">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Username</th>
+                                <th>Attempts</th>
+                                <th>Time</th>
+                                <th>Time Valid</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ranking-tbody">
+                            <tr class="ranking-loading">
+                                <td colspan="5" style="text-align: center; padding: 2rem;">
+                                    <div class="spinner"></div>
+                                    <p>Loading ranking...</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="ranking-empty" id="ranking-empty" style="display: none;">
+                    <i class="bi bi-trophy"></i>
+                    <p>No rankings yet for today. Be the first to find the album!</p>
+                </div>
+            </div>
+        </main>
+
+        <div id="site-footer"></div>
+    </div>
+
+    <script src="https://cdn.auth0.com/js/auth0-spa-js/2.1/auth0-spa-js.production.js"></script>
+    <script src="config.js"></script>
+    <script src="includes.js"></script>
+    <script src="nav.js"></script>
+    <script src="ranking.js"></script>
+</body>
+</html>
+

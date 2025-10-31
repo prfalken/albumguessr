@@ -19,3 +19,13 @@ CREATE TABLE IF NOT EXISTS mystery_album_schedule (
   object_id TEXT NOT NULL
 );
 
+-- User profiles table to cache Auth0 user data
+-- Used for displaying usernames and avatars in rankings without querying Auth0 each time
+CREATE TABLE IF NOT EXISTS user_profiles (
+  user_id TEXT PRIMARY KEY,
+  custom_username TEXT,
+  email TEXT,
+  picture TEXT,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+

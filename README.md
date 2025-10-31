@@ -207,6 +207,56 @@ Notes:
 - When using a plain static server, `/.netlify/functions/*` will return `404 File not found` — this is expected; switch to Netlify Dev.
 - Do not expose the admin `ALGOLIA_API_KEY` in code shipped to the browser. The generated `frontend/config.js` only includes the search-only key.
 
+## Daily Ranking
+
+The game includes a **Daily Ranking** page (`ranking.html`) that displays a leaderboard of players who have completed today's album:
+
+### Features
+
+- **Real-time leaderboard**: Shows all users who completed today's album, sorted by:
+  1. Number of guesses (ascending)
+  2. Completion time (ascending) — who found it first
+- **Medal system**: Top 3 players receive gold 🥇, silver 🥈, and bronze 🥉 medals
+- **User profiles**: Displays usernames and avatars from Auth0 user metadata
+- **Responsive design**: Adapts to mobile and desktop with a modern purple gradient style
+
+### How it works
+
+1. When a user completes the daily album, their win is saved to `user_album_history` with a timestamp
+2. User profile data (custom username, email, picture) is cached in `user_profiles` table for fast access
+3. The `dailyRanking` Netlify function queries today's completions and returns ranking data
+4. The ranking page fetches and displays this data with proper formatting
+
+### Database tables
+
+The ranking feature uses two tables:
+
+```sql
+-- Cache for Auth0 user profile data
+CREATE TABLE user_profiles (
+  user_id TEXT PRIMARY KEY,
+  custom_username TEXT,
+  email TEXT,
+  picture TEXT,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- User completion history (existing)
+CREATE TABLE user_album_history (
+  user_id TEXT NOT NULL,
+  object_id TEXT NOT NULL,
+  -- ... other fields
+  ts TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (user_id, object_id)
+);
+```
+
+User profiles are automatically updated when:
+- A user completes an album (saves to history)
+- A user updates their profile via the profile page
+
+This caching approach ensures the ranking page loads quickly without making Auth0 API calls for every user.
+
 ## Project structure
 
 ```

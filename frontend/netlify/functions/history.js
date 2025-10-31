@@ -1,5 +1,6 @@
 import { createRemoteJWKSet, jwtVerify } from "jose";
 import { neon } from "@neondatabase/serverless";
+import { generateAnonymousUsername } from "./utils/anonymousNames.js";
 
 const { NETLIFY_DATABASE_URL, AUTH0_DOMAIN, AUTH0_AUDIENCE } = process.env;
 
@@ -94,7 +95,7 @@ export async function handler(event) {
 
     if (event.httpMethod === "POST") {
       const body = JSON.parse(event.body || "{}");
-      const { objectID, title, artists, release_year, coverUrl, guesses } = body;
+      const { objectID, title, artists, release_year, coverUrl, guesses, userProfile } = body;
 
       if (!objectID || !title || !Array.isArray(artists) || !guesses) {
         return { statusCode: 400, headers: baseHeaders, body: "invalid_body" };
@@ -114,6 +115,27 @@ export async function handler(event) {
           guesses = EXCLUDED.guesses,
           ts = now()
       `;
+
+      // Update user profile cache if provided
+      if (userProfile && typeof userProfile === "object") {
+        const { custom_username, email, picture } = userProfile;
+        
+        // Generate anonymous username if none provided
+        const displayUsername = custom_username || generateAnonymousUsername(userId);
+        
+        await sql`
+          INSERT INTO user_profiles
+            (user_id, custom_username, email, picture, updated_at)
+          VALUES
+            (${userId}, ${displayUsername}, ${email || null}, ${picture || null}, now())
+          ON CONFLICT (user_id) DO UPDATE
+          SET
+            custom_username = COALESCE(EXCLUDED.custom_username, user_profiles.custom_username),
+            email = EXCLUDED.email,
+            picture = EXCLUDED.picture,
+            updated_at = now()
+        `;
+      }
 
       return { statusCode: 204, headers: baseHeaders };
     }
