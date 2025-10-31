@@ -54,6 +54,7 @@ export async function handler(event) {
 
     // Query to get ranking for today's album
     // Join with user_profiles to get custom usernames and avatars
+    // Only include wins from the daily game mode, not random games
     const rankingRows = await sql`
       SELECT 
         h.user_id,
@@ -65,6 +66,7 @@ export async function handler(event) {
       FROM user_album_history h
       LEFT JOIN user_profiles p ON h.user_id = p.user_id
       WHERE h.object_id = ${todayAlbumId}
+        AND h.game_mode = 'daily'
         AND DATE(h.ts) = CURRENT_DATE
       ORDER BY h.guesses ASC, h.ts ASC
       LIMIT 100
