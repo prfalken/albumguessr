@@ -1,9 +1,12 @@
-<header class="header">
-    <div class="topbar">
+<header>
+  <div class="contenu">
+    <div class="gauche">
         <button class="nav-toggle" aria-expanded="false" aria-controls="primary-nav">
             <i class="bi bi-list" aria-hidden="true"></i>
             <span class="visually-hidden">Menu</span>
         </button>
+    </div>
+    <div class="centre">
         <ul id="primary-nav" class="nav-list">
             <li class="nav-item">
                 <a class="nav-link" href="index.html">
@@ -17,34 +20,34 @@
                     <span>Random album</span>
                 </a>
             </li>
-            <li class="nav-item">
+        </ul>
+    </div>
+    <div class="droite">
+        <ul id="primary-nav" class="nav-list">
+             <li class="user-profile" id="user-profile" style="display:none">
+            <img id="user-avatar" class="avatar" alt="Avatar"/>
+             <!-- <span id="user-name"></span> -->
+            </li>
+             <li class="nav-item">
                 <a class="nav-link" href="statistics.html">
                     <i class="bi bi-bar-chart-line" aria-hidden="true"></i>
                     <span>My statistics</span>
                 </a>
             </li>
-
             <li>
                 <button class="footer-button" id="btn-login">
                     <i class="bi bi-box-arrow-in-right"></i>
                     Log in
-                </button>
+                 </button>
                 <button class="footer-button" id="btn-logout" style="display:none">
                     <i class="bi bi-box-arrow-right"></i>
                     Log out
                 </button>
-               
             </li>
-                <li class="user-profile" id="user-profile" style="display:none">
-                    <img id="user-avatar" class="avatar" alt="Avatar"/>
-                    <!-- <span id="user-name"></span> -->
-                </li>
         </ul>
     </div>
-    <div class="logo">
+  </div>
+  <div class="logo">
         <img src="../img/logo.png" style="width:300px">
     </div>
-    
 </header>
-
-

@@ -50,9 +50,20 @@ body {
 }
 
 /* Header Styles */
-.header {
+header {
     text-align: center;
-    width:;
+    width:100%;
+}
+
+header .contenu {
+  width: 900px;
+  margin: 0 auto; /* centre horizontalement */
+  display: flex;
+  justify-content: space-between; /* espace entre les 3 éléments */
+  align-items: center; /* aligne verticalement */
+  height: 50px; /* exemple de hauteur */
+  background-color: #ffd41d;
+  padding: 10px;
 }
 
 .topbar {
@@ -977,7 +988,6 @@ body {
     gap: 0.5rem;
     color: black;
     font-size: 0.7rem;
-    margin-left: 50px;
 }
 
 .footer-button:hover {
