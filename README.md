@@ -173,6 +173,13 @@ AUTH0_CLIENT_ID=abc123
 AUTH0_AUDIENCE=your-api-audience
 ```
 
+**Auth0 Application Settings** (configure in your Auth0 dashboard):
+- **Allowed Callback URLs**: Add only the base URLs (the app handles page-specific redirects internally):
+  - `http://localhost:8888` (for local development)
+  - `https://your-production-domain.com` (for production)
+- **Allowed Logout URLs**: Add the same base URLs as above
+- **Allowed Web Origins**: Add `http://localhost:8888` and your production domain
+
 Then install frontend deps and start Netlify Dev from the repo root (it will use the `frontend/` base from `netlify.toml`):
 
 ```bash
