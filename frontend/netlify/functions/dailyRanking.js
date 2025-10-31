@@ -1,5 +1,5 @@
 import { neon } from "@neondatabase/serverless";
-import { generateAnonymousUsername } from "./utils/anonymousNames.js";
+import { generateFunAnonymousUsername } from "./utils/anonymousNames.js";
 
 const { NETLIFY_DATABASE_URL } = process.env;
 
@@ -57,7 +57,7 @@ export async function handler(event) {
     const rankingRows = await sql`
       SELECT 
         h.user_id,
-        COALESCE(p.custom_username, p.email, h.user_id) as username,
+        p.custom_username,
         p.picture,
         h.guesses,
         EXTRACT(EPOCH FROM h.ts)*1000 AS timestamp,
@@ -72,7 +72,7 @@ export async function handler(event) {
 
     const ranking = rankingRows.map(r => ({
       user_id: r.user_id,
-      username: r.username || generateAnonymousUsername(r.user_id),
+      username: r.custom_username || generateFunAnonymousUsername(r.user_id),
       picture: r.picture || null,
       guesses: r.guesses,
       timestamp: Number(r.timestamp),
