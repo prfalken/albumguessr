@@ -1179,6 +1179,7 @@ export class AlbumGuessrGame {
             release_year: this.mysteryAlbum.release_year || null,
             coverUrl: this.getCoverUrl(this.mysteryAlbum, 250),
             guesses: this.guessCount,
+            gameMode: 'random', // Base game uses 'random' mode
             userProfile: {
                 custom_username: this.authManager.authenticatedUser.user_metadata?.custom_username || null,
                 email: this.authManager.authenticatedUser.email || null,

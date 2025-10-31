@@ -71,6 +71,7 @@ export async function handler(event) {
           release_year,
           cover_url,
           guesses,
+          game_mode,
           EXTRACT(EPOCH FROM ts)*1000 AS ts
         FROM user_album_history
         WHERE user_id = ${userId}
@@ -84,6 +85,7 @@ export async function handler(event) {
         release_year: r.release_year,
         coverUrl: r.cover_url,
         guesses: r.guesses,
+        gameMode: r.game_mode || 'random',
         timestamp: Number(r.ts)
       }));
       return {
@@ -95,18 +97,21 @@ export async function handler(event) {
 
     if (event.httpMethod === "POST") {
       const body = JSON.parse(event.body || "{}");
-      const { objectID, title, artists, release_year, coverUrl, guesses, userProfile } = body;
+      const { objectID, title, artists, release_year, coverUrl, guesses, gameMode, userProfile } = body;
 
       if (!objectID || !title || !Array.isArray(artists) || !guesses) {
         return { statusCode: 400, headers: baseHeaders, body: "invalid_body" };
       }
 
+      // Validate game_mode
+      const validGameMode = (gameMode === 'daily' || gameMode === 'random') ? gameMode : 'random';
+
       await sql`
         INSERT INTO user_album_history
-          (user_id, object_id, title, artists, release_year, cover_url, guesses)
+          (user_id, object_id, title, artists, release_year, cover_url, guesses, game_mode)
         VALUES
-          (${userId}, ${objectID}, ${title}, ${JSON.stringify(artists)}, ${release_year || null}, ${coverUrl || null}, ${guesses})
-        ON CONFLICT (user_id, object_id) DO UPDATE
+          (${userId}, ${objectID}, ${title}, ${JSON.stringify(artists)}, ${release_year || null}, ${coverUrl || null}, ${guesses}, ${validGameMode})
+        ON CONFLICT (user_id, object_id, game_mode) DO UPDATE
         SET
           title = EXCLUDED.title,
           artists = EXCLUDED.artists,

@@ -46,8 +46,12 @@ class AlbumGuessrDailyGame extends AlbumGuessrGame {
             const history = await this.apiClient.fetchUserHistory();
             if (!history || history.length === 0) return;
 
-            // Check if current album is in history
-            const previousWin = history.find(entry => entry.objectID === this.mysteryAlbum.objectID);
+            // Check if current album is in history as a DAILY game win
+            // (ignore wins from random game mode)
+            const previousWin = history.find(entry => 
+                entry.objectID === this.mysteryAlbum.objectID && 
+                entry.gameMode === 'daily'
+            );
             if (!previousWin) return;
 
             // User has already completed this album - restore the win state
@@ -105,6 +109,51 @@ class AlbumGuessrDailyGame extends AlbumGuessrGame {
             console.error('Failed to load album of the day:', error);
             throw error;
         }
+    }
+
+    saveWinToHistory() {
+        if (this.winSaved) return;
+        if (!this.gameWon || !this.mysteryAlbum) return;
+        if (!this.authManager.authenticatedUser) return; // only for logged-in users
+
+        const entry = {
+            objectID: this.mysteryAlbum.objectID,
+            title: this.mysteryAlbum.title,
+            artists: Array.isArray(this.mysteryAlbum.artists) ? this.mysteryAlbum.artists : [],
+            release_year: this.mysteryAlbum.release_year || null,
+            coverUrl: this.getCoverUrl(this.mysteryAlbum, 250),
+            guesses: this.guessCount,
+            gameMode: 'daily', // Daily game uses 'daily' mode
+            userProfile: {
+                custom_username: this.authManager.authenticatedUser.user_metadata?.custom_username || null,
+                email: this.authManager.authenticatedUser.email || null,
+                picture: this.authManager.authenticatedUser.picture || null
+            }
+        };
+
+        this.apiClient.saveHistoryEntry(entry)
+            .then(ok => {
+                if (ok) {
+                    this.winSaved = true;
+                    this.renderUserHistory();
+                    
+                    // Show toast suggesting username setup if user doesn't have a custom username
+                    const hasCustomUsername = this.authManager.authenticatedUser.user_metadata?.custom_username;
+                    if (!hasCustomUsername) {
+                        this.showToast({
+                            title: 'Customize Your Profile',
+                            message: 'Set a custom username in your profile to appear on the leaderboard!',
+                            duration: 6000,
+                            type: 'info'
+                        });
+                    }
+                } else {
+                    console.warn('saveWinToHistory: Save failed');
+                }
+            })
+            .catch(err => {
+                console.error('saveWinToHistory: Error:', err);
+            });
     }
 }
 

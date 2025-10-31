@@ -47,6 +47,7 @@ export class ApiClient {
      * @param {number} entry.release_year - Release year
      * @param {string} entry.coverUrl - Cover art URL
      * @param {number} entry.guesses - Number of guesses
+     * @param {string} entry.gameMode - Game mode: 'daily' or 'random'
      * @param {Object} entry.userProfile - User profile data
      * @returns {Promise<boolean>} True if successful
      */
