@@ -671,6 +671,17 @@ export class AlbumGuessrGame {
             this.elements.searchContainer.style.display = this.gameWon || this.gameOver ? 'none' : '';
         }
         
+        // Hide clues board if game is won with no active guessing session
+        if (this.elements.cluesBoard) {
+            // Hide the entire clues board if game is won and we have minimal/no clues
+            // (this handles the case where user returns to an already-completed daily challenge)
+            if ((this.gameWon || this.gameOver) && this.discoveredClues.size === 0) {
+                this.elements.cluesBoard.style.display = 'none';
+            } else {
+                this.elements.cluesBoard.style.display = '';
+            }
+        }
+        
         // Update clues board
         this.updateCluesBoard();
 

@@ -12,29 +12,38 @@ class AlbumGuessrDailyGame extends AlbumGuessrGame {
         }
     }
 
-    initializeGame() {
+    async initializeGame() {
         this.showLoading(true);
-        this.selectDailyAlbum()
-            .then(async () => {
-                this.updateUI();
-                this.showLoading(false);
-                // Check if user has already completed this album
-                await this.checkAndRestorePreviousWin();
-            })
-            .catch(error => {
-                console.error('Failed to initialize game:', error);
-                this.showError('Error while loading the game. Please refresh the page.');
-                this.showLoading(false);
-            });
+        try {
+            await this.selectDailyAlbum();
+            
+            // Wait for auth to be ready before checking previous wins
+            try {
+                await this.authManager.isAuthenticated();
+            } catch (authError) {
+                console.warn('Auth check skipped:', authError);
+            }
+            
+            // Check if user has already completed this album (must be before updateUI)
+            await this.checkAndRestorePreviousWin();
+            
+            // Now update UI with correct game state
+            this.updateUI();
+            this.showLoading(false);
+        } catch (error) {
+            console.error('Failed to initialize game:', error);
+            this.showError('Error while loading the game. Please refresh the page.');
+            this.showLoading(false);
+        }
     }
 
     async checkAndRestorePreviousWin() {
         // Only check if user is authenticated
-        if (!this.authenticatedUser || !this.mysteryAlbum) return;
+        if (!this.authManager.authenticatedUser || !this.mysteryAlbum) return;
 
         try {
             // Fetch user's history
-            const history = await this.fetchUserHistoryFromApi();
+            const history = await this.apiClient.fetchUserHistory();
             if (!history || history.length === 0) return;
 
             // Check if current album is in history
@@ -60,9 +69,7 @@ class AlbumGuessrDailyGame extends AlbumGuessrGame {
             };
             this.guesses = [winningGuess];
 
-            // Update UI to reflect the win
-            this.updateUI();
-
+            // Note: UI update happens in initializeGame after this function returns
             // Show victory modal after a brief delay
             setTimeout(() => this.showVictoryModal(), 500);
         } catch (error) {
