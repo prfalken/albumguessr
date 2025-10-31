@@ -18,6 +18,28 @@ export class HistoryRenderer {
     }
 
     /**
+     * Create a game mode badge element
+     * @param {string} gameMode - Game mode ('daily' or 'random')
+     * @returns {HTMLElement} Badge element
+     */
+    createGameModeBadge(gameMode) {
+        const badge = document.createElement('span');
+        badge.className = 'game-mode-badge';
+        
+        if (gameMode === 'daily') {
+            badge.classList.add('game-mode-daily');
+            badge.innerHTML = '<i class="bi bi-calendar-check"></i> Daily';
+            badge.title = 'Album of the day';
+        } else {
+            badge.classList.add('game-mode-random');
+            badge.innerHTML = '<i class="bi bi-shuffle"></i> Random';
+            badge.title = 'Random album';
+        }
+        
+        return badge;
+    }
+
+    /**
      * Render user history
      * @param {Array} history - Array of history entries
      * @param {boolean} isAuthenticated - Whether user is authenticated
@@ -78,6 +100,14 @@ export class HistoryRenderer {
                 if (titleEl) titleEl.textContent = item.title || '';
                 if (artistEl) artistEl.textContent = artist;
                 if (metaEl) metaEl.textContent = meta;
+                
+                // Add game mode badge
+                const gameMode = item.gameMode || 'random';
+                const badge = this.createGameModeBadge(gameMode);
+                const actionsEl = el.querySelector('.history-actions');
+                if (actionsEl) {
+                    actionsEl.appendChild(badge);
+                }
                 
                 listEl.appendChild(el);
             });
