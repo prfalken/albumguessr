@@ -568,6 +568,7 @@ header .contenu {
     flex-wrap: wrap;
     gap: 0.75rem 1rem;
     align-items: flex-start;
+    justify-content: center;
 }
 
 .no-clues {
@@ -578,6 +579,7 @@ header .contenu {
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    width: 100%;
 }
 
 .no-clues i {

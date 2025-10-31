@@ -79,6 +79,8 @@ export class AlbumGuessrGame {
         this.elements = {
             gameDate: document.getElementById('game-date'),
             guessCount: document.getElementById('guess-count'),
+            gameStatus: document.getElementById('game-status'),
+            guessesHistory: document.getElementById('guesses-history'),
             albumSearch: document.getElementById('album-search'),
             searchSubmit: document.getElementById('search-submit'),
             searchResults: document.getElementById('search-results'),
@@ -665,6 +667,14 @@ export class AlbumGuessrGame {
     updateUI() {
         // Update guess counter
         this.elements.guessCount.textContent = this.guessCount;
+        
+        // Hide guess counter and guesses history when there are no guesses yet
+        if (this.elements.gameStatus) {
+            this.elements.gameStatus.style.display = this.guessCount === 0 ? 'none' : '';
+        }
+        if (this.elements.guessesHistory) {
+            this.elements.guessesHistory.style.display = this.guessCount === 0 ? 'none' : '';
+        }
         
         // Hide search interface if game is already won/over
         if (this.elements.searchContainer) {
