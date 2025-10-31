@@ -48,6 +48,16 @@ class AlbumGuessrDailyGame extends AlbumGuessrGame {
             this.winSaved = true; // Prevent re-saving
             this.guessCount = previousWin.guesses || 1;
 
+            // Restore guesses array with the winning guess so the UI can display the result
+            // Create a guess entry showing the correct answer was found
+            const winningGuess = {
+                album: this.mysteryAlbum,
+                correct: true,
+                guessNumber: this.guessCount,
+                cluesRevealed: []
+            };
+            this.guesses = [winningGuess];
+
             // Update UI to reflect the win
             this.updateUI();
 
