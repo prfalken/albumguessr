@@ -1,3 +1,5 @@
+import { AlbumGuessrGame } from './game.js';
+
 class AlbumGuessrDailyGame extends AlbumGuessrGame {
     initializeDOM() {
         super.initializeDOM();

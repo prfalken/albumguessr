@@ -1,11 +1,14 @@
+import { AuthManager } from './js/shared/auth-manager.js';
+import { ApiClient } from './js/shared/api-client.js';
+
 class AlbumGuessrRanking {
     constructor() {
-        this.auth0Client = null;
-        this.authenticatedUser = null;
+        this.authManager = new AuthManager();
+        this.apiClient = new ApiClient(this.authManager);
         this.rankingData = [];
 
         this.initializeDOM();
-        this.initializeAuth0();
+        this.authManager.initializeAuth0();
         this.postDomAuthSetup();
 
         // Re-wire auth controls after header injection
@@ -16,11 +19,10 @@ class AlbumGuessrRanking {
             this.elements.userAvatar = document.getElementById('user-avatar');
             this.elements.userName = document.getElementById('user-name');
             this.elements.navStatistics = document.getElementById('nav-statistics');
-            this.bindAuthButtons();
+            this.authManager.bindAuthButtons(this.elements);
             try {
-                await this.ensureAuth0Client();
-                const authed = this.auth0Client ? await this.auth0Client.isAuthenticated() : false;
-                this.updateAuthUI(!!authed);
+                const authed = await this.authManager.isAuthenticated();
+                this.authManager.updateAuthUI(this.elements, authed);
             } catch (_) {}
         });
 
@@ -43,156 +45,18 @@ class AlbumGuessrRanking {
         };
     }
 
-    bindAuthButtons() {
-        if (this.elements && this.elements.btnLogin) {
-            this.elements.btnLogin.addEventListener('click', () => this.login());
-        }
-        if (this.elements && this.elements.btnLogout) {
-            this.elements.btnLogout.addEventListener('click', () => this.logout());
-        }
-    }
-
-    async initializeAuth0() {
-        try {
-            if (typeof AUTH0_CONFIG === 'object' && AUTH0_CONFIG && typeof auth0 !== 'undefined') {
-                this.auth0Client = await auth0.createAuth0Client(AUTH0_CONFIG);
-                console.log('Auth0 initialized (ranking)');
-            }
-        } catch (error) {
-            console.warn('Auth0 initialization failed or skipped (ranking):', error);
-        }
-    }
-
-    async ensureAuth0Client() {
-        if (this.auth0Client) return this.auth0Client;
-        try {
-            if (typeof AUTH0_CONFIG === 'object' && AUTH0_CONFIG) {
-                if (typeof auth0 === 'undefined') {
-                    await this.loadAuth0Library();
-                }
-                if (typeof auth0 === 'undefined') return null;
-                this.auth0Client = await auth0.createAuth0Client(AUTH0_CONFIG);
-                return this.auth0Client;
-            }
-        } catch (e) {
-            console.warn('Unable to create Auth0 client (ranking):', e);
-        }
-        return null;
-    }
-
-    async loadAuth0Library() {
-        return new Promise((resolve) => {
-            try {
-                if (typeof auth0 !== 'undefined') return resolve();
-                const existing = document.querySelector('script[data-auth0-spa]');
-                if (existing) {
-                    existing.addEventListener('load', () => resolve());
-                    existing.addEventListener('error', () => resolve());
-                    return;
-                }
-                const script = document.createElement('script');
-                script.src = 'https://cdn.auth0.com/js/auth0-spa-js/2.1/auth0-spa-js.production.js';
-                script.async = true;
-                script.defer = true;
-                script.setAttribute('data-auth0-spa', 'true');
-                script.onload = () => resolve();
-                script.onerror = () => resolve();
-                document.head.appendChild(script);
-            } catch (_) {
-                resolve();
-            }
-        });
-    }
-
     async postDomAuthSetup() {
         try {
-            await this.ensureAuth0Client();
-            if (!this.auth0Client) return;
-
-            const hasAuthParams = window.location.search.includes('code=') && window.location.search.includes('state=');
-            if (hasAuthParams) {
-                try {
-                    const result = await this.auth0Client.handleRedirectCallback();
-                    const returnTo = (result.appState && result.appState.returnTo) ? result.appState.returnTo : '/';
-                    window.history.replaceState({}, document.title, returnTo);
-                } catch (e) {
-                    console.warn('Auth0 redirect callback failed (ranking):', e);
-                    window.history.replaceState({}, document.title, window.location.pathname);
-                }
-            }
-
-            const isAuthenticated = await this.auth0Client.isAuthenticated();
-            if (isAuthenticated) {
-                this.authenticatedUser = await this.auth0Client.getUser();
-            } else {
-                this.authenticatedUser = null;
-            }
-            this.updateAuthUI(isAuthenticated);
+            const isAuthenticated = await this.authManager.postDomAuthSetup();
+            this.authManager.updateAuthUI(this.elements, isAuthenticated);
         } catch (err) {
             console.warn('Auth0 post-DOM setup skipped or failed (ranking):', err);
         }
     }
 
-    updateAuthUI(isAuthenticated) {
-        const show = (el, visible) => { if (el) el.style.display = visible ? '' : 'none'; };
-        show(this.elements.btnLogin, !isAuthenticated);
-        show(this.elements.btnLogout, !!isAuthenticated);
-        show(this.elements.navStatistics, !!isAuthenticated);
-        if (isAuthenticated && this.authenticatedUser) {
-            if (this.elements.userAvatar) {
-                this.elements.userAvatar.src = this.authenticatedUser.picture || '';
-                this.elements.userAvatar.onerror = () => {
-                    this.elements.userAvatar.style.display = 'none';
-                    this.elements.userAvatar.onerror = null;
-                };
-                this.elements.userAvatar.style.display = '';
-            }
-            if (this.elements.userName) {
-                const displayName = this.authenticatedUser.user_metadata?.custom_username || 
-                                   this.authenticatedUser.name || 
-                                   this.authenticatedUser.email || '';
-                this.elements.userName.textContent = displayName;
-            }
-            show(this.elements.userProfile, true);
-        } else {
-            show(this.elements.userProfile, false);
-        }
-    }
-
-    async login() {
-        const client = await this.ensureAuth0Client();
-        if (!client) {
-            alert('Login is currently unavailable. Please try again later.');
-            return;
-        }
-        await client.loginWithRedirect({
-            authorizationParams: { redirect_uri: window.location.origin },
-            appState: { returnTo: window.location.pathname }
-        });
-    }
-
-    async logout() {
-        const client = await this.ensureAuth0Client();
-        if (!client) {
-            alert('Logout is currently unavailable. Please try again later.');
-            return;
-        }
-        client.logout({ logoutParams: { returnTo: window.location.origin } });
-    }
-
     async fetchAndRenderRanking() {
         try {
-            const res = await fetch('/.netlify/functions/dailyRanking', {
-                method: 'GET',
-                cache: 'no-store'
-            });
-
-            if (!res.ok) {
-                throw new Error('Failed to fetch ranking');
-            }
-
-            const data = await res.json();
-            this.rankingData = data.ranking || [];
+            this.rankingData = await this.apiClient.fetchDailyRanking();
             this.renderRanking();
         } catch (error) {
             console.warn('Failed to fetch ranking:', error);
@@ -223,7 +87,7 @@ class AlbumGuessrRanking {
             tr.className = 'ranking-row';
             
             // Highlight current user's row
-            if (this.authenticatedUser && entry.user_id === this.authenticatedUser.sub) {
+            if (this.authManager.authenticatedUser && entry.user_id === this.authManager.authenticatedUser.sub) {
                 tr.classList.add('ranking-current-user');
             }
 
@@ -349,5 +213,6 @@ class AlbumGuessrRanking {
 document.addEventListener('DOMContentLoaded', () => {
     new AlbumGuessrRanking();
 });
+
 
 

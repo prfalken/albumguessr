@@ -1,9 +1,13 @@
-class AlbumGuessrGame {
+import { AuthManager } from './js/shared/auth-manager.js';
+import { ApiClient } from './js/shared/api-client.js';
+import { HistoryRenderer } from './js/shared/history-renderer.js';
+
+export class AlbumGuessrGame {
     constructor() {
         this.algoliaClient = null;
         this.algoliaIndex = null;
-        this.auth0Client = null;
-        this.authenticatedUser = null;
+        this.authManager = new AuthManager();
+        this.apiClient = new ApiClient(this.authManager);
         this.guessCount = 0;
         this.gameOver = false;
         this.gameWon = false;
@@ -15,9 +19,10 @@ class AlbumGuessrGame {
         this.winSaved = false;
         this.countryDisplayNames = null;
         this.countryDisplayNamesLocale = 'en';
+        this.historyRenderer = null; // Will be initialized after DOM
         
         this.initializeAlgolia();
-        this.initializeAuth0();
+        this.authManager.initializeAuth0();
         this.initializeDOM();
         // Kick off auth flow wiring after DOM is available
         this.postDomAuthSetup();
@@ -34,11 +39,10 @@ class AlbumGuessrGame {
             this.elements.userAvatar = document.getElementById('user-avatar');
             this.elements.userName = document.getElementById('user-name');
             this.elements.navStatistics = document.getElementById('nav-statistics');
-            this.bindAuthButtons();
+            this.authManager.bindAuthButtons(this.elements);
             try {
-                await this.ensureAuth0Client();
-                const authed = this.auth0Client ? await this.auth0Client.isAuthenticated() : false;
-                this.updateAuthUI(!!authed);
+                const authed = await this.authManager.isAuthenticated();
+                this.authManager.updateAuthUI(this.elements, authed);
                 await this.refreshHeaderUsernameFromDb();
             } catch (_) {}
         });
@@ -58,17 +62,6 @@ class AlbumGuessrGame {
         }
     }
 
-    async initializeAuth0() {
-        // Only initialize if config and library are available
-        try {
-            if (typeof AUTH0_CONFIG === 'object' && AUTH0_CONFIG && typeof auth0 !== 'undefined') {
-                this.auth0Client = await auth0.createAuth0Client(AUTH0_CONFIG);
-                console.log('Auth0 initialized');
-            }
-        } catch (error) {
-            console.warn('Auth0 initialization failed or skipped:', error);
-        }
-    }
 
     initializeDOM() {
         // Get DOM elements
@@ -78,6 +71,8 @@ class AlbumGuessrGame {
             albumSearch: document.getElementById('album-search'),
             searchSubmit: document.getElementById('search-submit'),
             searchResults: document.getElementById('search-results'),
+            searchContainer: document.querySelector('.search-container'),
+            cluesBoard: document.querySelector('.clues-board'),
             cluesContainer: document.getElementById('clues-container'),
             guessesContainer: document.getElementById('guesses-container'),
             victoryModal: document.getElementById('victory-modal'),
@@ -122,34 +117,15 @@ class AlbumGuessrGame {
 
         // Show refresh-based info
         this.elements.gameDate.textContent = 'New mystery on each refresh';
+        
+        // Initialize history renderer now that templates are available
+        this.historyRenderer = new HistoryRenderer(this.elements, this.templates);
     }
 
     async postDomAuthSetup() {
         try {
-            await this.ensureAuth0Client();
-            if (!this.auth0Client) return;
-
-            // Handle redirect callback if returning from Auth0
-            const hasAuthParams = window.location.search.includes('code=') && window.location.search.includes('state=');
-            if (hasAuthParams) {
-                try {
-                    const result = await this.auth0Client.handleRedirectCallback();
-                    // Redirect to the page the user was on before login
-                    const returnTo = (result.appState && result.appState.returnTo) ? result.appState.returnTo : '/';
-                    window.history.replaceState({}, document.title, returnTo);
-                } catch (e) {
-                    console.warn('Auth0 redirect callback failed:', e);
-                    window.history.replaceState({}, document.title, window.location.pathname);
-                }
-            }
-
-            const isAuthenticated = await this.auth0Client.isAuthenticated();
-            if (isAuthenticated) {
-                this.authenticatedUser = await this.auth0Client.getUser();
-            } else {
-                this.authenticatedUser = null;
-            }
-            this.updateAuthUI(isAuthenticated);
+            const isAuthenticated = await this.authManager.postDomAuthSetup();
+            this.authManager.updateAuthUI(this.elements, isAuthenticated);
             this.renderUserHistory();
             await this.refreshHeaderUsernameFromDb();
         } catch (err) {
@@ -298,128 +274,14 @@ class AlbumGuessrGame {
         });
 
         // Auth buttons
-        this.bindAuthButtons();
+        this.authManager.bindAuthButtons(this.elements);
     }
 
-    bindAuthButtons() {
-        if (this.elements && this.elements.btnLogin) {
-            this.elements.btnLogin.addEventListener('click', () => this.login());
-        }
-        if (this.elements && this.elements.btnLogout) {
-            this.elements.btnLogout.addEventListener('click', () => this.logout());
-        }
-    }
-
-    async ensureAuth0Client() {
-        if (this.auth0Client) return this.auth0Client;
-        try {
-            if (typeof AUTH0_CONFIG === 'object' && AUTH0_CONFIG) {
-                if (typeof auth0 === 'undefined') {
-                    await this.loadAuth0Library();
-                }
-                if (typeof auth0 === 'undefined') {
-                    return null;
-                }
-                this.auth0Client = await auth0.createAuth0Client(AUTH0_CONFIG);
-                return this.auth0Client;
-            }
-        } catch (e) {
-            console.warn('Unable to create Auth0 client:', e);
-        }
-        return null;
-    }
-
-    async loadAuth0Library() {
-        // Dynamically load Auth0 SPA SDK if the CDN script failed to load
-        return new Promise((resolve) => {
-            try {
-                if (typeof auth0 !== 'undefined') return resolve();
-                const existing = document.querySelector('script[data-auth0-spa]');
-                if (existing) {
-                    existing.addEventListener('load', () => resolve());
-                    existing.addEventListener('error', () => resolve());
-                    return;
-                }
-                const script = document.createElement('script');
-                script.src = 'https://cdn.auth0.com/js/auth0-spa-js/2.1/auth0-spa-js.production.js';
-                script.async = true;
-                script.defer = true;
-                script.setAttribute('data-auth0-spa', 'true');
-                script.onload = () => resolve();
-                script.onerror = () => resolve();
-                document.head.appendChild(script);
-            } catch (_) {
-                resolve();
-            }
-        });
-    }
-
-    async login() {
-        const client = await this.ensureAuth0Client();
-        if (!client) {
-            alert('Login is currently unavailable. Please try again later.');
-            return;
-        }
-        await client.loginWithRedirect({
-            authorizationParams: { redirect_uri: window.location.origin },
-            appState: { returnTo: window.location.pathname }
-        });
-    }
-
-    async logout() {
-        const client = await this.ensureAuth0Client();
-        if (!client) {
-            alert('Logout is currently unavailable. Please try again later.');
-            return;
-        }
-        client.logout({ logoutParams: { returnTo: window.location.origin } });
-    }
-
-    updateAuthUI(isAuthenticated) {
-        const show = (el, visible) => { if (el) el.style.display = visible ? '' : 'none'; };
-        show(this.elements.btnLogin, !isAuthenticated);
-        show(this.elements.btnLogout, !!isAuthenticated);
-        show(this.elements.navStatistics, !!isAuthenticated);
-        if (isAuthenticated && this.authenticatedUser) {
-            if (this.elements.userAvatar) {
-                this.elements.userAvatar.src = this.authenticatedUser.picture || '';
-                // Add error handler to prevent repeated failed loads
-                this.elements.userAvatar.onerror = () => {
-                    this.elements.userAvatar.style.display = 'none';
-                    this.elements.userAvatar.onerror = null; // Prevent infinite loop
-                };
-                // Reset display in case it was hidden before
-                this.elements.userAvatar.style.display = '';
-            }
-            if (this.elements.userName) {
-                // Show custom username if set, otherwise fall back to name or email
-                const displayName = this.authenticatedUser.user_metadata?.custom_username || 
-                                   this.authenticatedUser.name || 
-                                   this.authenticatedUser.email || '';
-                this.elements.userName.textContent = displayName;
-            }
-            show(this.elements.userProfile, true);
-        } else {
-            show(this.elements.userProfile, false);
-        }
-        this.renderUserHistory();
-        // If the user logs in after already winning, persist the win once
-        if (isAuthenticated && this.gameWon && !this.winSaved) {
-            this.saveWinToHistory();
-        }
-    }
 
     async refreshHeaderUsernameFromDb() {
         try {
-            if (!this.authenticatedUser || !this.elements || !this.elements.userName) return;
-            const token = await this.getApiAccessToken();
-            if (!token) return;
-            const response = await fetch('/.netlify/functions/updateProfile', {
-                method: 'GET',
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (!response.ok) return;
-            const profileData = await response.json();
+            if (!this.authManager.authenticatedUser || !this.elements || !this.elements.userName) return;
+            const profileData = await this.apiClient.fetchProfile();
             const dbUsername = profileData && profileData.custom_username;
             if (dbUsername) {
                 this.elements.userName.textContent = String(dbUsername);
@@ -797,6 +659,11 @@ class AlbumGuessrGame {
         // Update guess counter
         this.elements.guessCount.textContent = this.guessCount;
         
+        // Hide search interface if game is already won/over
+        if (this.elements.searchContainer) {
+            this.elements.searchContainer.style.display = this.gameWon || this.gameOver ? 'none' : '';
+        }
+        
         // Update clues board
         this.updateCluesBoard();
 
@@ -809,8 +676,11 @@ class AlbumGuessrGame {
         container.replaceChildren();
 
         if (this.discoveredClues.size === 0) {
-            const tpl = this.templates.noClues;
-            if (tpl) container.appendChild(tpl.content.firstElementChild.cloneNode(true));
+            // Don't show "no clues" message if game is already won/over
+            if (!this.gameWon && !this.gameOver) {
+                const tpl = this.templates.noClues;
+                if (tpl) container.appendChild(tpl.content.firstElementChild.cloneNode(true));
+            }
             return;
         }
 
@@ -1268,72 +1138,11 @@ class AlbumGuessrGame {
     }
 
     // ---------- User history via API (Netlify Functions + Neon) ----------
-    async getApiAccessToken() {
-        const client = await this.ensureAuth0Client();
-        const audience = AUTH0_CONFIG && AUTH0_CONFIG.authorizationParams && AUTH0_CONFIG.authorizationParams.audience;
-        console.log('getApiAccessToken: client=', !!client, 'audience=', audience);
-        if (!client) {
-            console.warn('getApiAccessToken: No Auth0 client available');
-            return null;
-        }
-        if (!audience) {
-            console.warn('getApiAccessToken: No audience configured in AUTH0_CONFIG.authorizationParams.audience');
-            return null;
-        }
-        try {
-            const token = await client.getTokenSilently({ authorizationParams: { audience } });
-            console.log('getApiAccessToken: Successfully obtained token');
-            return token;
-        } catch (e) {
-            console.error('getApiAccessToken: Failed to obtain API token:', e);
-            return null;
-        }
-    }
-
-    async fetchUserHistoryFromApi() {
-        const token = await this.getApiAccessToken();
-        if (!token) return [];
-        const res = await fetch('/.netlify/functions/history', {
-            method: 'GET',
-            headers: { Authorization: `Bearer ${token}` }
-        });
-        if (!res.ok) {
-            let details = '';
-            try { details = await res.text(); } catch {}
-            console.warn('history_get_failed_response:', res.status, details);
-            throw new Error('history_get_failed');
-        }
-        return await res.json();
-    }
-
-    async saveHistoryToApi(entry) {
-        const token = await this.getApiAccessToken();
-        if (!token) {
-            console.warn('saveHistoryToApi: No token available, cannot save history');
-            return false;
-        }
-        console.log('saveHistoryToApi: Sending entry to API:', entry);
-        const res = await fetch('/.netlify/functions/history', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`
-            },
-            body: JSON.stringify(entry)
-        });
-        if (!res.ok) {
-            const text = await res.text();
-            console.error('saveHistoryToApi: Failed to save history:', res.status, text);
-        } else {
-            console.log('saveHistoryToApi: Successfully saved to history');
-        }
-        return res.ok;
-    }
 
     saveWinToHistory() {
         if (this.winSaved) return;
         if (!this.gameWon || !this.mysteryAlbum) return;
-        if (!this.authenticatedUser) return; // only for logged-in users
+        if (!this.authManager.authenticatedUser) return; // only for logged-in users
 
         const entry = {
             objectID: this.mysteryAlbum.objectID,
@@ -1343,20 +1152,20 @@ class AlbumGuessrGame {
             coverUrl: this.getCoverUrl(this.mysteryAlbum, 250),
             guesses: this.guessCount,
             userProfile: {
-                custom_username: this.authenticatedUser.user_metadata?.custom_username || null,
-                email: this.authenticatedUser.email || null,
-                picture: this.authenticatedUser.picture || null
+                custom_username: this.authManager.authenticatedUser.user_metadata?.custom_username || null,
+                email: this.authManager.authenticatedUser.email || null,
+                picture: this.authManager.authenticatedUser.picture || null
             }
         };
 
-        this.saveHistoryToApi(entry)
+        this.apiClient.saveHistoryEntry(entry)
             .then(ok => {
                 if (ok) {
                     this.winSaved = true;
                     this.renderUserHistory();
                     
                     // Show toast suggesting username setup if user doesn't have a custom username
-                    const hasCustomUsername = this.authenticatedUser.user_metadata?.custom_username;
+                    const hasCustomUsername = this.authManager.authenticatedUser.user_metadata?.custom_username;
                     if (!hasCustomUsername) {
                         this.showToast({
                             title: 'Customize Your Profile',
@@ -1375,59 +1184,9 @@ class AlbumGuessrGame {
     }
 
     async renderUserHistory() {
-        const subtitleEl = this.elements.userHistorySubtitle;
-        const listEl = this.elements.userHistoryList;
-        if (!subtitleEl || !listEl) return;
-
-        if (!this.authenticatedUser) {
-            subtitleEl.textContent = 'Log in to save and see your history';
-            listEl.replaceChildren();
-            return;
-        }
-
-        subtitleEl.textContent = 'Recent wins saved to your account';
-        try {
-            const history = await this.fetchUserHistoryFromApi();
-            if (!history || history.length === 0) {
-                listEl.replaceChildren();
-                const tpl = this.templates.historyEmpty;
-                if (tpl) listEl.appendChild(tpl.content.firstElementChild.cloneNode(true));
-                return;
-            }
-            listEl.replaceChildren();
-            history.forEach(item => {
-                const el = this.templates.historyItem.content.firstElementChild.cloneNode(true);
-                const cover = el.querySelector('.history-cover');
-                if (cover) {
-                    if (item.coverUrl) {
-                        cover.src = item.coverUrl;
-                        cover.style.display = '';
-                    } else {
-                        cover.style.display = 'none';
-                    }
-                }
-                const date = item.timestamp ? new Date(item.timestamp) : null;
-                const meta = [
-                    item.release_year ? String(item.release_year) : null,
-                    `${item.guesses} guess${item.guesses === 1 ? '' : 'es'}`,
-                    date && !isNaN(date.getTime()) ? date.toLocaleDateString() : null
-                ].filter(Boolean).join(' • ');
-                const artist = (item.artists && item.artists.length > 0) ? item.artists.join(', ') : 'Unknown artist';
-
-                const titleEl = el.querySelector('.history-title');
-                const artistEl = el.querySelector('.history-artist');
-                const metaEl = el.querySelector('.history-meta');
-                if (titleEl) titleEl.textContent = item.title || '';
-                if (artistEl) artistEl.textContent = artist;
-                if (metaEl) metaEl.textContent = meta;
-                listEl.appendChild(el);
-            });
-        } catch (e) {
-            console.warn('history render failed:', e);
-            listEl.replaceChildren();
-            const tplErr = this.templates.historyError;
-            if (tplErr) listEl.appendChild(tplErr.content.firstElementChild.cloneNode(true));
-        }
+        const isAuthenticated = !!this.authManager.authenticatedUser;
+        const history = isAuthenticated ? await this.apiClient.fetchUserHistory() : [];
+        this.historyRenderer.render(history, isAuthenticated);
     }
 
     /**
