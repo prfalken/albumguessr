@@ -1,18 +1,23 @@
 import { createRemoteJWKSet, jwtVerify } from "jose";
+import { neon } from "@neondatabase/serverless";
 
 const { 
   AUTH0_DOMAIN, 
   AUTH0_AUDIENCE, 
   AUTH0_M2M_CLIENT_ID,     // M2M application credentials
-  AUTH0_M2M_CLIENT_SECRET  // for backend API access
+  AUTH0_M2M_CLIENT_SECRET, // for backend API access
+  NETLIFY_DATABASE_URL
 } = process.env;
+
+// Initialize Neon only if configured
+const sql = NETLIFY_DATABASE_URL ? neon(NETLIFY_DATABASE_URL) : null;
 
 function corsHeaders(event) {
   const origin = event?.headers?.origin || "*";
   return {
     "Access-Control-Allow-Origin": origin,
     "Access-Control-Allow-Headers": "Content-Type, Authorization",
-    "Access-Control-Allow-Methods": "POST,OPTIONS"
+    "Access-Control-Allow-Methods": "GET,POST,OPTIONS"
   };
 }
 
@@ -123,18 +128,12 @@ export async function handler(event) {
     return { statusCode: 204, headers: baseHeaders };
   }
 
-  if (event.httpMethod !== "POST") {
-    return { statusCode: 405, headers: baseHeaders, body: "method_not_allowed" };
-  }
-
   try {
     // Validate required env vars
     console.log("Checking environment variables...");
     console.log("AUTH0_DOMAIN:", AUTH0_DOMAIN ? "✓ Set" : "✗ Missing");
     console.log("AUTH0_AUDIENCE:", AUTH0_AUDIENCE ? "✓ Set" : "✗ Missing");
-    console.log("AUTH0_M2M_CLIENT_ID:", AUTH0_M2M_CLIENT_ID ? "✓ Set" : "✗ Missing");
-    console.log("AUTH0_M2M_CLIENT_SECRET:", AUTH0_M2M_CLIENT_SECRET ? "✓ Set" : "✗ Missing");
-
+    
     if (!AUTH0_DOMAIN) {
       console.error("Missing AUTH0_DOMAIN");
       return { 
@@ -151,6 +150,58 @@ export async function handler(event) {
         body: JSON.stringify({ error: "missing_env:AUTH0_AUDIENCE" })
       };
     }
+
+    console.log("Verifying user authentication...");
+    const userId = await verifyAuth(event);
+    console.log("User authenticated:", userId);
+
+    // Handle GET request - fetch profile from database
+    if (event.httpMethod === "GET") {
+      if (!sql) {
+        // Database not configured, return empty profile
+        return {
+          statusCode: 200,
+          headers: { ...baseHeaders, "Content-Type": "application/json" },
+          body: JSON.stringify({ custom_username: null })
+        };
+      }
+
+      try {
+        const rows = await sql`
+          SELECT custom_username, email, picture
+          FROM user_profiles
+          WHERE user_id = ${userId}
+          LIMIT 1
+        `;
+
+        const profile = rows && rows.length > 0 ? rows[0] : null;
+        return {
+          statusCode: 200,
+          headers: { ...baseHeaders, "Content-Type": "application/json" },
+          body: JSON.stringify({
+            custom_username: profile?.custom_username || null,
+            email: profile?.email || null,
+            picture: profile?.picture || null
+          })
+        };
+      } catch (dbError) {
+        console.error("Failed to fetch profile from database:", dbError);
+        return {
+          statusCode: 200,
+          headers: { ...baseHeaders, "Content-Type": "application/json" },
+          body: JSON.stringify({ custom_username: null })
+        };
+      }
+    }
+
+    // Handle POST request - update profile
+    if (event.httpMethod !== "POST") {
+      return { statusCode: 405, headers: baseHeaders, body: "method_not_allowed" };
+    }
+
+    console.log("AUTH0_M2M_CLIENT_ID:", AUTH0_M2M_CLIENT_ID ? "✓ Set" : "✗ Missing");
+    console.log("AUTH0_M2M_CLIENT_SECRET:", AUTH0_M2M_CLIENT_SECRET ? "✓ Set" : "✗ Missing");
+
     if (!AUTH0_M2M_CLIENT_ID || !AUTH0_M2M_CLIENT_SECRET) {
       console.error("Missing AUTH0_M2M_CLIENT_ID or AUTH0_M2M_CLIENT_SECRET");
       return { 
@@ -159,10 +210,6 @@ export async function handler(event) {
         body: JSON.stringify({ error: "missing_env:AUTH0_M2M_CLIENT_CREDENTIALS" })
       };
     }
-
-    console.log("Verifying user authentication...");
-    const userId = await verifyAuth(event);
-    console.log("User authenticated:", userId);
 
     const body = JSON.parse(event.body || "{}");
     const { name } = body;
@@ -180,8 +227,32 @@ export async function handler(event) {
     const sanitizedName = name.trim().substring(0, 30);
     console.log("Updating username to:", sanitizedName);
 
+    // Update Auth0 user metadata
     await updateUserName(userId, sanitizedName);
-    console.log("Username updated successfully");
+    console.log("Auth0 username updated successfully");
+
+    // Update database user_profiles table if database is configured
+    if (sql) {
+      try {
+        await sql`
+          INSERT INTO user_profiles
+            (user_id, custom_username, updated_at)
+          VALUES
+            (${userId}, ${sanitizedName}, now())
+          ON CONFLICT (user_id) DO UPDATE
+          SET
+            custom_username = EXCLUDED.custom_username,
+            updated_at = now()
+        `;
+        console.log("Database username updated successfully");
+      } catch (dbError) {
+        // Log but don't fail the request if database update fails
+        // Auth0 update was successful, so user can retry or it will sync on next game save
+        console.error("Failed to update database username (Auth0 update succeeded):", dbError);
+      }
+    } else {
+      console.warn("NETLIFY_DATABASE_URL not configured, skipping database update");
+    }
 
     return {
       statusCode: 200,

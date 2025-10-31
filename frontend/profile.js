@@ -20,7 +20,7 @@ class AlbumGuessrProfile {
                 await this.ensureAuth0Client();
                 const authed = this.auth0Client ? await this.auth0Client.isAuthenticated() : false;
                 this.updateAuthUI(!!authed);
-                this.renderUserProfile();
+                await this.renderUserProfile();
                 this.renderUserHistory();
                 this.renderUserStats();
             } catch (_) {}
@@ -150,7 +150,7 @@ class AlbumGuessrProfile {
                 this.authenticatedUser = null;
             }
             this.updateAuthUI(isAuthenticated);
-            this.renderUserProfile();
+            await this.renderUserProfile();
             this.renderUserHistory();
             this.renderUserStats();
         } catch (err) {
@@ -222,7 +222,7 @@ class AlbumGuessrProfile {
         }
     }
 
-    renderUserProfile() {
+    async renderUserProfile() {
         if (!this.authenticatedUser) {
             // Redirect to home if not authenticated
             window.location.href = 'index.html';
@@ -246,8 +246,32 @@ class AlbumGuessrProfile {
         }
 
         if (currentUsernameEl) {
-            // Use custom_username from user_metadata if available, otherwise fall back to name or email
-            const customUsername = this.authenticatedUser.user_metadata?.custom_username;
+            // Try to fetch username from database first, fall back to Auth0 metadata
+            let customUsername = null;
+            try {
+                const token = await this.getApiAccessToken();
+                if (token) {
+                    const response = await fetch('/.netlify/functions/updateProfile', {
+                        method: 'GET',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+                    if (response.ok) {
+                        const profileData = await response.json();
+                        customUsername = profileData.custom_username;
+                    }
+                }
+            } catch (e) {
+                console.warn('Failed to fetch profile from database, using Auth0 data:', e);
+            }
+
+            // Fall back to Auth0 user_metadata if database doesn't have it
+            if (!customUsername) {
+                customUsername = this.authenticatedUser.user_metadata?.custom_username;
+            }
+
+            // Final fallback to name or email
             currentUsernameEl.value = customUsername || this.authenticatedUser.name || this.authenticatedUser.email || '';
         }
     }
@@ -305,7 +329,8 @@ class AlbumGuessrProfile {
             }
             this.authenticatedUser.user_metadata.custom_username = newUsername;
             
-            this.elements.currentUsername.value = newUsername;
+            // Refresh current username from database to ensure consistency
+            await this.renderUserProfile();
             this.elements.newUsername.value = '';
             
             // Update header display
@@ -313,7 +338,7 @@ class AlbumGuessrProfile {
                 this.elements.userName.textContent = newUsername;
             }
 
-            this.showMessage('Username updated successfully! Refresh the page to see changes everywhere.', 'success');
+            this.showMessage('Username updated successfully!', 'success');
         } catch (error) {
             console.error('Username update failed:', error);
             this.showMessage('Failed to update username. Please try again.', 'error');
