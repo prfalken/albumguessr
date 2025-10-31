@@ -19,41 +19,24 @@
         <main id="main-content" class="game-container">
             <div class="content-grid">
                 <div class="main-column">
-                    <!-- Game Status -->
-                    <div class="game-status" id="game-status">
-                        <div class="guess-counter">
-                            <i class="bi bi-music-note-beamed"></i>
-                            <span id="guess-count">0</span> guesses
-                        </div>
-                        <div class="mystery-indicator">
-                            <i class="bi bi-question-circle"></i>
-                            <span>Mystery album</span>
-                        </div>
-                    </div>
-
+                   
+                    <br>
                     <!-- Search Input -->
                     <div class="search-container">
                         <div class="search-box">
-                            <i class="bi bi-search"></i>
                             <input 
                                 type="text" 
                                 id="album-search" 
                                 placeholder="Search an album or an artist..."
                                 autocomplete="off"
                             >
-                            <button class="search-submit-btn" id="search-submit" disabled>
-                                <i class="bi bi-arrow-right"></i>
-                            </button>
                         </div>
                         <div class="search-results" id="search-results"></div>
                     </div>
 
                     <!-- Clues Board -->
                     <div class="clues-board" id="clues-board">
-                        <div class="clues-header">
-                            <h3><i class="bi bi-lightbulb"></i> Discovered clues</h3>
-                            <p>Attributes your guesses share with the mystery album</p>
-                        </div>
+                        
                         <div class="clues-container" id="clues-container">
                             <div class="no-clues">
                                 <i class="bi bi-search"></i>
@@ -61,6 +44,25 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Game Status -->
+                     <div class="middle">
+                        <div class="gauche">
+                            
+                        </div>
+                        <div class="centre">
+                             <div class="game-status" id="game-status">
+                        <div class="guess-counter">
+                            <span id="guess-count">0</span> guesses
+                        </div>
+                       
+                    </div>
+                        </div>
+                        <div class="droite">
+                            
+                        </div>
+                    </div>
+
 
                     <!-- Guesses History -->
                     <div class="guesses-history" id="guesses-history">
@@ -278,7 +280,8 @@
                 </div>
             </template>
         </section>
-
+        <br>
+        <br>
         <div id="site-footer"></div>
     </div>
 

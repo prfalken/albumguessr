@@ -11,7 +11,7 @@
     --text-secondary: #ffd41d;
     --text-muted: #94a3b8;
     --border: #ffd41d;
-    --border-light: #f1f5f9;
+    --border-light: #565349;
     --clue-background: #ecfdf5;
     --clue-border: #10b981;
     --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
@@ -410,7 +410,7 @@ header .contenu {
     top: 100%;
     left: 0;
     right: 0;
-    background: var(--surface);
+    background: var(--text-secondary);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-lg);
     border: 1px solid var(--border);
@@ -439,22 +439,22 @@ header .contenu {
 }
 
 .search-result:hover {
-    background: var(--border-light);
+    background: #c9a920;
 }
 
 .search-result.selected {
-    background: var(--clue-background);
-    border-color: var(--clue-border);
+    background: #c9a920;
+    border-color: var(--border-light);
 }
 
 .search-result-title {
     font-weight: 600;
     margin-bottom: 0.25rem;
-    color: var(--text-primary);
+    color: black;
 }
 .search-result-thumb {
-    width: 44px;
-    height: 44px;
+    width: 80px;
+    height: 80px;
     border-radius: 6px;
     object-fit: cover;
     background: var(--border-light);
@@ -472,7 +472,7 @@ header .contenu {
 
 
 .search-result-artist {
-    color: var(--text-secondary);
+    color: black;
     font-size: 0.9rem;
 }
 
@@ -481,7 +481,7 @@ header .contenu {
     gap: 1rem;
     margin-top: 0.5rem;
     font-size: 0.8rem;
-    color: var(--text-muted);
+    color: black;
 }
 
 /* Clues Board */
@@ -766,6 +766,7 @@ header .contenu {
     align-items: center;
     padding: 1.5rem;
     border-bottom: 1px solid var(--border);
+    color:  var(--text-secondary);
 }
 
 .modal-header h2 {
