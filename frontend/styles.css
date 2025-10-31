@@ -1,23 +1,23 @@
 :root {
-    --primary-color: #6366f1;
+    --primary-color: #ffffff;
     --primary-dark: #4f46e5;
     --secondary-color: #10b981;
     --accent-color: #f59e0b;
     --discovery-color: #8b5cf6;
     --background: #f8fafc;
-    --surface: #ffffff;
+    --surface: rgba(0, 0, 0, 0.3);
     --surface-elevated: #f1f5f9;
-    --text-primary: #0f172a;
-    --text-secondary: #64748b;
+    --text-primary: #ffffff;
+    --text-secondary: #ffd41d;
     --text-muted: #94a3b8;
-    --border: #e2e8f0;
+    --border: #ffd41d;
     --border-light: #f1f5f9;
     --clue-background: #ecfdf5;
     --clue-border: #10b981;
     --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
     --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
     --radius: 0.5rem;
-    --radius-lg: 0.75rem;
+    --radius-lg: 10px;
 }
 
 * {
@@ -56,7 +56,7 @@ header {
 }
 
 header .contenu {
-  width: 900px;
+  
   margin: 0 auto; /* centre horizontalement */
   display: flex;
   justify-content: space-between; /* espace entre les 3 éléments */
@@ -188,7 +188,7 @@ header .contenu {
 .status-subtitle {
     display: flex;
     flex-direction: column;
-    align-items: flex-end;
+    align-items: center;
 }
 
 .status-subtitle p {
@@ -306,11 +306,8 @@ header .contenu {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: var(--surface);
     padding: 1rem 1.5rem;
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow);
-    border: 1px solid var(--border);
+
 }
 
 .guess-counter {
@@ -319,6 +316,15 @@ header .contenu {
     gap: 0.5rem;
     font-weight: 600;
     color: var(--text-primary);
+    text-align: center;
+}
+
+.middle {
+  width: 900px;
+  margin: 0 auto; /* centre horizontalement */
+  display: flex;
+  justify-content: space-between; /* espace entre les 3 éléments */
+  align-items: center; /* aligne verticalement */
 }
 
 .mystery-indicator {
@@ -348,6 +354,7 @@ header .contenu {
 .search-box:focus-within {
     border-color: var(--primary-color);
     box-shadow: var(--shadow-lg);
+
 }
 
 .search-box i {
@@ -365,6 +372,8 @@ header .contenu {
     font-size: 1rem;
     background: transparent;
     border-radius: var(--radius-lg);
+    color: white;
+    text-align: center;
 }
 
 .search-box input::placeholder {
@@ -477,10 +486,7 @@ header .contenu {
 
 /* Clues Board */
 .clues-board {
-    background: var(--surface);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow);
-    border: 1px solid var(--border);
+    
     padding: 1.5rem;
 }
 
@@ -512,7 +518,7 @@ header .contenu {
 .no-clues {
     text-align: center;
     padding: 2rem;
-    color: var(--text-muted);
+    color: var(--text-secondary);
 }
 
 .no-clues i {
@@ -966,7 +972,26 @@ header .contenu {
 }
 
 /* Footer */
-.footer {
+
+footer {
+    text-align: center;
+    width:100%;
+}
+
+footer .contenu {
+  
+  margin: 0 auto; /* centre horizontalement */
+  display: flex;
+  justify-content: space-between; /* espace entre les 3 éléments */
+  align-items: center; /* aligne verticalement */
+  height: 50px; /* exemple de hauteur */
+  background-color: #ffd41d;
+  padding: 10px;
+}
+
+
+
+.footer  {
     margin-top: 2rem;
     padding: 1.5rem 0;
     border-top: 1px solid var(--border);
@@ -999,7 +1024,7 @@ header .contenu {
 .footer-text {
     text-align: center;
     font-size: 0.8rem;
-    color: var(--text-secondary);
+    color: black;
 }
 
 .footer-text a {
@@ -1119,16 +1144,9 @@ header .contenu {
 /* Responsive Design */
 @media (max-width: 640px) {
     .container {
-        padding: 0.75rem;
+        
     }
     
-    .logo h1 {
-        font-size: 2rem;
-    }
-    
-    .logo i {
-        font-size: 2rem;
-    }
     
     .game-status {
         flex-direction: column;

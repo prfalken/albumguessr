@@ -247,8 +247,7 @@ class AlbumGuessrGame {
             }
         });
 
-        // Submit button
-        this.elements.searchSubmit.addEventListener('click', this.submitGuess.bind(this));
+        
 
         // Modal events
         this.elements.closeVictory.addEventListener('click', () => window.location.reload());
