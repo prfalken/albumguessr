@@ -1,14 +1,41 @@
 .site-nav {
     position: relative;
+    display: block;
+    width: 100%;
 }
 .site-nav .nav-list {
     display: none;
     flex-direction: column;
-    align-items: flex-start;
-    padding: 0.5rem 0;
+    align-items: stretch;
+    padding: 3px;
+    gap: 3px 0;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: auto;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    z-index: 10;
+    min-width: 0;
+    width: max-content;
+    white-space: nowrap;
 }
 .site-nav.open .nav-list {
     display: flex;
+}
+
+/* Make inactive items take full dropdown width like active */
+.site-nav .nav-list .nav-link {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Ensure each list item spans the same width */
+.site-nav .nav-list .nav-item {
+    width: 100%;
 }
 :root {
     --primary-color: #ffffff;
@@ -125,7 +152,7 @@ header .contenu {
     padding: 0.5rem 0.75rem;
     border-radius: var(--radius);
     cursor: pointer;
-    color: var(--text-secondary);
+    color: #000;
 }
 
 .nav-list {
@@ -158,6 +185,18 @@ header .contenu {
 .nav-link[aria-current="page"] {
     color: black;
     background: white;
+}
+
+/* Active page in burger dropdown */
+.site-nav .nav-list .nav-link[aria-current="page"] {
+    background: #565349;
+    color: #fff;
+}
+
+/* Inactive items: change color only on hover in burger dropdown */
+.site-nav .nav-list .nav-link:hover {
+    background: #565349;
+    color: #fff;
 }
 
 .visually-hidden {
@@ -535,6 +574,10 @@ header .contenu {
     text-align: center;
     padding: 2rem;
     color: var(--text-secondary);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
 
 .no-clues i {
@@ -1359,16 +1402,15 @@ footer .contenu {
 
     /* Mobile nav */
     .site-nav {
-        display: grid;
-        justify-items: center;
+        display: block;
     }
     .nav-toggle {
         display: inline-flex;
     }
     .site-nav .nav-list {
         display: none;
-        width: 100%;
-        justify-content: center;
+        width: auto;
+        justify-content: flex-start;
     }
     .site-nav.open .nav-list {
         display: flex;
