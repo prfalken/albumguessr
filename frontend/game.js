@@ -1237,11 +1237,21 @@ class AlbumGuessrGame {
     async getApiAccessToken() {
         const client = await this.ensureAuth0Client();
         const audience = AUTH0_CONFIG && AUTH0_CONFIG.authorizationParams && AUTH0_CONFIG.authorizationParams.audience;
-        if (!client || !audience) return null;
+        console.log('getApiAccessToken: client=', !!client, 'audience=', audience);
+        if (!client) {
+            console.warn('getApiAccessToken: No Auth0 client available');
+            return null;
+        }
+        if (!audience) {
+            console.warn('getApiAccessToken: No audience configured in AUTH0_CONFIG.authorizationParams.audience');
+            return null;
+        }
         try {
-            return await client.getTokenSilently({ authorizationParams: { audience } });
+            const token = await client.getTokenSilently({ authorizationParams: { audience } });
+            console.log('getApiAccessToken: Successfully obtained token');
+            return token;
         } catch (e) {
-            console.warn('Failed to obtain API token:', e);
+            console.error('getApiAccessToken: Failed to obtain API token:', e);
             return null;
         }
     }
@@ -1264,7 +1274,11 @@ class AlbumGuessrGame {
 
     async saveHistoryToApi(entry) {
         const token = await this.getApiAccessToken();
-        if (!token) return false;
+        if (!token) {
+            console.warn('saveHistoryToApi: No token available, cannot save history');
+            return false;
+        }
+        console.log('saveHistoryToApi: Sending entry to API:', entry);
         const res = await fetch('/.netlify/functions/history', {
             method: 'POST',
             headers: {
@@ -1273,6 +1287,12 @@ class AlbumGuessrGame {
             },
             body: JSON.stringify(entry)
         });
+        if (!res.ok) {
+            const text = await res.text();
+            console.error('saveHistoryToApi: Failed to save history:', res.status, text);
+        } else {
+            console.log('saveHistoryToApi: Successfully saved to history');
+        }
         return res.ok;
     }
 

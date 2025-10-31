@@ -193,7 +193,7 @@ class AlbumGuessrStats {
             alert('Logout is currently unavailable. Please try again later.');
             return;
         }
-        client.logout({ logoutParams: { returnTo: window.location.origin + '/statistics.html' } });
+        client.logout({ logoutParams: { returnTo: window.location.origin } });
     }
 
     async getApiAccessToken() {

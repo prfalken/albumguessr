@@ -1,6 +1,8 @@
 // Generates frontend/config.js from environment variables at build time.
 // Uses search-only Algolia key for the browser. Fails fast if required vars are missing.
 
+require('dotenv').config();
+
 const fs = require('fs');
 const path = require('path');
 

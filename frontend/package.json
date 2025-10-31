@@ -2,6 +2,7 @@
   "dependencies": {
     "@auth0/auth0-spa-js": "^2.8.0",
     "@neondatabase/serverless": "^0.9.5",
+    "dotenv": "^17.2.3",
     "jose": "^5.10.0"
   }
 }
