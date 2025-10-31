@@ -15,6 +15,7 @@ class AlbumGuessrStats {
             this.elements.userProfile = document.getElementById('user-profile');
             this.elements.userAvatar = document.getElementById('user-avatar');
             this.elements.userName = document.getElementById('user-name');
+            this.elements.navStatistics = document.getElementById('nav-statistics');
             this.bindAuthButtons();
             try {
                 await this.ensureAuth0Client();
@@ -34,6 +35,7 @@ class AlbumGuessrStats {
             userProfile: document.getElementById('user-profile'),
             userAvatar: document.getElementById('user-avatar'),
             userName: document.getElementById('user-name'),
+            navStatistics: document.getElementById('nav-statistics'),
             // History elements
             userHistorySubtitle: document.getElementById('user-history-subtitle'),
             userHistoryList: document.getElementById('user-history-list'),
@@ -150,6 +152,7 @@ class AlbumGuessrStats {
         const show = (el, visible) => { if (el) el.style.display = visible ? '' : 'none'; };
         show(this.elements.btnLogin, !isAuthenticated);
         show(this.elements.btnLogout, !!isAuthenticated);
+        show(this.elements.navStatistics, !!isAuthenticated);
         if (isAuthenticated && this.authenticatedUser) {
             if (this.elements.userAvatar) {
                 this.elements.userAvatar.src = this.authenticatedUser.picture || '';
