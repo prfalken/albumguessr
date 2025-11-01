@@ -183,6 +183,40 @@ export class AlbumGuessrGame {
     }
 
     async selectDailyAlbum() {
+        // Check if there's a challenge parameter in the URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const challengeObjectID = urlParams.get('challenge');
+        
+        if (challengeObjectID) {
+            try {
+                console.log('Loading challenge album:', challengeObjectID);
+                
+                if (!this.algoliaIndex) throw new Error('Algolia index not initialized');
+
+                const attrs = [
+                    'objectID', 'title', 'artists', 'genres', 'release_year', 'countries', 'tags',
+                    'contributors', 'rating_value', 'rating_count', 'rating',
+                    'cover_art_url', 'label', 'total_length_seconds'
+                ];
+
+                this.mysteryAlbum = await this.algoliaIndex.getObject(challengeObjectID, { attributesToRetrieve: attrs });
+                this.normalizeAlbumContributors(this.mysteryAlbum);
+                if (Array.isArray(this.mysteryAlbum.countries)) {
+                    this.mysteryAlbum.continents = this.getContinentsForCountryCodes(this.mysteryAlbum.countries);
+                }
+                
+                // Clean up URL (remove challenge parameter for cleaner appearance)
+                const cleanUrl = window.location.pathname;
+                window.history.replaceState({}, '', cleanUrl);
+                
+                console.log('Challenge album loaded:', this.mysteryAlbum);
+                return this.mysteryAlbum;
+            } catch (error) {
+                console.warn('Failed to load challenge album, falling back to random:', error);
+                // Fall through to random album selection below
+            }
+        }
+        
         // Fetch a random scheduled album from the database via Netlify Function
         const maxAttempts = 5;
         let lastError = null;
@@ -947,6 +981,13 @@ export class AlbumGuessrGame {
                     window.location.href = '/ranking.html';
                 });
                 
+                const challengeBtn = document.createElement('button');
+                challengeBtn.className = 'share-button';
+                challengeBtn.innerHTML = '<i class="bi bi-link-45deg"></i> Challenge a friend';
+                challengeBtn.addEventListener('click', () => {
+                    this.copyChallengeLinkToClipboard(challengeBtn);
+                });
+                
                 const shareBtn = document.createElement('button');
                 shareBtn.className = 'share-button';
                 shareBtn.innerHTML = '<i class="bi bi-share"></i> Share your result';
@@ -955,6 +996,7 @@ export class AlbumGuessrGame {
                 });
                 
                 shareSection.appendChild(showRankingsBtn);
+                shareSection.appendChild(challengeBtn);
                 shareSection.appendChild(shareBtn);
                 
                 itemEl.appendChild(mysteryAlbumBlock);
@@ -1177,6 +1219,43 @@ export class AlbumGuessrGame {
                 alert('Unable to copy the result. You can share it manually:\n\n' + shareText);
             });
         }
+    }
+
+    generateChallengeUrl() {
+        if (!this.mysteryAlbum) return null;
+        const baseUrl = window.location.origin;
+        const path = '/game.html';
+        const objectID = this.mysteryAlbum.objectID;
+        return `${baseUrl}${path}?challenge=${objectID}`;
+    }
+
+    copyChallengeLinkToClipboard(button) {
+        const challengeUrl = this.generateChallengeUrl();
+        if (!challengeUrl) {
+            alert('Unable to generate challenge link');
+            return;
+        }
+
+        navigator.clipboard.writeText(challengeUrl).then(() => {
+            // Store original button content and style
+            const originalHTML = button.innerHTML;
+            const originalBackground = button.style.backgroundColor;
+            
+            // Change button to success state
+            button.innerHTML = '<i class="bi bi-check-circle-fill"></i> Challenge link copied to clipboard!';
+            button.style.backgroundColor = '#22c55e';
+            button.style.transition = 'background-color 0.3s ease';
+            button.disabled = true;
+            
+            // Revert after 2 seconds
+            setTimeout(() => {
+                button.innerHTML = originalHTML;
+                button.style.backgroundColor = originalBackground;
+                button.disabled = false;
+            }, 2000);
+        }).catch(() => {
+            alert('Unable to copy link to clipboard');
+        });
     }
 
     showLoading(show) {

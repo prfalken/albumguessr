@@ -265,6 +265,41 @@ class AlbumGuessrDailyGame extends AlbumGuessrGame {
         }
     }
     
+    generateChallengeUrl() {
+        // For daily game, just point to the homepage (everyone plays the same album)
+        const baseUrl = window.location.origin;
+        return `${baseUrl}/index.html`;
+    }
+
+    copyChallengeLinkToClipboard(button) {
+        const challengeUrl = this.generateChallengeUrl();
+        if (!challengeUrl) {
+            alert('Unable to generate challenge link');
+            return;
+        }
+
+        navigator.clipboard.writeText(challengeUrl).then(() => {
+            // Store original button content and style
+            const originalHTML = button.innerHTML;
+            const originalBackground = button.style.backgroundColor;
+            
+            // Change button to success state
+            button.innerHTML = '<i class="bi bi-check-circle-fill"></i> Challenge link copied to clipboard!';
+            button.style.backgroundColor = '#22c55e';
+            button.style.transition = 'background-color 0.3s ease';
+            button.disabled = true;
+            
+            // Revert after 2 seconds
+            setTimeout(() => {
+                button.innerHTML = originalHTML;
+                button.style.backgroundColor = originalBackground;
+                button.disabled = false;
+            }, 2000);
+        }).catch(() => {
+            alert('Unable to copy link to clipboard');
+        });
+    }
+
     saveWinToHistory() {
         if (this.winSaved) return;
         if (!this.gameWon || !this.mysteryAlbum) return;
