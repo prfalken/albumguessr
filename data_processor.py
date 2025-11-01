@@ -111,13 +111,12 @@ class AlbumDataProcessor:
                     continue
                 if not md.get("instruments"):
                     continue
+                # Skip contributor if they have "assistant" or "additional" instruments
+                raw_instruments = md.get("instruments") or []
+                if any(self.clean_text(i).lower() in ("additional", "assistant") for i in raw_instruments if i):
+                    continue
                 name = self.clean_text(md.get("name"))
-                instruments = md.get("instruments") or []
-                instruments = [
-                    self.clean_text(i)
-                    for i in instruments
-                    if i and self.clean_text(i).lower() not in ("additional", "assistant")
-                ]
+                instruments = [self.clean_text(i) for i in raw_instruments if i]
                 detail_obj = {
                     k: v
                     for k, v in {
