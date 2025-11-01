@@ -988,16 +988,8 @@ export class AlbumGuessrGame {
                     this.copyChallengeLinkToClipboard(challengeBtn);
                 });
                 
-                const shareBtn = document.createElement('button');
-                shareBtn.className = 'share-button';
-                shareBtn.innerHTML = '<i class="bi bi-share"></i> Share your result';
-                shareBtn.addEventListener('click', () => {
-                    this.shareResult();
-                });
-                
                 shareSection.appendChild(showRankingsBtn);
                 shareSection.appendChild(challengeBtn);
-                shareSection.appendChild(shareBtn);
                 
                 itemEl.appendChild(mysteryAlbumBlock);
                 itemEl.appendChild(statsContainer);
