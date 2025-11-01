@@ -267,11 +267,7 @@ class AdminDashboard {
     async loadSchedule() {
         try {
             this.scheduleData = await this.apiClient.fetchSchedule();
-            
-            // Fetch album details from Algolia for each schedule entry
-            await this.enrichScheduleWithAlbumData();
-            
-            this.renderSchedule();
+            await this.renderSchedule();
         } catch (error) {
             console.error('Failed to load schedule:', error);
             this.elements.scheduleList.innerHTML = `
@@ -283,11 +279,14 @@ class AdminDashboard {
         }
     }
 
-    async enrichScheduleWithAlbumData() {
-        if (!this.scheduleData || this.scheduleData.length === 0) return;
+    async enrichScheduleWithAlbumData(entries) {
+        if (!entries || entries.length === 0) return;
         
-        // Fetch all albums in parallel
-        const promises = this.scheduleData.map(async (entry) => {
+        // Fetch only the albums for the paginated entries
+        const promises = entries.map(async (entry) => {
+            // Skip if already fetched
+            if (entry.albumData !== undefined) return;
+            
             try {
                 const result = await this.algoliaIndex.getObject(entry.object_id, {
                     attributesToRetrieve: ['objectID', 'title', 'main_artist', 'artists', 'cover_art_url']
@@ -302,7 +301,7 @@ class AdminDashboard {
         await Promise.all(promises);
     }
 
-    renderSchedule() {
+    async renderSchedule() {
         if (!this.scheduleData || this.scheduleData.length === 0) {
             this.elements.scheduleList.innerHTML = `
                 <div class="no-clues">
@@ -333,6 +332,9 @@ class AdminDashboard {
         const startIndex = (this.currentPage - 1) * this.itemsPerPage;
         const endIndex = startIndex + this.itemsPerPage;
         const paginatedData = futureSchedule.slice(startIndex, endIndex);
+        
+        // Fetch album data only for paginated items
+        await this.enrichScheduleWithAlbumData(paginatedData);
         
         const html = `
             <table class="admin-schedule-table">
@@ -456,14 +458,14 @@ class AdminDashboard {
     bindPaginationEvents() {
         const paginationBtns = this.elements.scheduleList.querySelectorAll('[data-page]');
         paginationBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
+            btn.addEventListener('click', async () => {
                 const page = parseInt(btn.getAttribute('data-page'));
                 const today = new Date().toISOString().split('T')[0];
                 const futureSchedule = this.scheduleData.filter(entry => entry.schedule_date >= today);
                 
                 if (page > 0 && page <= Math.ceil(futureSchedule.length / this.itemsPerPage)) {
                     this.currentPage = page;
-                    this.renderSchedule();
+                    await this.renderSchedule();
                     // Scroll to top of schedule list
                     this.elements.scheduleList.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
