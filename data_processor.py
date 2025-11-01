@@ -124,7 +124,7 @@ class AlbumDataProcessor:
                         "name": name,
                         "instruments": instruments,
                     }.items()
-                    if v not in (None, "") and v != []
+                    if v not in (None, "", "additional", "assistant") and v != []
                 }
                 if detail_obj:
                     normalized_details.append(detail_obj)
