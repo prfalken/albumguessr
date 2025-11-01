@@ -116,31 +116,29 @@ class AlbumGuessrBugReport {
         this.showMessage('Submitting bug report...', 'info');
         
         try {
-            // Build JSON payload (simplified without file upload for now)
-            const payload = {
-                title: this.elements.bugTitle.value,
-                description: this.elements.bugDescription.value,
-                email: this.elements.bugEmail.value
-            };
+            const title = this.elements.bugTitle.value;
+            const description = this.elements.bugDescription.value;
+            const email = this.elements.bugEmail.value;
             
-            // Get auth token if available
-            const token = await this.authManager.getApiAccessToken();
-            const headers = {
-                'Content-Type': 'application/json'
-            };
-            if (token) {
-                headers['Authorization'] = `Bearer ${token}`;
-            }
-            
-            const response = await fetch('/.netlify/functions/submitBugReport', {
-                method: 'POST',
-                headers: headers,
-                body: JSON.stringify(payload)
-            });
-            
-            const result = await response.json();
-            
-            if (response.ok && result.success) {
+            // Try EmailJS if configured
+            if (EMAILJS_CONFIG && typeof emailjs !== 'undefined') {
+                console.log('EmailJS configuration found:', EMAILJS_CONFIG);
+                // Initialize EmailJS
+                emailjs.init(EMAILJS_CONFIG.publicKey);
+                
+                // Send email via EmailJS
+                const emailResult = await emailjs.send(
+                    EMAILJS_CONFIG.serviceId,
+                    EMAILJS_CONFIG.templateId,
+                    {
+                        title: title,
+                        description: description,
+                        user_email: email,
+                        to_email: 'albumguessr@gmail.com'
+                    }
+                );
+                
+                console.log('EmailJS result:', emailResult);
                 this.showMessage('Thank you! Your bug report has been submitted successfully. We will investigate and get back to you if needed.', 'success');
                 this.elements.bugReportForm.reset();
                 await this.prefillEmail();
@@ -151,7 +149,39 @@ class AlbumGuessrBugReport {
                     this.elements.bugReportMessage.className = 'form-message';
                 }, 10000);
             } else {
-                throw new Error(result.error || 'Form submission failed');
+                console.log('EmailJS not configured, using fallback. EMAILJS_CONFIG:', EMAILJS_CONFIG, 'emailjs available:', typeof emailjs);
+                // Fallback to Netlify Function if EmailJS not configured
+                const payload = { title, description, email };
+                
+                const token = await this.authManager.getApiAccessToken();
+                const headers = {
+                    'Content-Type': 'application/json'
+                };
+                if (token) {
+                    headers['Authorization'] = `Bearer ${token}`;
+                }
+                
+                const response = await fetch('/.netlify/functions/submitBugReport', {
+                    method: 'POST',
+                    headers: headers,
+                    body: JSON.stringify(payload)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    this.showMessage('Thank you! Your bug report has been submitted successfully. We will investigate and get back to you if needed.', 'success');
+                    this.elements.bugReportForm.reset();
+                    await this.prefillEmail();
+                    
+                    // Clear success message after 10 seconds
+                    setTimeout(() => {
+                        this.elements.bugReportMessage.textContent = '';
+                        this.elements.bugReportMessage.className = 'form-message';
+                    }, 10000);
+                } else {
+                    throw new Error(result.error || 'Form submission failed');
+                }
             }
         } catch (error) {
             console.error('Bug report submission failed:', error);
