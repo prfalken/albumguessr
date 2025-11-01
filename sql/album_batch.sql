@@ -11,7 +11,6 @@ SELECT
     ac_info.countries,
     tags.tag_names,
     sec_types.secondary_names,
-    mus.musician_names,
     mus.musician_details,
     pl.primary_label,
     caa.cover_release_gid,
@@ -63,7 +62,6 @@ LEFT JOIN LATERAL (
         GROUP BY lar.entity0
     )
     SELECT
-        ARRAY_AGG(DISTINCT a2.name) AS musician_names,
         JSONB_AGG(
             DISTINCT JSONB_BUILD_OBJECT(
                 'name', a2.name,
