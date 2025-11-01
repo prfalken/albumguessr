@@ -113,14 +113,18 @@ class AlbumDataProcessor:
                     continue
                 name = self.clean_text(md.get("name"))
                 instruments = md.get("instruments") or []
-                instruments = [self.clean_text(i) for i in instruments if i]
+                instruments = [
+                    self.clean_text(i)
+                    for i in instruments
+                    if i and self.clean_text(i).lower() not in ("additional", "assistant")
+                ]
                 detail_obj = {
                     k: v
                     for k, v in {
                         "name": name,
                         "instruments": instruments,
                     }.items()
-                    if v not in (None, "", "additional", "assistant") and v != []
+                    if v not in (None, "") and v != []
                 }
                 if detail_obj:
                     normalized_details.append(detail_obj)
