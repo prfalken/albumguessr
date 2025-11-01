@@ -42,13 +42,28 @@ LEFT JOIN LATERAL (
     WHERE rgstj.release_group = rg.id
 ) sec_types ON TRUE
 LEFT JOIN LATERAL (
-    WITH recs AS (
+    WITH r_with_min AS (
+        SELECT
+            r.id AS release_id,
+            COALESCE(MIN(rev.date_year), 9999) AS y,
+            COALESCE(MIN(rev.date_month), 12) AS m,
+            COALESCE(MIN(rev.date_day), 31) AS d
+        FROM musicbrainz.release r
+        LEFT JOIN musicbrainz.release_event rev ON rev.release = r.id
+        WHERE r.release_group = rg.id
+        GROUP BY r.id
+    ), earliest AS (
+        SELECT release_id
+        FROM r_with_min
+        ORDER BY y, m, d
+        LIMIT 1
+    ),
+    recs AS (
         SELECT DISTINCT rec.id AS recording_id
-        FROM musicbrainz.release r2
-        JOIN musicbrainz.medium m ON m.release = r2.id
+        FROM earliest e
+        JOIN musicbrainz.medium m ON m.release = e.release_id
         JOIN musicbrainz.track t ON t.medium = m.id
         JOIN musicbrainz.recording rec ON rec.id = t.recording
-        WHERE r2.release_group = rg.id
     ),
     per_artist AS (
         SELECT
