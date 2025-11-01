@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AlbumGuessr - Report a Bug</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+</head>
+<body>
+    <div class="container">
+        <div id="site-header"></div>
+        <div class="subtitle">
+            <p>Help us improve by reporting bugs you encounter</p>
+        </div>
+
+        <main id="main-content" class="game-container">
+            <div class="bug-report-container">
+                <section class="user-history" aria-labelledby="bug-report-title">
+                    <div class="user-history-header">
+                        <h3 id="bug-report-title"><i class="bi bi-bug"></i> Report a Bug</h3>
+                        <div class="user-history-subtitle" id="bug-report-subtitle">Fill in the details below and we'll investigate</div>
+                    </div>
+                    <div class="profile-settings-content">
+                        <form id="bug-report-form" class="username-form">
+                            <div class="form-group">
+                                <label for="bug-title">Title</label>
+                                <input type="text" id="bug-title" name="title" class="form-input" placeholder="Brief description of the bug" required minlength="5" maxlength="200">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="bug-description">Description</label>
+                                <textarea id="bug-description" name="description" class="form-input" rows="6" placeholder="Please describe the bug in detail: what you were doing, what happened, and what you expected to happen" required minlength="20" maxlength="2000"></textarea>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="bug-email">Your Email</label>
+                                <input type="email" id="bug-email" name="email" class="form-input" placeholder="your.email@example.com" required readonly>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="bug-screenshot">Screenshot (Optional)</label>
+                                <input type="file" id="bug-screenshot" name="screenshot" class="form-input form-file-input" accept="image/*">
+                                <small style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.25rem;">
+                                    Maximum file size: 10MB. Accepted formats: JPG, PNG, GIF, WebP
+                                </small>
+                            </div>
+                            
+                            <div class="form-message" id="bug-report-message"></div>
+                            <button type="submit" class="btn-primary" id="btn-submit-bug">
+                                <i class="bi bi-send"></i>
+                                Submit Bug Report
+                            </button>
+                        </form>
+                    </div>
+                </section>
+            </div>
+        </main>
+
+        <div id="site-footer"></div>
+    </div>
+
+    <script src="https://cdn.auth0.com/js/auth0-spa-js/2.1/auth0-spa-js.production.js"></script>
+    <script src="config.js"></script>
+    <script src="includes.js"></script>
+    <script src="nav.js"></script>
+    <script type="module" src="report-bug.js"></script>
+</body>
+</html>
+

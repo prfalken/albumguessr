@@ -47,6 +47,7 @@ class AdminDashboard {
             this.elements.userAvatar = document.getElementById('user-avatar');
             this.elements.userName = document.getElementById('user-name');
             this.elements.navStatistics = document.getElementById('nav-statistics');
+            this.elements.navReportBug = document.getElementById('nav-report-bug');
             this.authManager.bindAuthButtons(this.elements);
             const authed = await this.authManager.isAuthenticated();
             this.authManager.updateAuthUI(this.elements, authed);
@@ -106,7 +107,8 @@ class AdminDashboard {
             userProfile: null,
             userAvatar: null,
             userName: null,
-            navStatistics: null
+            navStatistics: null,
+            navReportBug: null
         };
     }
 

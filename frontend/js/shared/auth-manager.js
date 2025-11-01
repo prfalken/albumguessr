@@ -204,6 +204,7 @@ export class AuthManager {
      * @param {HTMLElement} elements.userAvatar - User avatar image
      * @param {HTMLElement} elements.userName - User name display
      * @param {HTMLElement} elements.navStatistics - Statistics nav item
+     * @param {HTMLElement} elements.navReportBug - Report Bug nav item
      * @param {boolean} isAuthenticated - Whether user is authenticated
      */
     updateAuthUI(elements, isAuthenticated) {
@@ -212,6 +213,7 @@ export class AuthManager {
         show(elements.btnLogin, !isAuthenticated);
         show(elements.btnLogout, !!isAuthenticated);
         show(elements.navStatistics, !!isAuthenticated);
+        show(elements.navReportBug, !!isAuthenticated);
         
         if (isAuthenticated && this.authenticatedUser) {
             if (elements.userAvatar && this.authenticatedUser.picture) {

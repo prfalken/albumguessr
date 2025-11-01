@@ -39,6 +39,7 @@ export class AlbumGuessrGame {
             this.elements.userAvatar = document.getElementById('user-avatar');
             this.elements.userName = document.getElementById('user-name');
             this.elements.navStatistics = document.getElementById('nav-statistics');
+            this.elements.navReportBug = document.getElementById('nav-report-bug');
             this.authManager.bindAuthButtons(this.elements);
             try {
                 const authed = await this.authManager.isAuthenticated();
@@ -108,6 +109,7 @@ export class AlbumGuessrGame {
             userAvatar: document.getElementById('user-avatar'),
             userName: document.getElementById('user-name'),
             navStatistics: document.getElementById('nav-statistics'),
+            navReportBug: document.getElementById('nav-report-bug'),
             // User history (right panel)
             userHistorySubtitle: document.getElementById('user-history-subtitle'),
             userHistoryList: document.getElementById('user-history-list')

@@ -23,6 +23,7 @@ class AlbumGuessrProfile {
             this.elements.userAvatar = document.getElementById('user-avatar');
             this.elements.userName = document.getElementById('user-name');
             this.elements.navStatistics = document.getElementById('nav-statistics');
+            this.elements.navReportBug = document.getElementById('nav-report-bug');
             this.authManager.bindAuthButtons(this.elements);
             try {
                 const authed = await this.authManager.isAuthenticated();
@@ -54,6 +55,7 @@ class AlbumGuessrProfile {
             userAvatar: document.getElementById('user-avatar'),
             userName: document.getElementById('user-name'),
             navStatistics: document.getElementById('nav-statistics'),
+            navReportBug: document.getElementById('nav-report-bug'),
             // Profile elements
             profileAvatar: document.getElementById('profile-avatar'),
             profileEmail: document.getElementById('profile-email'),

@@ -1660,7 +1660,12 @@ footer .contenu {
     background: var(--surface);
     color: var(--text-primary);
     font-size: 0.95rem;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     transition: border-color 0.2s ease;
+}
+
+.form-input textarea {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 .form-input:focus {
@@ -1744,6 +1749,63 @@ footer .contenu {
     color: #000;
 }
 
+/* Bug Report Page Styles */
+.bug-report-container {
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+}
+
+.bug-report-container .user-history {
+    width: 100%;
+}
+
+#bug-report-form {
+    max-width: 100%;
+}
+
+#bug-report-form textarea {
+    resize: vertical;
+    min-height: 120px;
+}
+
+.form-file-input {
+    cursor: pointer;
+}
+
+.form-file-input::-webkit-file-upload-button {
+    padding: 0.5rem 1rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text-primary);
+    cursor: pointer;
+    font-size: 0.9rem;
+    margin-right: 1rem;
+    transition: all 0.2s ease;
+}
+
+.form-file-input::-webkit-file-upload-button:hover {
+    background: var(--surface-elevated);
+}
+
+.form-file-input::file-selector-button {
+    padding: 0.5rem 1rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text-primary);
+    cursor: pointer;
+    font-size: 0.9rem;
+    margin-right: 1rem;
+    transition: all 0.2s ease;
+}
+
+.form-file-input::file-selector-button:hover {
+    background: var(--surface-elevated);
+}
+
 @media (max-width: 640px) {
     .profile-info {
         flex-direction: column;
@@ -1752,6 +1814,10 @@ footer .contenu {
 
     .username-form {
         max-width: 100%;
+    }
+
+    .bug-report-container {
+        padding: 0 1rem;
     }
 }
 
