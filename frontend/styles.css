@@ -638,6 +638,20 @@ header .contenu {
     gap: 0.5rem;
 }
 
+/* Blink animation for artists clue-value */
+.clue-value.clue-artist {
+    animation: blink 1.5s ease-in-out infinite;
+}
+
+@keyframes blink {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.4;
+    }
+}
+
 @keyframes clueReveal {
     from {
         opacity: 0;

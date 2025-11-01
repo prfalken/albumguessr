@@ -758,6 +758,7 @@ export class AlbumGuessrGame {
                 Array.from(values).forEach(value => {
                     const chip = this.templates.clueValue.content.firstElementChild.cloneNode(true);
                     if (catConf.key === 'contributors') chip.classList.add('clue-musician');
+                    if (catConf.key === 'artists') chip.classList.add('clue-artist');
                     chip.textContent = String(value);
                     valuesEl.appendChild(chip);
                 });
