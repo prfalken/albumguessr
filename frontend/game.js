@@ -877,7 +877,17 @@ export class AlbumGuessrGame {
 
                 const congratulationsMessage = document.createElement('div');
                 congratulationsMessage.className = 'victory-congratulations-message';
-                congratulationsMessage.textContent = 'You found the album of the day! Come back tomorrow for a new mystery album!';
+                // Check if this is random album game (game.html) or daily game (index.html)
+                // game.html uses AlbumGuessrGame, index.html uses AlbumGuessrDailyGame
+                // We can check by the constructor name or by checking if we're on game.html
+                const isRandomAlbum = this.constructor.name === 'AlbumGuessrGame' && 
+                                     (window.location.pathname.includes('game.html') || 
+                                      (this.elements.gameDate && this.elements.gameDate.classList.contains('game-date-random')));
+                if (isRandomAlbum) {
+                    congratulationsMessage.textContent = 'Refresh the page and play again!';
+                } else {
+                    congratulationsMessage.textContent = 'You found the album of the day! Come back tomorrow for a new mystery album!';
+                }
 
                 // Insert congratulations messages at the beginning
                 mysteryAlbumBlock.insertBefore(congratulationsMessage, mysteryAlbumBlock.firstChild);
