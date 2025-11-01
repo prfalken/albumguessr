@@ -98,7 +98,6 @@ Each album is normalized roughly like this:
   "countries": ["US"],
   "genres": ["Thrash Metal"],
   "secondary_types": ["Compilation"],
-  "musicians": ["Cliff Burton", "Kirk Hammett"],
   "first_release_date": "1984-07-27",
   "release_year": 1984,
   "rating_value": 4.6,       // 0..5, mapped from MusicBrainz 0..100

@@ -64,8 +64,6 @@ class TestAlbumDataProcessor(unittest.TestCase):
         self.assertEqual(out["genres"], ["Thrash"])
         self.assertEqual(out["main_artist"], "Metallica")
         self.assertEqual(out["primary_genre"], "Thrash")
-        # Musicians
-        self.assertEqual(out.get("musicians"), ["Cliff Burton"])
         # Cover art URLs
         base = "https://coverartarchive.org/release/rel-1/front"
         self.assertEqual(out["cover_art_url"], base)

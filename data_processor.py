@@ -102,11 +102,6 @@ class AlbumDataProcessor:
             if cleaned_label:
                 album["label"] = cleaned_label
 
-        # Musicians (contributors across recordings of the album)
-        musician_names = row.get("musician_names") or []
-        if musician_names:
-            album["musicians"] = [self.clean_text(n) for n in musician_names if n]
-
         # Contributors info
         contributors = row.get("musician_details") or []
         if contributors:
