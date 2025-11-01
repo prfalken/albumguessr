@@ -952,16 +952,11 @@ main {
 }
 
 .guess-clues {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    color: #ffd41d;
-    font-size: 0.8rem;
+    display: none;
 }
 
 .guess-clues.victory {
-    color: #ffd41d;
-    font-weight: 600;
+    display: none;
 }
 
 @keyframes guessSlideIn {

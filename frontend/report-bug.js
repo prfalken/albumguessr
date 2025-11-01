@@ -54,7 +54,6 @@ class AlbumGuessrBugReport {
             bugTitle: document.getElementById('bug-title'),
             bugDescription: document.getElementById('bug-description'),
             bugEmail: document.getElementById('bug-email'),
-            bugScreenshot: document.getElementById('bug-screenshot'),
             bugReportMessage: document.getElementById('bug-report-message'),
             btnSubmitBug: document.getElementById('btn-submit-bug')
         };
