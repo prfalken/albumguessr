@@ -77,7 +77,7 @@ export class AlbumGuessrGame {
                 if (this.elements.gameDate && !this.elements.gameDate.classList.contains('game-date-random')) {
                     // For daily game, date is set by daily.js
                 } else if (this.elements.gameDate) {
-                    this.elements.gameDate.textContent = i18n.t('game.newMystery');
+                    this.updateGameDateText();
                 }
                 // Regenerate year and length hints with new language
                 if (this.mysteryAlbum) {
@@ -89,6 +89,27 @@ export class AlbumGuessrGame {
                 this.updateUI();
             }, 0);
         });
+    }
+
+    updateGameDateText() {
+        if (this.elements && this.elements.gameDate && this.elements.gameDate.classList.contains('game-date-random')) {
+            try {
+                this.elements.gameDate.textContent = i18n.t('game.newMystery');
+            } catch (e) {
+                // i18n might not be ready yet, will be updated later
+                console.warn('i18n not ready for gameDate:', e);
+            }
+        }
+    }
+
+    updateSearchPlaceholder() {
+        if (this.elements && this.elements.albumSearch) {
+            try {
+                this.elements.albumSearch.placeholder = i18n.t('game.searchPlaceholder');
+            } catch (e) {
+                console.warn('i18n not ready for searchPlaceholder:', e);
+            }
+        }
     }
 
     initializeAlgolia() {
@@ -162,13 +183,25 @@ export class AlbumGuessrGame {
         };
 
         // Show refresh-based info
-        this.elements.gameDate.textContent = i18n.t('game.newMystery');
+        // Use a function to update the text after i18n is initialized
+        this.updateGameDateText();
         this.elements.gameDate.classList.add('game-date-random');
         
         // Set placeholder for search input
         if (this.elements.albumSearch) {
-            this.elements.albumSearch.placeholder = i18n.t('game.searchPlaceholder');
+            this.updateSearchPlaceholder();
         }
+        
+        // Listen for i18n initialization to update text
+        // The includes.js file calls i18n.init() and then i18n.applyTranslations()
+        // We'll update the text when translations are applied
+        document.addEventListener('albumguessr:header-ready', () => {
+            // Header ready means i18n.init() has been called
+            setTimeout(() => {
+                this.updateGameDateText();
+                this.updateSearchPlaceholder();
+            }, 0);
+        });
         
         // Initialize history renderer now that templates are available
         this.historyRenderer = new HistoryRenderer(this.elements, this.templates);
