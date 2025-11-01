@@ -1434,7 +1434,7 @@ footer .contenu {
     .main-column {
         padding: 0 1rem;
         width: 100%;
-        max-width: 380px;
+        max-width: 100%;
         margin: 0 auto;
         box-sizing: border-box;
     }
@@ -1449,7 +1449,6 @@ footer .contenu {
     .search-container {
         position: relative;
         width: 100%;
-        max-width: 380px;
         margin: 0 auto;
         padding: 0;
         box-sizing: border-box;
@@ -1457,7 +1456,7 @@ footer .contenu {
     
     .search-box {
         width: 100%;
-        max-width: 380px;
+
         min-width: 0;
         padding: 0.5rem;
         box-sizing: border-box;
@@ -1519,14 +1518,14 @@ footer .contenu {
     }
 
     .guess-cover {
-        width: 40px;
-        height: 40px;
-        margin-right: 0.5rem;
+        width: 150px;
+        height: 150px;
+        margin-right: 0.75rem;
     }
 
     .search-result-thumb {
-        width: 40px;
-        height: 40px;
+        width: 120px;
+        height: 120px;
     }
 
     /* Mobile nav */
