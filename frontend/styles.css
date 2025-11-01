@@ -1623,6 +1623,17 @@ footer .contenu {
     margin-bottom: 1rem;
 }
 
+/* Profile page specific title styles */
+.profile-section:has(.username-form) .profile-section-title {
+    color: #ffd41d;
+}
+
+/* Current username display */
+#current-username {
+    color: #ffd41d;
+    font-size: 1.2rem;
+}
+
 .username-form {
     display: flex;
     flex-direction: column;
@@ -1646,7 +1657,7 @@ footer .contenu {
     padding: 0.75rem;
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    background: var(--surface-elevated);
+    background: var(--surface);
     color: var(--text-primary);
     font-size: 0.95rem;
     transition: border-color 0.2s ease;
@@ -1720,6 +1731,17 @@ footer .contenu {
     background: var(--text-muted);
     cursor: not-allowed;
     transform: none;
+}
+
+/* Profile page specific styles */
+.username-form .btn-primary {
+    background: #ffd41d;
+    color: #000;
+}
+
+.username-form .btn-primary:hover {
+    background: #e6bf1a;
+    color: #000;
 }
 
 @media (max-width: 640px) {

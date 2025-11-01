@@ -158,7 +158,7 @@ class AlbumGuessrProfile {
             }
 
             // Final fallback to name or email
-            currentUsernameEl.value = customUsername || this.authManager.authenticatedUser.name || this.authManager.authenticatedUser.email || '';
+            currentUsernameEl.textContent = customUsername || this.authManager.authenticatedUser.name || this.authManager.authenticatedUser.email || '';
         }
     }
 
