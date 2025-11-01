@@ -28,8 +28,11 @@
 
 /* Make inactive items take full dropdown width like active */
 .site-nav .nav-list .nav-link {
-    display: block;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
     width: 100%;
+    text-align: left;
     box-sizing: border-box;
 }
 
