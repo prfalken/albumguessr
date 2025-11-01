@@ -67,6 +67,11 @@
     padding: 0;
     box-sizing: border-box;
 }
+
+html,
+body {
+    height: 100%;
+}
    
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -87,7 +92,7 @@ body {
     margin: 0 auto;
     /* padding: 1rem; */
     min-height: 100vh;
-   
+    display: flex;
     flex-direction: column;
 }
 
@@ -268,6 +273,10 @@ header .contenu {
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
+}
+
+#main-content {
+    flex: 1;
 }
 
 /* Two-column layout with right sidebar */
@@ -1209,9 +1218,13 @@ header .contenu {
 
 /* Footer */
 
+#site-footer {
+    margin-top: auto;
+}
+
 footer {
     text-align: center;
-    width:100%;
+    width: 100%;
 }
 
 footer .contenu {
