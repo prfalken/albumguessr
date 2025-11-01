@@ -24,6 +24,9 @@ class AlbumGuessrDailyGame extends AlbumGuessrGame {
                 console.warn('Auth check skipped:', authError);
             }
             
+            // Try to restore game state from localStorage
+            this.restoreGameState();
+            
             // Check if user has already completed this album (must be before updateUI)
             await this.checkAndRestorePreviousWin();
             
@@ -34,6 +37,126 @@ class AlbumGuessrDailyGame extends AlbumGuessrGame {
             console.error('Failed to initialize game:', error);
             this.showError('Error while loading the game. Please refresh the page.');
             this.showLoading(false);
+        }
+    }
+    
+    getStorageKey() {
+        if (!this.mysteryAlbum) return null;
+        return `albumguessr_daily_game_${this.mysteryAlbum.objectID}`;
+    }
+    
+    saveGameState() {
+        if (!this.mysteryAlbum || this.gameOver) return;
+        
+        const storageKey = this.getStorageKey();
+        if (!storageKey) return;
+        
+        try {
+            const gameState = {
+                objectID: this.mysteryAlbum.objectID,
+                guessCount: this.guessCount,
+                gameOver: this.gameOver,
+                gameWon: this.gameWon,
+                guesses: this.guesses.map(guess => ({
+                    album: {
+                        objectID: guess.album.objectID,
+                        title: guess.album.title,
+                        artists: guess.album.artists,
+                        cover_art_url: guess.album.cover_art_url,
+                        release_year: guess.album.release_year,
+                        genres: guess.album.genres,
+                        countries: guess.album.countries,
+                        contributors: guess.album.contributors,
+                        total_length_seconds: guess.album.total_length_seconds,
+                        label: guess.album.label
+                    },
+                    correct: guess.correct,
+                    guessNumber: guess.guessNumber,
+                    cluesRevealed: guess.cluesRevealed
+                })),
+                discoveredClues: Array.from(this.discoveredClues.entries()).map(([key, values]) => [
+                    key,
+                    Array.from(values)
+                ]),
+                timestamp: Date.now()
+            };
+            
+            localStorage.setItem(storageKey, JSON.stringify(gameState));
+        } catch (error) {
+            console.warn('Failed to save game state:', error);
+        }
+    }
+    
+    restoreGameState() {
+        if (!this.mysteryAlbum) return false;
+        
+        const storageKey = this.getStorageKey();
+        if (!storageKey) return false;
+        
+        try {
+            const saved = localStorage.getItem(storageKey);
+            if (!saved) return false;
+            
+            const gameState = JSON.parse(saved);
+            
+            // Verify it's for the same album
+            if (gameState.objectID !== this.mysteryAlbum.objectID) {
+                localStorage.removeItem(storageKey);
+                return false;
+            }
+            
+            // Check if state is too old (more than 24 hours)
+            const stateAge = Date.now() - (gameState.timestamp || 0);
+            if (stateAge > 24 * 60 * 60 * 1000) {
+                localStorage.removeItem(storageKey);
+                return false;
+            }
+            
+            // Restore game state
+            this.guessCount = gameState.guessCount || 0;
+            this.gameOver = gameState.gameOver || false;
+            this.gameWon = gameState.gameWon || false;
+            this.guesses = (gameState.guesses || []).map(guess => {
+                // Restore full album data from Algolia if needed
+                return {
+                    ...guess,
+                    album: {
+                        ...guess.album,
+                        continents: Array.isArray(guess.album.countries) 
+                            ? this.getContinentsForCountryCodes(guess.album.countries) 
+                            : []
+                    }
+                };
+            });
+            
+            // Restore discovered clues
+            this.discoveredClues = new Map();
+            if (gameState.discoveredClues) {
+                gameState.discoveredClues.forEach(([key, values]) => {
+                    this.discoveredClues.set(key, new Set(values));
+                });
+            }
+            
+            // Recalculate year and length hints from restored guesses
+            if (this.guesses.length > 0 && !this.gameOver) {
+                this.updateYearHint();
+                this.updateLengthHint();
+            }
+            
+            // If game was won, show victory modal after a delay
+            if (this.gameOver && this.gameWon) {
+                setTimeout(() => this.showVictoryModal(), 500);
+            }
+            
+            console.log('Game state restored:', {
+                guesses: this.guessCount,
+                clues: this.discoveredClues.size
+            });
+            
+            return true;
+        } catch (error) {
+            console.warn('Failed to restore game state:', error);
+            return false;
         }
     }
 
@@ -111,6 +234,24 @@ class AlbumGuessrDailyGame extends AlbumGuessrGame {
         }
     }
 
+    submitGuess() {
+        // Call parent method
+        super.submitGuess();
+        
+        // Save game state after each guess
+        this.saveGameState();
+    }
+    
+    updateUI() {
+        // Call parent method
+        super.updateUI();
+        
+        // Save game state after UI update (for clues updates)
+        if (!this.gameOver) {
+            this.saveGameState();
+        }
+    }
+    
     saveWinToHistory() {
         if (this.winSaved) return;
         if (!this.gameWon || !this.mysteryAlbum) return;
@@ -136,6 +277,12 @@ class AlbumGuessrDailyGame extends AlbumGuessrGame {
                 if (ok) {
                     this.winSaved = true;
                     this.renderUserHistory();
+                    
+                    // Clear saved game state since game is over
+                    const storageKey = this.getStorageKey();
+                    if (storageKey) {
+                        localStorage.removeItem(storageKey);
+                    }
                     
                     // Show toast suggesting username setup if user doesn't have a custom username
                     const hasCustomUsername = this.authManager.customUsername;
