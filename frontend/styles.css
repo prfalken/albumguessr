@@ -638,9 +638,23 @@ header .contenu {
     gap: 0.5rem;
 }
 
+/* Artists clues on separate line, larger */
+.clue-artists-container {
+    width: 100%;
+    margin-bottom: 1rem;
+}
+
+.clue-artists-values {
+    width: 100%;
+    justify-content: center;
+}
+
 /* Blink animation for artists clue-value */
 .clue-value.clue-artist {
     animation: blink 1.5s ease-in-out infinite;
+    font-size: 1rem;
+    padding: 0.35rem 0.75rem;
+    font-weight: 600;
 }
 
 @keyframes blink {

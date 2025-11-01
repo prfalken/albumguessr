@@ -712,9 +712,38 @@ export class AlbumGuessrGame {
             return;
         }
 
+        // Render artists first on a separate line
+        const artistsSet = this.discoveredClues.get('artists');
+        if (artistsSet && artistsSet.size > 0) {
+            const artistsCat = GAME_CONFIG.clueCategories.find(c => c.key === 'artists');
+            if (artistsCat) {
+                const catEl = this.templates.clueCategory.content.firstElementChild.cloneNode(true);
+                catEl.classList.add('clue-artists-container');
+                const valuesEl = catEl.querySelector('.clue-values');
+                if (valuesEl) {
+                    valuesEl.classList.add('clue-artists-values');
+                    // Single icon before all values
+                    const iconEl = document.createElement('i');
+                    iconEl.className = `bi ${artistsCat.icon}`;
+                    valuesEl.appendChild(iconEl);
+
+                    Array.from(artistsSet).forEach(value => {
+                        const chip = this.templates.clueValue.content.firstElementChild.cloneNode(true);
+                        chip.classList.add('clue-artist');
+                        chip.textContent = String(value);
+                        valuesEl.appendChild(chip);
+                    });
+                }
+                container.appendChild(catEl);
+            }
+        }
+
         GAME_CONFIG.clueCategories.forEach(catConf => {
             // Skip standalone continents panel; continents merge under countries
             if (catConf.key === 'continents') return;
+            
+            // Skip artists as they're already rendered above
+            if (catConf.key === 'artists') return;
 
             if (catConf.key === 'countries') {
                 const countriesSet = this.discoveredClues.get('countries') || new Set();
