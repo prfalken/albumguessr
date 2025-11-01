@@ -212,6 +212,11 @@ export class AuthManager {
         
         show(elements.btnLogin, !isAuthenticated);
         show(elements.btnLogout, !!isAuthenticated);
+        // Show/hide logout in dropdown menu
+        const navLogout = document.getElementById('nav-logout');
+        if (navLogout) {
+            navLogout.style.display = isAuthenticated ? '' : 'none';
+        }
         show(elements.navStatistics, !!isAuthenticated);
         show(elements.navReportBug, !!isAuthenticated);
         

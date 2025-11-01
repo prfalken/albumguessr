@@ -65,7 +65,7 @@ class LanguageSwitcher {
         
         li.appendChild(this.button);
         li.appendChild(this.dropdown);
-        container.insertBefore(li, container.firstChild);
+        container.appendChild(li);
     }
 
     /**

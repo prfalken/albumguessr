@@ -207,6 +207,22 @@ header .contenu {
     color: #fff;
 }
 
+/* Logout button in dropdown with yellow background */
+.nav-link-logout {
+    background: #ffd41d !important;
+    color: #000 !important;
+    border: none;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+.nav-link-logout:hover {
+    background: #ffc107 !important;
+    color: #000 !important;
+}
+
 .visually-hidden {
     position: absolute;
     width: 1px;
