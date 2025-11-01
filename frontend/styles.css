@@ -650,13 +650,7 @@ header .contenu {
 }
 
 /* Guesses History */
-.guesses-history {
-    background: var(--surface);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow);
-    border: 1px solid var(--border);
-    padding: 1.5rem;
-}
+/* .guesses-history is now just a container without background/border */
 
 .history-header h3 {
     display: flex;
@@ -676,9 +670,10 @@ header .contenu {
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
-    padding: 1rem;
-    background: var(--surface-elevated);
-    border-radius: var(--radius);
+    padding: 1.5rem;
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
     border: 1px solid var(--border);
     animation: guessSlideIn 0.3s ease;
 }
@@ -721,6 +716,7 @@ header .contenu {
 .guess-title {
     font-weight: 600;
     margin-bottom: 0.25rem;
+    color: white;
 }
 
 .guess-artist {
@@ -730,13 +726,13 @@ header .contenu {
 
 .guess-details {
     margin-top: 0.5rem;
-    display: grid;
+    display: flex;
+    flex-wrap: wrap;
     gap: 0.5rem;
+    align-items: flex-start;
 }
 
 .guess-attr {
-    background: white;
-    border: 1px solid var(--border);
     border-radius: calc(var(--radius) / 1.25);
     padding: 0.5rem;
 }
@@ -745,7 +741,7 @@ header .contenu {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    color: var(--text-secondary);
+    color: white;
     font-size: 0.8rem;
     margin-bottom: 0.35rem;
 }
@@ -753,7 +749,8 @@ header .contenu {
 .guess-attr-values {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.35rem;
+    gap: 0.35rem 0.5rem;
+    align-items: center;
 }
 
 .guess-chip {
@@ -766,28 +763,40 @@ header .contenu {
     border: 1px solid transparent;
 }
 
-.guess-chip-hit {
-    background: var(--clue-background);
-    color: var(--clue-border);
-    border-color: var(--clue-border);
+/* Guess chips in attr-values use clue-value style */
+.guess-attr-values .guess-chip-hit {
+    background: #ffd41d;
+    color: #000;
+    border: none;
+    border-radius: calc(var(--radius) / 2);
+    font-size: 0.8rem;
+    font-weight: 500;
+    padding: 0.2rem 0.5rem;
 }
 
+/* Guess chips miss use clue-value style but with strikethrough and 50% opacity */
 .guess-chip-miss {
-    background: #fef2f2;
-    color: #b91c1c;
-    border-color: #ef4444;
+    background: #ffd41d;
+    color: #000;
+    border: none;
+    border-radius: calc(var(--radius) / 2);
+    font-size: 0.8rem;
+    font-weight: 500;
+    padding: 0.2rem 0.5rem;
+    opacity: 0.5;
+    text-decoration: line-through;
 }
 
 .guess-clues {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    color: var(--text-muted);
+    color: #ffd41d;
     font-size: 0.8rem;
 }
 
 .guess-clues.victory {
-    color: var(--clue-border);
+    color: #ffd41d;
     font-weight: 600;
 }
 

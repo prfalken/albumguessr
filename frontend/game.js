@@ -822,6 +822,9 @@ export class AlbumGuessrGame {
                 const detailsEl = itemEl.querySelector('.guess-details');
                 if (detailsEl) {
                     categories.forEach(catKey => {
+                        // Skip continents as separate clue-attr (they're shown within countries)
+                        if (catKey === 'continents') return;
+                        
                         if (catKey === 'release_year') {
                             const gy = guess.album.release_year;
                             const my = this.mysteryAlbum && this.mysteryAlbum.release_year;
