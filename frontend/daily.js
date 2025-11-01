@@ -143,10 +143,7 @@ class AlbumGuessrDailyGame extends AlbumGuessrGame {
                 this.updateLengthHint();
             }
             
-            // If game was won, show victory modal after a delay
-            if (this.gameOver && this.gameWon) {
-                setTimeout(() => this.showVictoryModal(), 500);
-            }
+            // Don't show victory modal - user already won, just restoring state from localStorage
             
             console.log('Game state restored:', {
                 guesses: this.guessCount,
@@ -197,8 +194,7 @@ class AlbumGuessrDailyGame extends AlbumGuessrGame {
             this.guesses = [winningGuess];
 
             // Note: UI update happens in initializeGame after this function returns
-            // Show victory modal after a brief delay
-            setTimeout(() => this.showVictoryModal(), 500);
+            // Don't show victory modal - user already won, just restoring state
         } catch (error) {
             console.warn('Failed to check previous win:', error);
             // Silently fail - user can still play normally

@@ -230,6 +230,10 @@ header .contenu {
     font-size: 1rem;
 }
 
+.date.game-date-random {
+    color: #ffd41d;
+}
+
 .avatar{
     width: 30px;
     height: 30px;
@@ -360,19 +364,37 @@ header .contenu {
 /* Game Status */
 .game-status {
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
-    padding: 1rem 1.5rem;
+    padding: 1rem 0;
+    width: 100%;
+}
 
+.guess-counter-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    gap: 1rem;
+}
+
+.guess-counter-hr {
+    flex: 1;
+    height: 1px;
+    background: #ffd41d;
+    border: none;
+    margin: 0;
 }
 
 .guess-counter {
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 0.5rem;
     font-weight: 600;
     color: var(--text-primary);
     text-align: center;
+    white-space: nowrap;
 }
 
 .middle {
@@ -733,8 +755,111 @@ header .contenu {
 
 
 .guess-item.victory {
-    background: var(--clue-background);
-    border-color: var(--clue-border);
+    background: #ffd41d;
+    border: none;
+    text-align: center;
+}
+
+.guess-item.victory .guess-header {
+    display: none;
+}
+
+.guess-item.victory .guess-details {
+    display: none;
+}
+
+/* Victory guess uses same styles as mystery-album in modal */
+.guess-item.victory .mystery-album {
+    background: transparent;
+    border: none;
+    padding: 0;
+}
+
+.guess-item.victory .mystery-album-title {
+    margin-bottom: 0.25rem;
+}
+
+.guess-item.victory .mystery-album-artist {
+    margin-top: 0;
+    margin-bottom: 1rem;
+}
+
+.victory-congratulations-title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #000;
+    margin-bottom: 0.25rem;
+    text-align: center;
+}
+
+.victory-congratulations-message {
+    font-size: 1rem;
+    color: #000;
+    margin-bottom: 1.5rem;
+    margin-top: 0;
+    text-align: center;
+    line-height: 1.5;
+}
+
+.guess-item.victory .victory-stats {
+    margin-bottom: 0.75rem;
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+}
+
+.guess-item.victory .victory-stats .stat {
+    text-align: center;
+}
+
+.guess-item.victory .victory-share-section {
+    margin-top: 0.75rem;
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: nowrap;
+}
+
+.guess-item.victory .victory-share-section .share-button {
+    background: #565349;
+    color: #fff;
+    border: none;
+    border-radius: var(--radius);
+    padding: 0.75rem 1.5rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: background-color 0.2s ease;
+    white-space: nowrap;
+}
+
+.guess-item.victory .victory-share-section .share-button:hover {
+    background: rgba(86, 83, 73, 0.8);
+}
+
+.guess-item.victory .victory-share-section .share-button i {
+    font-size: 1rem;
+}
+
+.guess-item.victory .stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.guess-item.victory .stat-label {
+    font-size: 0.9rem;
+    color: rgba(0, 0, 0, 0.7);
+}
+
+.guess-item.victory .stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #000;
 }
 
 .guess-info {
@@ -744,11 +869,11 @@ header .contenu {
 .guess-title {
     font-weight: 600;
     margin-bottom: 0.25rem;
-    color: white;
+    color: #ffd41d;
 }
 
 .guess-artist {
-    color: var(--text-secondary);
+    color: white;
     font-size: 0.9rem;
 }
 
@@ -940,14 +1065,15 @@ header .contenu {
 .mystery-album-title {
     font-size: 1.5rem;
     font-weight: 700;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.25rem;
     color: var(--text-primary);
 }
 
 .mystery-album-artist {
     font-size: 1.1rem;
-    color: var(--text-secondary);
+    color: #000;
     margin-bottom: 1rem;
+    margin-top: 0;
 }
 
 .mystery-album-cover {
@@ -966,7 +1092,7 @@ header .contenu {
     justify-content: center;
     gap: 2rem;
     font-size: 0.9rem;
-    color: var(--text-secondary);
+    color: #000;
 }
 
 .victory-stats {
@@ -1369,6 +1495,17 @@ footer .contenu {
     .mystery-album-meta {
         flex-direction: column;
         gap: 0.5rem;
+    }
+    
+    /* Victory guess buttons stack on mobile */
+    .guess-item.victory .victory-share-section {
+        flex-direction: column;
+        gap: 5px;
+    }
+    
+    .guess-item.victory .victory-share-section .share-button {
+        width: 100%;
+        justify-content: center;
     }
     
     .footer {
