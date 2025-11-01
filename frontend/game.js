@@ -354,10 +354,16 @@ export class AlbumGuessrGame {
                 ]
             });
 
-            this.searchResults = searchResponse.hits.map(hit => {
-                this.normalizeAlbumContributors(hit);
-                return hit;
-            });
+            // Build set of already guessed album IDs
+            const guessedIds = new Set(this.guesses.map(g => g.album.objectID));
+
+            // Filter and normalize results
+            this.searchResults = searchResponse.hits
+                .filter(hit => !guessedIds.has(hit.objectID))
+                .map(hit => {
+                    this.normalizeAlbumContributors(hit);
+                    return hit;
+                });
             this.displaySearchResults();
             if (this.elements.searchSubmit) this.elements.searchSubmit.disabled = this.searchResults.length === 0;
         } catch (error) {
