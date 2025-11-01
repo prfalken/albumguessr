@@ -87,7 +87,8 @@ class AlbumDataProcessor:
 
         # Genres mapped from tags (should map a genre from the DB)
         tag_names = row.get("tag_names") or []
-        album["genres"] = [self.clean_text(t) for t in tag_names if self.all_genres.get(t)]
+        genres = [self.clean_text(t) for t in tag_names if self.all_genres.get(t)]
+        album["genres"] = genres[:5]
 
         # Secondary types
         secondary_names = row.get("secondary_names") or []
