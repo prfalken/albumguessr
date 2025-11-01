@@ -125,8 +125,16 @@ export async function handler(event) {
       if (userProfile && typeof userProfile === "object") {
         const { custom_username, email, picture } = userProfile;
         
-        // Generate anonymous username if none provided
-        const displayUsername = custom_username || generateAnonymousUsername(userId);
+        // Check existing custom_username in database before generating anonymous name
+        let displayUsername = custom_username;
+        if (!displayUsername) {
+          const existingProfile = await sql`
+            SELECT custom_username FROM user_profiles WHERE user_id = ${userId} LIMIT 1
+          `;
+          displayUsername = (existingProfile && existingProfile.length > 0 && existingProfile[0].custom_username)
+            ? existingProfile[0].custom_username
+            : generateAnonymousUsername(userId);
+        }
         
         await sql`
           INSERT INTO user_profiles

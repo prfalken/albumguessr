@@ -1181,7 +1181,7 @@ export class AlbumGuessrGame {
             guesses: this.guessCount,
             gameMode: 'random', // Base game uses 'random' mode
             userProfile: {
-                custom_username: this.authManager.authenticatedUser.user_metadata?.custom_username || null,
+                custom_username: this.authManager.customUsername || null,
                 email: this.authManager.authenticatedUser.email || null,
                 picture: this.authManager.authenticatedUser.picture || null
             }

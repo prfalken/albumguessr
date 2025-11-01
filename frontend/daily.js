@@ -125,7 +125,7 @@ class AlbumGuessrDailyGame extends AlbumGuessrGame {
             guesses: this.guessCount,
             gameMode: 'daily', // Daily game uses 'daily' mode
             userProfile: {
-                custom_username: this.authManager.authenticatedUser.user_metadata?.custom_username || null,
+                custom_username: this.authManager.customUsername || null,
                 email: this.authManager.authenticatedUser.email || null,
                 picture: this.authManager.authenticatedUser.picture || null
             }
@@ -138,7 +138,7 @@ class AlbumGuessrDailyGame extends AlbumGuessrGame {
                     this.renderUserHistory();
                     
                     // Show toast suggesting username setup if user doesn't have a custom username
-                    const hasCustomUsername = this.authManager.authenticatedUser.user_metadata?.custom_username;
+                    const hasCustomUsername = this.authManager.customUsername;
                     if (!hasCustomUsername) {
                         this.showToast({
                             title: 'Customize Your Profile',
