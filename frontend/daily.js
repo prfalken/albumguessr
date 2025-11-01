@@ -30,6 +30,16 @@ class AlbumGuessrDailyGame extends AlbumGuessrGame {
             // Check if user has already completed this album (must be before updateUI)
             await this.checkAndRestorePreviousWin();
             
+            // If game is won but not saved yet, try to save it (wait a bit for auth to be fully ready)
+            if (this.gameWon && !this.winSaved) {
+                // Wait a bit for auth to be ready, then try to save
+                setTimeout(() => {
+                    if (this.authManager.authenticatedUser && !this.winSaved) {
+                        this.saveWinToHistory();
+                    }
+                }, 500);
+            }
+            
             // Now update UI with correct game state
             this.updateUI();
             this.showLoading(false);
@@ -46,7 +56,7 @@ class AlbumGuessrDailyGame extends AlbumGuessrGame {
     }
     
     saveGameState() {
-        if (!this.mysteryAlbum || this.gameOver) return;
+        if (!this.mysteryAlbum) return;
         
         const storageKey = this.getStorageKey();
         if (!storageKey) return;
@@ -57,6 +67,7 @@ class AlbumGuessrDailyGame extends AlbumGuessrGame {
                 guessCount: this.guessCount,
                 gameOver: this.gameOver,
                 gameWon: this.gameWon,
+                winSaved: this.winSaved,
                 guesses: this.guesses.map(guess => ({
                     album: {
                         objectID: guess.album.objectID,
@@ -116,6 +127,7 @@ class AlbumGuessrDailyGame extends AlbumGuessrGame {
             this.guessCount = gameState.guessCount || 0;
             this.gameOver = gameState.gameOver || false;
             this.gameWon = gameState.gameWon || false;
+            this.winSaved = gameState.winSaved || false;
             this.guesses = (gameState.guesses || []).map(guess => {
                 // Restore full album data from Algolia if needed
                 return {
@@ -236,6 +248,11 @@ class AlbumGuessrDailyGame extends AlbumGuessrGame {
         
         // Save game state after each guess
         this.saveGameState();
+        
+        // Save win to history if game is won (after state is saved)
+        if (this.gameWon && !this.winSaved) {
+            this.saveWinToHistory();
+        }
     }
     
     updateUI() {

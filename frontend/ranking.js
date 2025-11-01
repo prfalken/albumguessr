@@ -164,11 +164,6 @@ class AlbumGuessrRanking {
             tdAttempts.className = 'ranking-attempts';
             tdAttempts.textContent = entry.guesses || '-';
 
-            // Time column (duration)
-            const tdTime = document.createElement('td');
-            tdTime.className = 'ranking-time';
-            tdTime.textContent = this.formatDuration(entry.duration_seconds);
-
             // Time Valid column (timestamp)
             const tdTimeValid = document.createElement('td');
             tdTimeValid.className = 'ranking-time-valid';
@@ -177,7 +172,6 @@ class AlbumGuessrRanking {
             tr.appendChild(tdRank);
             tr.appendChild(tdUser);
             tr.appendChild(tdAttempts);
-            tr.appendChild(tdTime);
             tr.appendChild(tdTimeValid);
 
             tbody.appendChild(tr);
@@ -189,14 +183,12 @@ class AlbumGuessrRanking {
         
         const hours = Math.floor(seconds / 3600);
         const minutes = Math.floor((seconds % 3600) / 60);
-        const secs = Math.floor(seconds % 60);
 
+        // Format as hh:mm (padding with zero if needed)
         if (hours > 0) {
-            return `${hours}h ${minutes}m ${secs}s`;
-        } else if (minutes > 0) {
-            return `${minutes}m ${secs}s`;
+            return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
         } else {
-            return `${secs}s`;
+            return `00:${String(minutes).padStart(2, '0')}`;
         }
     }
 
@@ -206,9 +198,9 @@ class AlbumGuessrRanking {
         try {
             const date = new Date(timestamp);
             return date.toLocaleTimeString('en-US', { 
-                hour: 'numeric',
+                hour: '2-digit',
                 minute: '2-digit',
-                hour12: true 
+                hour12: false 
             });
         } catch (e) {
             return '-';
@@ -221,7 +213,7 @@ class AlbumGuessrRanking {
 
         tbody.innerHTML = `
             <tr class="ranking-error">
-                <td colspan="5" style="text-align: center; padding: 2rem;">
+                <td colspan="4" style="text-align: center; padding: 2rem;">
                     <i class="bi bi-exclamation-triangle" style="font-size: 2rem; color: var(--text-secondary);"></i>
                     <p style="color: var(--text-secondary); margin-top: 1rem;">Unable to load ranking. Please try again later.</p>
                 </td>
