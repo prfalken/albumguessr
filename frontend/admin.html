@@ -5,14 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AlbumGuessr - Admin Dashboard</title>
     <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
 </head>
 <body>
     <div class="container">
         <div id="site-header"></div>
         <div class="subtitle">
-            <p>Manage mystery album schedule</p>
+            <p data-i18n="admin.subtitleOverview">Manage mystery album schedule</p>
         </div>
 
         <main id="main-content" class="game-container">
@@ -20,13 +20,13 @@
                 <!-- Schedule Management Section -->
                 <section class="user-history" aria-labelledby="schedule-form-title">
                     <div class="user-history-header">
-                        <h3 id="schedule-form-title"><i class="bi bi-calendar-plus"></i> Add/Update Mystery Album</h3>
-                        <div class="user-history-subtitle">Schedule an album for the daily challenge</div>
+                        <h3 id="schedule-form-title"><i class="bi bi-calendar-plus"></i> <span data-i18n="admin.title">Add/Update Mystery Album</span></h3>
+                        <div class="user-history-subtitle" data-i18n="admin.subtitle">Schedule an album for the daily challenge</div>
                     </div>
                     <div class="admin-form-content">
                         <form id="admin-schedule-form" class="admin-schedule-form">
                             <div class="form-group">
-                                <label for="schedule-date">Date</label>
+                                <label for="schedule-date" data-i18n="admin.date">Date</label>
                                 <input 
                                     type="date" 
                                     id="schedule-date" 
@@ -36,12 +36,13 @@
                             </div>
                             
                             <div class="form-group">
-                                <label for="album-search">Search for an album</label>
+                                <label for="album-search" data-i18n="admin.search">Search for an album</label>
                                 <div class="admin-search-container">
                                     <input 
                                         type="text" 
                                         id="album-search" 
                                         class="form-input" 
+                                        data-i18n-placeholder="admin.placeholder"
                                         placeholder="Type album or artist name..."
                                         autocomplete="off"
                                     >
@@ -55,7 +56,7 @@
                             
                             <button type="submit" class="btn-primary" id="btn-save-schedule">
                                 <i class="bi bi-check-circle"></i>
-                                Save Schedule
+                                <span data-i18n="admin.submit">Save Schedule</span>
                             </button>
                         </form>
                     </div>
@@ -64,13 +65,13 @@
                 <!-- Schedule Table Section -->
                 <section class="user-history" aria-labelledby="schedule-list-title">
                     <div class="user-history-header">
-                        <h3 id="schedule-list-title"><i class="bi bi-calendar-event"></i> Mystery Album Schedule</h3>
-                        <div class="user-history-subtitle" id="schedule-subtitle">All scheduled mystery albums</div>
+                        <h3 id="schedule-list-title"><i class="bi bi-calendar-event"></i> <span data-i18n="admin.scheduleListTitle">Mystery Album Schedule</span></h3>
+                        <div class="user-history-subtitle" id="schedule-subtitle" data-i18n="admin.scheduleSubtitle">All scheduled mystery albums</div>
                     </div>
                     <div class="admin-schedule-list" id="admin-schedule-list">
                         <div class="no-clues">
                             <i class="bi bi-hourglass-split"></i>
-                            <p>Loading schedule...</p>
+                            <p data-i18n="admin.loading">Loading schedule...</p>
                         </div>
                     </div>
                 </section>

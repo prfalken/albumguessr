@@ -1,15 +1,83 @@
 import { AlbumGuessrGame } from './game.js';
+import { i18n } from './js/shared/i18n.js';
 
 class AlbumGuessrDailyGame extends AlbumGuessrGame {
-    initializeDOM() {
-        super.initializeDOM();
+    constructor() {
+        super();
+        
+        // Listen for language changes to update status subtitle
+        document.addEventListener('albumguessr:language-changed', () => {
+            setTimeout(() => {
+                this.updateStatusSubtitle();
+            }, 100);
+        });
+    }
+    
+    updateStatusSubtitle() {
+        if (!this.elements || !this.elements.gameDate) {
+            console.warn('updateStatusSubtitle: gameDate element not found');
+            return;
+        }
+        
+        // Make sure we don't have the random game class
+        if (this.elements.gameDate.classList.contains('game-date-random')) {
+            this.elements.gameDate.classList.remove('game-date-random');
+        }
+        
         try {
             const today = new Date();
-            const label = today.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
-            this.elements.gameDate.textContent = `Album of the day • ${label}`;
+            let currentLang = 'en';
+            try {
+                if (i18n && typeof i18n.getCurrentLanguage === 'function') {
+                    currentLang = i18n.getCurrentLanguage();
+                }
+            } catch (e) {
+                console.warn('i18n not ready in updateStatusSubtitle, using default language:', e);
+            }
+            
+            const localeMap = { 'en': 'en-US', 'fr': 'fr-FR', 'es': 'es-ES' };
+            const locale = localeMap[currentLang] || 'en-US';
+            
+            const label = today.toLocaleDateString(locale, { year: 'numeric', month: 'long', day: 'numeric' });
+            
+            // Check if i18n is ready
+            if (!i18n || typeof i18n.t !== 'function') {
+                console.warn('i18n not ready, using default text');
+                this.elements.gameDate.textContent = `Album of the day - ${label}`;
+                return;
+            }
+            
+            const albumLabel = i18n.t('game.albumOfDayLabel');
+            const fullText = `${albumLabel} - ${label}`;
+            
+            console.log('updateStatusSubtitle: Setting date to:', fullText);
+            this.elements.gameDate.textContent = fullText;
         } catch (e) {
-            this.elements.gameDate.textContent = 'Album of the day';
+            console.error('Error updating status subtitle:', e);
+            try {
+                const albumLabel = i18n.t('game.albumOfDayLabel');
+                this.elements.gameDate.textContent = albumLabel;
+            } catch (e2) {
+                console.error('Error in fallback:', e2);
+                this.elements.gameDate.textContent = 'Album of the day';
+            }
         }
+    }
+    
+    initializeDOM() {
+        super.initializeDOM();
+        // Remove the random game class that parent adds and set the date immediately
+        if (this.elements.gameDate) {
+            this.elements.gameDate.classList.remove('game-date-random');
+            // Set the date immediately, don't wait
+            this.updateStatusSubtitle();
+        }
+        // Also call it again after a brief delay to ensure it sticks
+        setTimeout(() => {
+            if (this.elements && this.elements.gameDate) {
+                this.updateStatusSubtitle();
+            }
+        }, 100);
     }
 
     async initializeGame() {
@@ -42,6 +110,8 @@ class AlbumGuessrDailyGame extends AlbumGuessrGame {
             
             // Now update UI with correct game state
             this.updateUI();
+            // Ensure status subtitle is updated after everything is loaded
+            this.updateStatusSubtitle();
             this.showLoading(false);
         } catch (error) {
             console.error('Failed to initialize game:', error);
@@ -258,6 +328,9 @@ class AlbumGuessrDailyGame extends AlbumGuessrGame {
     updateUI() {
         // Call parent method
         super.updateUI();
+        
+        // Update status subtitle to ensure it displays correctly
+        this.updateStatusSubtitle();
         
         // Save game state after UI update (for clues updates)
         if (!this.gameOver) {

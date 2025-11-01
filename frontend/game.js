@@ -1,6 +1,7 @@
 import { AuthManager } from './js/shared/auth-manager.js';
 import { ApiClient } from './js/shared/api-client.js';
 import { HistoryRenderer } from './js/shared/history-renderer.js';
+import { i18n } from './js/shared/i18n.js';
 
 export class AlbumGuessrGame {
     constructor() {
@@ -57,6 +58,36 @@ export class AlbumGuessrGame {
             } catch (err) {
                 console.warn('Auth setup failed:', err);
             }
+        });
+        
+        // Listen for language changes
+        document.addEventListener('albumguessr:language-changed', () => {
+            // Reset country display names cache to force refresh with new language
+            // Use a marker value to ensure cache is invalidated
+            this.countryDisplayNames = null;
+            this.countryDisplayNamesLocale = 'INVALID'; // Use invalid marker instead of null
+            
+            // Small delay to ensure i18n has fully updated before regenerating UI
+            // This ensures translations are available when updateGuessesHistory is called
+            setTimeout(() => {
+                // Update search placeholder and other dynamic text
+                if (this.elements.albumSearch) {
+                    this.elements.albumSearch.placeholder = i18n.t('game.searchPlaceholder');
+                }
+                if (this.elements.gameDate && !this.elements.gameDate.classList.contains('game-date-random')) {
+                    // For daily game, date is set by daily.js
+                } else if (this.elements.gameDate) {
+                    this.elements.gameDate.textContent = i18n.t('game.newMystery');
+                }
+                // Regenerate year and length hints with new language
+                if (this.mysteryAlbum) {
+                    this.updateYearHint();
+                    this.updateLengthHint();
+                }
+                // Refresh other dynamic content - this will call updateCluesBoard which uses getCountryName
+                // and updateGuessesHistory which regenerates all labels with current translations
+                this.updateUI();
+            }, 0);
         });
     }
 
@@ -131,8 +162,13 @@ export class AlbumGuessrGame {
         };
 
         // Show refresh-based info
-        this.elements.gameDate.textContent = 'New mystery on each refresh';
+        this.elements.gameDate.textContent = i18n.t('game.newMystery');
         this.elements.gameDate.classList.add('game-date-random');
+        
+        // Set placeholder for search input
+        if (this.elements.albumSearch) {
+            this.elements.albumSearch.placeholder = i18n.t('game.searchPlaceholder');
+        }
         
         // Initialize history renderer now that templates are available
         this.historyRenderer = new HistoryRenderer(this.elements, this.templates);
@@ -403,7 +439,7 @@ export class AlbumGuessrGame {
             const artistEl = el.querySelector('.search-result-artist');
             const metaEl = el.querySelector('.search-result-meta');
             if (titleEl) titleEl.textContent = album.title || '';
-            if (artistEl) artistEl.textContent = (album.artists && album.artists.length > 0) ? album.artists.join(', ') : 'Unknown artist';
+            if (artistEl) artistEl.textContent = (album.artists && album.artists.length > 0) ? album.artists.join(', ') : i18n.t('game.unknownArtist');
             if (metaEl) {
                 metaEl.replaceChildren();
                 const parts = [];
@@ -615,15 +651,15 @@ export class AlbumGuessrGame {
             // We have years both before and after - show range
             const latestBefore = Math.max(...yearsBefore);
             const earliestAfter = Math.min(...yearsAfter);
-            yearHint = `between ${latestBefore} and ${earliestAfter}`;
+            yearHint = `${i18n.t('game.guessLabels.between')} ${latestBefore} ${i18n.t('game.guessLabels.and')} ${earliestAfter}`;
         } else if (yearsBefore.length > 0) {
             // We only have years before - show "after X"
             const latestBefore = Math.max(...yearsBefore);
-            yearHint = `after ${latestBefore}`;
+            yearHint = `${i18n.t('game.guessLabels.afterYear')} ${latestBefore}`;
         } else if (yearsAfter.length > 0) {
             // We only have years after - show "before X"
             const earliestAfter = Math.min(...yearsAfter);
-            yearHint = `before ${earliestAfter}`;
+            yearHint = `${i18n.t('game.guessLabels.beforeYear')} ${earliestAfter}`;
         }
         
         // Update the discovered clues with the new year hint
@@ -681,13 +717,13 @@ export class AlbumGuessrGame {
         if (shorter.length > 0 && longer.length > 0) {
             const maxShorter = Math.max(...shorter);
             const minLonger = Math.min(...longer);
-            lenHint = `between ${this.formatSeconds(maxShorter)} and ${this.formatSeconds(minLonger)}`;
+            lenHint = `${i18n.t('game.guessLabels.between')} ${this.formatSeconds(maxShorter)} ${i18n.t('game.guessLabels.and')} ${this.formatSeconds(minLonger)}`;
         } else if (shorter.length > 0) {
             const maxShorter = Math.max(...shorter);
-            lenHint = `longer than ${this.formatSeconds(maxShorter)}`;
+            lenHint = `${i18n.t('game.guessLabels.longerThan')} ${this.formatSeconds(maxShorter)}`;
         } else if (longer.length > 0) {
             const minLonger = Math.min(...longer);
-            lenHint = `shorter than ${this.formatSeconds(minLonger)}`;
+            lenHint = `${i18n.t('game.guessLabels.shorterThan')} ${this.formatSeconds(minLonger)}`;
         }
 
         if (lenHint) {
@@ -716,11 +752,16 @@ export class AlbumGuessrGame {
         // Update guess/guesses text
         const guessCounterEl = this.elements.guessCount.parentElement;
         if (guessCounterEl) {
-            const guessText = this.guessCount === 1 ? 'guess' : 'guesses';
-            // Find the text node after the span and update it, or create a new one
+            const guessText = this.guessCount === 1 ? i18n.t('game.guessCounterSingle') : i18n.t('game.guessCounter');
+            // Find any text node after the span and update it, or create a new one
             let textNode = null;
+            let foundSpan = false;
             for (let node of guessCounterEl.childNodes) {
-                if (node.nodeType === Node.TEXT_NODE && node.textContent.trim().includes('guess')) {
+                if (node === this.elements.guessCount) {
+                    foundSpan = true;
+                    continue;
+                }
+                if (foundSpan && node.nodeType === Node.TEXT_NODE) {
                     textNode = node;
                     break;
                 }
@@ -728,7 +769,20 @@ export class AlbumGuessrGame {
             if (textNode) {
                 textNode.textContent = ` ${guessText}`;
             } else {
-                // If no text node found, append it
+                // Remove any existing text nodes after the span and create a new one
+                let foundSpan = false;
+                const nodesToRemove = [];
+                for (let node of guessCounterEl.childNodes) {
+                    if (node === this.elements.guessCount) {
+                        foundSpan = true;
+                        continue;
+                    }
+                    if (foundSpan && node.nodeType === Node.TEXT_NODE) {
+                        nodesToRemove.push(node);
+                    }
+                }
+                nodesToRemove.forEach(node => node.remove());
+                // Append new text node
                 guessCounterEl.appendChild(document.createTextNode(` ${guessText}`));
             }
         }
@@ -757,10 +811,9 @@ export class AlbumGuessrGame {
             }
         }
         
-        // Update clues board only if game is not over
-        if (!this.gameWon && !this.gameOver) {
-            this.updateCluesBoard();
-        }
+        // Update clues board (always update to ensure translations are current)
+        // Even if game is over, we might need to update translations
+        this.updateCluesBoard();
 
         // Update guesses history (this will render all guesses even after victory)
         this.updateGuessesHistory();
@@ -776,7 +829,18 @@ export class AlbumGuessrGame {
         if (this.discoveredClues.size === 0) {
             if (!this.gameWon && !this.gameOver) {
                 const tpl = this.templates.noClues;
-                if (tpl) container.appendChild(tpl.content.firstElementChild.cloneNode(true));
+                if (tpl) {
+                    const cloned = tpl.content.firstElementChild.cloneNode(true);
+                    container.appendChild(cloned);
+                    // Apply translation to the cloned element
+                    const i18nElement = cloned.querySelector('[data-i18n]');
+                    if (i18nElement) {
+                        const key = i18nElement.getAttribute('data-i18n');
+                        if (key) {
+                            i18nElement.textContent = i18n.t(key);
+                        }
+                    }
+                }
             }
             // If game is won/over, leave container empty but visible (clues may have been discovered)
             return;
@@ -835,7 +899,12 @@ export class AlbumGuessrGame {
                     });
                     Array.from(continentsSet).forEach(name => {
                         const chip = this.templates.clueValue.content.firstElementChild.cloneNode(true);
-                        chip.textContent = String(name);
+                        const continentName = String(name);
+                        // Get continent translation directly from the translations object
+                        const lang = i18n.getCurrentLanguage();
+                        const continentTranslations = i18n.translations[lang]?.game?.continents;
+                        const translatedName = continentTranslations?.[continentName] || continentName;
+                        chip.textContent = translatedName;
                         valuesEl.appendChild(chip);
                     });
                 }
@@ -858,7 +927,12 @@ export class AlbumGuessrGame {
                     const chip = this.templates.clueValue.content.firstElementChild.cloneNode(true);
                     if (catConf.key === 'contributors') chip.classList.add('clue-musician');
                     if (catConf.key === 'artists') chip.classList.add('clue-artist');
-                    chip.textContent = String(value);
+                    // Translate instruments if this is the instruments category
+                    let displayText = String(value);
+                    if (catConf.key === 'instruments') {
+                        displayText = this.getInstrumentName(String(value));
+                    }
+                    chip.textContent = displayText;
                     valuesEl.appendChild(chip);
                 });
             }
@@ -915,7 +989,7 @@ export class AlbumGuessrGame {
                 // Add congratulations message at the top
                 const congratulationsTitle = document.createElement('div');
                 congratulationsTitle.className = 'victory-congratulations-title';
-                congratulationsTitle.textContent = 'Congratulations !';
+                congratulationsTitle.textContent = i18n.t('game.victory.title');
 
                 const congratulationsMessage = document.createElement('div');
                 congratulationsMessage.className = 'victory-congratulations-message';
@@ -926,9 +1000,9 @@ export class AlbumGuessrGame {
                                      (window.location.pathname.includes('game.html') || 
                                       (this.elements.gameDate && this.elements.gameDate.classList.contains('game-date-random')));
                 if (isRandomAlbum) {
-                    congratulationsMessage.textContent = 'Refresh the page and play again!';
+                    congratulationsMessage.textContent = i18n.t('game.victory.messageRandom');
                 } else {
-                    congratulationsMessage.textContent = 'You found the album of the day! Come back tomorrow for a new mystery album!';
+                    congratulationsMessage.textContent = i18n.t('game.victory.message');
                 }
 
                 // Insert congratulations messages at the beginning
@@ -969,7 +1043,7 @@ export class AlbumGuessrGame {
                 guessStat.className = 'stat';
                 const guessLabel = document.createElement('span');
                 guessLabel.className = 'stat-label';
-                guessLabel.textContent = 'Guesses needed:';
+                guessLabel.textContent = i18n.t('game.guessesNeeded');
                 const guessValue = document.createElement('span');
                 guessValue.className = 'stat-value';
                 guessValue.textContent = this.guessCount;
@@ -984,14 +1058,14 @@ export class AlbumGuessrGame {
                 
                 const showRankingsBtn = document.createElement('button');
                 showRankingsBtn.className = 'share-button';
-                showRankingsBtn.innerHTML = '<i class="bi bi-trophy-fill"></i> Show Rankings';
+                showRankingsBtn.innerHTML = `<i class="bi bi-trophy-fill"></i> ${i18n.t('game.victory.showRankings')}`;
                 showRankingsBtn.addEventListener('click', () => {
                     window.location.href = '/ranking.html';
                 });
                 
                 const challengeBtn = document.createElement('button');
                 challengeBtn.className = 'share-button';
-                challengeBtn.innerHTML = '<i class="bi bi-link-45deg"></i> Challenge a friend';
+                challengeBtn.innerHTML = `<i class="bi bi-link-45deg"></i> ${i18n.t('game.victory.challengeFriend')}`;
                 challengeBtn.addEventListener('click', () => {
                     this.copyChallengeLinkToClipboard(challengeBtn);
                 });
@@ -1042,9 +1116,11 @@ export class AlbumGuessrGame {
                                     if (gyi === myi) {
                                         cls = 'guess-chip-hit';
                                     } else if (gyi < myi) {
-                                        label = `${gyi} (before)`;
+                                        const beforeText = i18n.t('game.guessLabels.beforeYear');
+                                        label = `${beforeText} ${gyi}`;
                                     } else if (gyi > myi) {
-                                        label = `${gyi} (after)`;
+                                        const afterText = i18n.t('game.guessLabels.afterYear');
+                                        label = `${afterText} ${gyi}`;
                                     }
                                 }
                             }
@@ -1053,11 +1129,14 @@ export class AlbumGuessrGame {
                             const icon = attrEl.querySelector('.guess-attr-title i');
                             const lab = attrEl.querySelector('.guess-attr-label');
                             if (icon) icon.className = `bi ${catConf.icon}`;
-                            if (lab) lab.textContent = catConf.label;
+                            if (lab) lab.textContent = i18n.t(`game.clueCategories.${catConf.key}`);
                             const valuesEl = attrEl.querySelector('.guess-attr-values');
                             const chip = this.templates.guessChip.content.firstElementChild.cloneNode(true);
                             chip.classList.add(cls);
                             chip.textContent = label;
+                            const isHit = cls === 'guess-chip-hit';
+                            chip.setAttribute('aria-label', `${label}: ${i18n.t(isHit ? 'game.chipLabels.hit' : 'game.chipLabels.miss')}`);
+                            chip.setAttribute('title', i18n.t(isHit ? 'game.chipLabels.hit' : 'game.chipLabels.miss'));
                             valuesEl.appendChild(chip);
                             detailsEl.appendChild(attrEl);
                             return;
@@ -1076,9 +1155,11 @@ export class AlbumGuessrGame {
                                     if (gli === mli) {
                                         cls = 'guess-chip-hit';
                                     } else if (gli < mli) {
-                                        label = `${this.formatSeconds(gl)} (shorter)`;
+                                        const shorterText = i18n.t('game.guessLabels.shorterThan');
+                                        label = `${shorterText} ${this.formatSeconds(gl)}`;
                                     } else if (gli > mli) {
-                                        label = `${this.formatSeconds(gl)} (longer)`;
+                                        const longerText = i18n.t('game.guessLabels.longerThan');
+                                        label = `${longerText} ${this.formatSeconds(gl)}`;
                                     }
                                 }
                             }
@@ -1087,11 +1168,14 @@ export class AlbumGuessrGame {
                             const icon = attrEl.querySelector('.guess-attr-title i');
                             const lab = attrEl.querySelector('.guess-attr-label');
                             if (icon) icon.className = `bi ${catConf.icon}`;
-                            if (lab) lab.textContent = catConf.label;
+                            if (lab) lab.textContent = i18n.t(`game.clueCategories.${catConf.key}`);
                             const valuesEl = attrEl.querySelector('.guess-attr-values');
                             const chip = this.templates.guessChip.content.firstElementChild.cloneNode(true);
                             chip.classList.add(cls);
                             chip.textContent = label;
+                            const isHit = cls === 'guess-chip-hit';
+                            chip.setAttribute('aria-label', `${label}: ${i18n.t(isHit ? 'game.chipLabels.hit' : 'game.chipLabels.miss')}`);
+                            chip.setAttribute('title', i18n.t(isHit ? 'game.chipLabels.hit' : 'game.chipLabels.miss'));
                             valuesEl.appendChild(chip);
                             detailsEl.appendChild(attrEl);
                             return;
@@ -1106,11 +1190,19 @@ export class AlbumGuessrGame {
                         const chips = [];
                         guessValues.forEach(v => {
                             const vStr = String(v);
-                            const display = catKey === 'countries' ? this.getCountryName(vStr) : vStr;
+                            // Translate countries and instruments
+                            let display = vStr;
+                            if (catKey === 'countries') {
+                                display = this.getCountryName(vStr);
+                            } else if (catKey === 'instruments') {
+                                display = this.getInstrumentName(vStr);
+                            }
                             const isCommon = revealed.has(vStr);
                             const chip = this.templates.guessChip.content.firstElementChild.cloneNode(true);
                             chip.classList.add(isCommon ? 'guess-chip-hit' : 'guess-chip-miss');
                             chip.textContent = display;
+                            chip.setAttribute('aria-label', `${display}: ${i18n.t(isCommon ? 'game.chipLabels.hit' : 'game.chipLabels.miss')}`);
+                            chip.setAttribute('title', i18n.t(isCommon ? 'game.chipLabels.hit' : 'game.chipLabels.miss'));
                             chips.push(chip);
                         });
 
@@ -1119,8 +1211,15 @@ export class AlbumGuessrGame {
                             const continentsRevealed = revealedByCategory.get('continents') || new Set();
                             continents.forEach(name => {
                                 const chip = this.templates.guessChip.content.firstElementChild.cloneNode(true);
-                                chip.classList.add(continentsRevealed.has(String(name)) ? 'guess-chip-hit' : 'guess-chip-miss');
-                                chip.textContent = String(name);
+                                const continentName = String(name);
+                                // Get continent translation directly from the translations object
+                                const continentTranslations = i18n.translations[i18n.currentLanguage]?.game?.continents;
+                                const translatedName = continentTranslations?.[continentName] || continentName;
+                                const isCommon = continentsRevealed.has(continentName);
+                                chip.classList.add(isCommon ? 'guess-chip-hit' : 'guess-chip-miss');
+                                chip.textContent = translatedName;
+                                chip.setAttribute('aria-label', `${translatedName}: ${i18n.t(isCommon ? 'game.chipLabels.hit' : 'game.chipLabels.miss')}`);
+                                chip.setAttribute('title', i18n.t(isCommon ? 'game.chipLabels.hit' : 'game.chipLabels.miss'));
                                 chips.push(chip);
                             });
                         }
@@ -1130,7 +1229,7 @@ export class AlbumGuessrGame {
                             const icon = attrEl.querySelector('.guess-attr-title i');
                             const lab = attrEl.querySelector('.guess-attr-label');
                             if (icon) icon.className = `bi ${catConf.icon}`;
-                            if (lab) lab.textContent = catConf.label;
+                            if (lab) lab.textContent = i18n.t(`game.clueCategories.${catConf.key}`);
                             const valuesEl = attrEl.querySelector('.guess-attr-values');
                             chips.forEach(ch => valuesEl.appendChild(ch));
                             detailsEl.appendChild(attrEl);
@@ -1242,7 +1341,7 @@ export class AlbumGuessrGame {
             const originalBackground = button.style.backgroundColor;
             
             // Change button to success state
-            button.innerHTML = '<i class="bi bi-check-circle-fill"></i> Challenge link copied to clipboard!';
+            button.innerHTML = `<i class="bi bi-check-circle-fill"></i> ${i18n.t('game.challengeLink')}`;
             button.style.backgroundColor = '#22c55e';
             button.style.transition = 'background-color 0.3s ease';
             button.disabled = true;
@@ -1319,13 +1418,45 @@ export class AlbumGuessrGame {
         if (!code) return '';
         const regionCode = String(code).toUpperCase();
         try {
-            const locale = (typeof navigator !== 'undefined' && navigator.language) ? navigator.language : this.countryDisplayNamesLocale || 'en';
-            if (!this.countryDisplayNames || this.countryDisplayNamesLocale !== locale) {
+            // Use the current language from i18n instead of browser language
+            let currentLang = 'en'; // Default fallback
+            try {
+                if (i18n && typeof i18n.getCurrentLanguage === 'function') {
+                    currentLang = i18n.getCurrentLanguage();
+                }
+            } catch (e) {
+                // i18n might not be initialized yet
+                console.warn('i18n not ready, using default language:', e);
+            }
+            
+            // Map app language codes to locale codes for Intl.DisplayNames
+            const localeMap = {
+                'en': 'en',
+                'fr': 'fr',
+                'es': 'es'
+            };
+            const locale = localeMap[currentLang] || currentLang || 'en';
+            
+            // Always check if we need to recreate the formatter if locale changed
+            // Check for null, undefined, or the 'INVALID' marker we use when resetting
+            const needsUpdate = !this.countryDisplayNames || 
+                               !this.countryDisplayNamesLocale || 
+                               this.countryDisplayNamesLocale === 'INVALID' ||
+                               this.countryDisplayNamesLocale !== locale;
+            
+            if (needsUpdate) {
                 if (typeof Intl !== 'undefined' && typeof Intl.DisplayNames === 'function') {
-                    this.countryDisplayNames = new Intl.DisplayNames([locale], { type: 'region' });
-                    this.countryDisplayNamesLocale = locale;
+                    try {
+                        this.countryDisplayNames = new Intl.DisplayNames([locale], { type: 'region' });
+                        this.countryDisplayNamesLocale = locale;
+                    } catch (e) {
+                        console.warn('Failed to create Intl.DisplayNames:', e);
+                        this.countryDisplayNames = null;
+                        this.countryDisplayNamesLocale = null;
+                    }
                 } else {
                     this.countryDisplayNames = null;
+                    this.countryDisplayNamesLocale = null;
                 }
             }
             if (this.countryDisplayNames) {
@@ -1334,8 +1465,90 @@ export class AlbumGuessrGame {
             }
         } catch (e) {
             // ignore and fallback
+            console.warn('Error in getCountryName:', e);
         }
         return regionCode;
+    }
+
+    getInstrumentName(instrument) {
+        if (!instrument) return '';
+        const instrumentName = String(instrument);
+        try {
+            // Get current language - use same method as getCountryName
+            let lang = 'en'; // Default fallback
+            try {
+                if (i18n && typeof i18n.getCurrentLanguage === 'function') {
+                    lang = i18n.getCurrentLanguage();
+                }
+            } catch (e) {
+                // i18n might not be initialized yet
+                console.warn('i18n not ready in getInstrumentName, using default language:', e);
+                return instrumentName;
+            }
+            
+            // Get instrument translations directly from the translations object
+            // Use same pattern as continents translation
+            const langTranslations = i18n.translations?.[lang];
+            if (!langTranslations || !langTranslations.game || !langTranslations.game.instruments) {
+                console.warn('Instrument translations not available for lang:', lang, 'instrument:', instrumentName);
+                return instrumentName;
+            }
+            
+            const instrumentTranslations = langTranslations.game.instruments;
+            
+            // Try exact match first
+            let translatedName = instrumentTranslations[instrumentName];
+            
+            // If no exact match, try case-insensitive match
+            if (!translatedName) {
+                const lowerName = instrumentName.toLowerCase();
+                for (const [key, value] of Object.entries(instrumentTranslations)) {
+                    if (key.toLowerCase() === lowerName) {
+                        translatedName = value;
+                        break;
+                    }
+                }
+            }
+            
+            // If still no match, try matching with first letter capitalized
+            if (!translatedName) {
+                const capitalized = instrumentName.charAt(0).toUpperCase() + instrumentName.slice(1).toLowerCase();
+                translatedName = instrumentTranslations[capitalized];
+            }
+            
+            // If still no match, try partial matching for compound names
+            // (e.g., "guitar" matches "Electric Guitar" or "Acoustic Guitar")
+            if (!translatedName) {
+                const lowerName = instrumentName.toLowerCase().trim();
+                // Only try partial matching if the instrument name is a single word or common instrument base
+                const commonBases = ['guitar', 'bass', 'saxophone', 'violin', 'piano', 'drums', 'percussion'];
+                const isCommonBase = commonBases.some(base => lowerName.includes(base) || base.includes(lowerName));
+                
+                if (isCommonBase || lowerName.split(/\s+/).length <= 2) {
+                    for (const [key, value] of Object.entries(instrumentTranslations)) {
+                        const lowerKey = key.toLowerCase();
+                        // Prefer matches where the instrument name is at the end of the key
+                        // (e.g., "guitar" matches "Electric Guitar" but not "Bass Guitar")
+                        if (lowerKey.endsWith(' ' + lowerName) || lowerKey === lowerName + 's' || lowerKey === lowerName) {
+                            translatedName = value;
+                            break;
+                        }
+                        // Also check if key is contained in instrument name (for compound instruments)
+                        if (lowerName.includes(lowerKey) && lowerKey.length > 3) {
+                            translatedName = value;
+                            break;
+                        }
+                    }
+                }
+            }
+            
+            // Return translated name if available, otherwise return original
+            return translatedName || instrumentName;
+        } catch (e) {
+            // ignore and fallback
+            console.warn('Error in getInstrumentName:', e, 'instrument:', instrument);
+            return instrumentName;
+        }
     }
 
     // --- Continents mapping utilities ---

@@ -5,15 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AlbumGuessr - Daily Ranking</title>
     <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
 </head>
 <body>
     <div class="container">
         <div id="site-header"></div>
         <div class="subtitle">
-            <h1 style="color: white; font-size: 2.5rem; margin-bottom: 0.5rem;">Daily Ranking</h1>
-            <p id="ranking-subtitle">Here are the players who found the daily album the fastest.</p>
+            <h1 style="color: white; font-size: 2.5rem; margin-bottom: 0.5rem;" data-i18n="ranking.title">Daily Ranking</h1>
+            <p id="ranking-subtitle" data-i18n="ranking.subtitleDetail">Here are the players who found the daily album the fastest.</p>
         </div>
 
         <main id="main-content" class="game-container">
@@ -22,17 +22,17 @@
                     <table class="ranking-table">
                         <thead>
                             <tr>
-                                <th>Rank</th>
-                                <th>Username</th>
-                                <th>Attempts</th>
-                                <th>Time</th>
+                                <th data-i18n="ranking.rank">Rank</th>
+                                <th data-i18n="ranking.username">Username</th>
+                                <th data-i18n="ranking.attempts">Attempts</th>
+                                <th data-i18n="ranking.time">Time</th>
                             </tr>
                         </thead>
                         <tbody id="ranking-tbody">
                             <tr class="ranking-loading">
                                 <td colspan="4" style="text-align: center; padding: 2rem;">
                                     <div class="spinner"></div>
-                                    <p>Loading ranking...</p>
+                                    <p data-i18n="ranking.loading">Loading ranking...</p>
                                 </td>
                             </tr>
                         </tbody>
@@ -41,7 +41,7 @@
 
                 <div class="ranking-empty" id="ranking-empty" style="display: none;">
                     <i class="bi bi-trophy"></i>
-                    <p>No rankings yet for today. Be the first to find the album!</p>
+                    <p data-i18n="ranking.empty">No rankings yet for today. Be the first to find the album!</p>
                 </div>
             </div>
         </main>

@@ -74,7 +74,7 @@ body {
 }
    
 body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
     /* background: linear-gradient(rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0.78)), url('img/background.jpg'); 
     background-size: cover;
     background-position: center;
@@ -233,6 +233,12 @@ header .contenu {
     font-weight: 600;
     color: var(--primary-color);
     font-size: 1rem;
+    text-align: center;
+}
+
+#game-date {
+    text-align: center;
+    margin-bottom: 0.5rem;
 }
 
 .date.game-date-random {
@@ -247,19 +253,6 @@ header .contenu {
     border-radius: 50%;
     vertical-align: middle;
     object-fit: cover;
-}
-
-/* Inline subtitle inside status bar */
-.status-subtitle {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-.status-subtitle p {
-    color: var(--text-secondary);
-    font-size: 0.95rem;
-    margin-bottom: 0.25rem;
 }
 
 @keyframes spin {
@@ -459,6 +452,7 @@ main {
     border: none;
     outline: none;
     font-size: 1rem;
+    font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
     background: transparent;
     border-radius: var(--radius-lg);
     color: white;
@@ -1279,6 +1273,65 @@ footer .contenu {
     text-decoration: none;
 }
 
+/* Language Switcher Styles */
+.language-switcher {
+    position: relative;
+}
+
+.language-button {
+    min-width: auto;
+}
+
+.language-code {
+    font-weight: 600;
+}
+
+.language-dropdown {
+    display: none;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 0.25rem;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg);
+    z-index: 1000;
+    min-width: 150px;
+    padding: 0.25rem 0;
+    list-style: none;
+}
+
+.language-dropdown.open {
+    display: block;
+}
+
+.language-item {
+    margin: 0;
+}
+
+.language-item.active {
+    background: var(--surface);
+}
+
+.language-link {
+    display: block;
+    padding: 0.5rem 1rem;
+    color: black;
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: background-color 0.2s ease;
+}
+
+.language-link:hover {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.language-item.active .language-link {
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+
 .footer-text a:hover {
     text-decoration: underline;
 }
@@ -1480,6 +1533,7 @@ footer .contenu {
         min-width: 0;
         padding: 0.75rem 0.75rem 0.75rem 2.5rem;
         font-size: 0.95rem;
+        font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
         text-align: left;
         box-sizing: border-box;
     }
@@ -1655,12 +1709,12 @@ footer .contenu {
     background: var(--surface);
     color: var(--text-primary);
     font-size: 0.95rem;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
     transition: border-color 0.2s ease;
 }
 
 .form-input textarea {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 .form-input:focus {

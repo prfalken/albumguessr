@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AlbumGuessr - Album of the Day</title>
     <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
 </head>
 <body>
@@ -16,9 +16,7 @@
         <main id="main-content" class="game-container">
             <div class="content-grid">
                 <div class="main-column">
-                    <div class="status-subtitle">
-                        <div class="date" id="game-date"></div>
-                    </div>
+                    <div class="date" id="game-date"></div>
 
                     <!-- Search Input -->
                     <div class="search-container">
@@ -26,6 +24,7 @@
                             <input 
                                 type="text" 
                                 id="album-search" 
+                                data-i18n-placeholder="game.searchPlaceholder"
                                 placeholder="Search an album or an artist..."
                                 autocomplete="off"
                             >
@@ -40,7 +39,7 @@
                         <div class="clues-container" id="clues-container">
                             <div class="no-clues">
                                 <i class="bi bi-search"></i>
-                                <p>Make a first guess to reveal clues...</p>
+                                <p data-i18n="game.noClues">Make a first guess to reveal clues...</p>
                             </div>
                         </div>
                     </div>
@@ -71,14 +70,14 @@
             <div class="modal" id="victory-modal">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h2><i class="bi bi-trophy"></i> Congratulations!</h2>
+                        <h2><i class="bi bi-trophy"></i> <span data-i18n="game.victory.title">Congratulations!</span></h2>
                         <button class="close-button" id="close-victory">
                             <i class="bi bi-x"></i>
                         </button>
                     </div>
                     <div class="modal-body">
                         <div class="victory-message">
-                            <p>You found the album of the day!
+                            <p data-i18n="game.victoryMessage">You found the album of the day!
                                 Come back tomorrow for a new mystery album!
                             </p>
                         </div>
@@ -87,22 +86,22 @@
                         </div>
                         <div class="victory-stats">
                             <div class="stat">
-                                <span class="stat-label">Guesses needed:</span>
+                                <span class="stat-label" data-i18n="game.guessesNeeded">Guesses needed:</span>
                                 <span class="stat-value" id="final-guesses"></span>
                             </div>
                             <div class="stat">
-                                <span class="stat-label">Clues discovered:</span>
+                                <span class="stat-label" data-i18n="game.cluesDiscovered">Clues discovered:</span>
                                 <span class="stat-value" id="final-clues"></span>
                             </div>
                         </div>
                         <div class="share-section">
                             <button class="share-button" id="show-rankings-button">
                                 <i class="bi bi-trophy-fill"></i>
-                                Show Rankings
+                                <span data-i18n="game.victory.showRankings">Show Rankings</span>
                             </button>
                             <button class="share-button" id="share-button">
                                 <i class="bi bi-share"></i>
-                                Share your result
+                                <span data-i18n="game.shareResult">Share your result</span>
                             </button>
                         </div>
                     </div>
@@ -114,7 +113,7 @@
         <div class="modal" id="instructions-modal">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h2>How to play</h2>
+                    <h2 data-i18n="game.instructions.title">How to play</h2>
                     <button class="close-button" id="close-instructions">
                         <i class="bi bi-x"></i>
                     </button>
@@ -124,39 +123,39 @@
                         <div class="instruction">
                             <i class="bi bi-search"></i>
                             <div>
-                                <h3>Search and submit</h3>
-                                <p>Type the name of an album or a song and submit it as a guess</p>
+                                <h3 data-i18n="game.instructions.search.title">Search and submit</h3>
+                                <p data-i18n="game.instructions.search.text">Type the name of an album or a song and submit it as a guess</p>
                             </div>
                         </div>
                         <div class="instruction">
                             <i class="bi bi-lightbulb"></i>
                             <div>
-                                <h3>Reveal clues</h3>
-                                <p>Each guess reveals attributes shared with the mystery album: artist, genre, year, label...</p>
+                                <h3 data-i18n="game.instructions.reveal.title">Reveal clues</h3>
+                                <p data-i18n="game.instructions.reveal.text">Each guess reveals attributes shared with the mystery album: artist, genre, year, label...</p>
                             </div>
                         </div>
                         <div class="instruction">
                             <i class="bi bi-puzzle"></i>
                             <div>
-                                <h3>Narrow it down</h3>
-                                <p>Use accumulated clues to eliminate possibilities and get closer to the mystery album</p>
+                                <h3 data-i18n="game.instructions.narrow.title">Narrow it down</h3>
+                                <p data-i18n="game.instructions.narrow.text">Use accumulated clues to eliminate possibilities and get closer to the mystery album</p>
                             </div>
                         </div>
                         <div class="instruction">
                             <i class="bi bi-trophy"></i>
                             <div>
-                                <h3>Find the mystery album</h3>
-                                <p>When you identify the right album, you win! A new mystery awaits every day</p>
+                                <h3 data-i18n="game.instructions.find.title">Find the mystery album</h3>
+                                <p data-i18n="game.instructions.find.text">When you identify the right album, you win! A new mystery awaits every day</p>
                             </div>
                         </div>
                     </div>
                     <div class="game-rules">
-                        <h4>Game rules</h4>
+                        <h4 data-i18n="game.instructions.rules">Game rules</h4>
                         <ul>
-                            <li>No limit on guesses — explore as much as you like</li>
-                            <li>Clues only show similarities, never differences</li>
-                            <li>One mystery album per day</li>
-                            <li>Free game open to everyone</li>
+                            <li data-i18n="game.instructions.rule1">No limit on guesses — explore as much as you like</li>
+                            <li data-i18n="game.instructions.rule2">Clues only show similarities, never differences</li>
+                            <li data-i18n="game.instructions.rule3">One mystery album per day</li>
+                            <li data-i18n="game.instructions.rule4">Free game open to everyone</li>
                         </ul>
                     </div>
                 </div>
@@ -179,7 +178,7 @@
             <template id="tpl-no-clues">
                 <div class="no-clues">
                     <i class="bi bi-search"></i>
-                    <p>Make a first guess to reveal clues...</p>
+                    <p data-i18n="game.noClues">Make a first guess to reveal clues...</p>
                 </div>
             </template>
             <template id="tpl-clue-category">
@@ -241,13 +240,13 @@
             <template id="tpl-history-empty">
                 <div class="no-clues" style="padding: 1rem;">
                     <i class="bi bi-inbox"></i>
-                    <p>No wins saved yet. Find a mystery album!</p>
+                    <p data-i18n="profile.noHistory">No wins saved yet. Find a mystery album!</p>
                 </div>
             </template>
             <template id="tpl-history-error">
                 <div class="no-clues" style="padding: 1rem;">
                     <i class="bi bi-exclamation-triangle"></i>
-                    <p>Unable to load history. Try again later.</p>
+                    <p data-i18n="profile.historyError">Unable to load history. Try again later.</p>
                 </div>
             </template>
         </section>
@@ -261,7 +260,7 @@
     <div class="loading" id="loading">
         <img src="img/logo.png" alt="AlbumGuessr" style="width: 300px; margin-bottom: 2rem;">
         <div class="spinner"></div>
-        <p>Loading the album of the day...</p>
+                        <p data-i18n="game.loading">Loading the album of the day...</p>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/algoliasearch@4.14.3/dist/algoliasearch.umd.js"></script>

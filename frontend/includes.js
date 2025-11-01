@@ -16,9 +16,27 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
+    // Initialize i18n and language switcher
+    const { i18n } = await import('./js/shared/i18n.js');
+    const { languageSwitcher } = await import('./js/shared/language-switcher.js');
+    
+    i18n.init();
+    
     const headerInjected = await inject('#site-header', 'partials/header.html', 'albumguessr:header-ready');
 
     if (headerInjected) {
+        // Initialize language switcher
+        const rightNav = document.querySelector('.droite .nav-list');
+        if (rightNav) {
+            languageSwitcher.init(rightNav);
+            
+            // Listen for language changes and reload translations
+            languageSwitcher.onLanguageChange(() => {
+                i18n.applyTranslations();
+                document.dispatchEvent(new CustomEvent('albumguessr:language-changed'));
+            });
+        }
+        
         // Mark current nav item
         const current = (window.location.pathname.split('/').pop() || 'index.html');
         const navLinks = document.querySelectorAll('#primary-nav a.nav-link');
@@ -30,6 +48,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 a.removeAttribute('aria-current');
             }
         });
+        
+        // Apply translations to static elements with data-i18n
+        i18n.applyTranslations();
     }
 
     await inject('#site-footer', 'partials/footer.html', 'albumguessr:footer-ready');
