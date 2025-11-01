@@ -23,11 +23,18 @@ CREATE TABLE IF NOT EXISTS mystery_album_schedule (
 
 -- User profiles table to cache Auth0 user data
 -- Used for displaying usernames and avatars in rankings without querying Auth0 each time
+-- admin column: 1 = admin user with access to backoffice features, 0 = regular user
 CREATE TABLE IF NOT EXISTS user_profiles (
   user_id TEXT PRIMARY KEY,
   custom_username TEXT,
   email TEXT,
   picture TEXT,
+  admin INTEGER DEFAULT 0,
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- Grant admin access to specific user (run manually as needed):
+-- INSERT INTO user_profiles (user_id, admin, updated_at) 
+-- VALUES ('google-oauth2|110253643736011489857', 1, now())
+-- ON CONFLICT (user_id) DO UPDATE SET admin = 1;
 

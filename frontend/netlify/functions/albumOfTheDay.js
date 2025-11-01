@@ -33,8 +33,11 @@ export async function handler(event) {
     }
 
     // Use current_date from DB to align with server timezone (UTC on Neon)
+    // Cast date to text to ensure YYYY-MM-DD format without timezone conversion
     const rows = await sql`
-      SELECT schedule_date, object_id
+      SELECT 
+        schedule_date::text as schedule_date, 
+        object_id
       FROM mystery_album_schedule
       WHERE schedule_date = CURRENT_DATE
       LIMIT 1

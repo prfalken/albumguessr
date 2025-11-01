@@ -168,7 +168,7 @@ export async function handler(event) {
 
       try {
         const rows = await sql`
-          SELECT custom_username, email, picture
+          SELECT custom_username, email, picture, admin
           FROM user_profiles
           WHERE user_id = ${userId}
           LIMIT 1
@@ -181,7 +181,8 @@ export async function handler(event) {
           body: JSON.stringify({
             custom_username: profile?.custom_username || null,
             email: profile?.email || null,
-            picture: profile?.picture || null
+            picture: profile?.picture || null,
+            admin: profile?.admin || 0
           })
         };
       } catch (dbError) {
@@ -189,7 +190,7 @@ export async function handler(event) {
         return {
           statusCode: 200,
           headers: { ...baseHeaders, "Content-Type": "application/json" },
-          body: JSON.stringify({ custom_username: null })
+          body: JSON.stringify({ custom_username: null, admin: 0 })
         };
       }
     }

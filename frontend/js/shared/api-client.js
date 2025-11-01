@@ -170,5 +170,81 @@ export class ApiClient {
             throw error;
         }
     }
+
+    /**
+     * Fetch mystery album schedule (admin only)
+     * @returns {Promise<Array>} Array of schedule entries
+     */
+    async fetchSchedule() {
+        const token = await this.authManager.getApiAccessToken();
+        if (!token) {
+            throw new Error('Authentication required');
+        }
+        
+        try {
+            const res = await fetch('/.netlify/functions/getSchedule', {
+                method: 'GET',
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            
+            if (!res.ok) {
+                let details = '';
+                try { 
+                    const errorData = await res.json();
+                    details = errorData.error || res.statusText;
+                } catch { 
+                    details = res.statusText;
+                }
+                console.error('fetchSchedule failed:', res.status, details);
+                throw new Error(details || 'Failed to fetch schedule');
+            }
+            
+            return await res.json();
+        } catch (error) {
+            console.error('Failed to fetch schedule:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Update mystery album schedule (admin only)
+     * @param {string} date - Date in YYYY-MM-DD format
+     * @param {string} objectId - Algolia object ID
+     * @returns {Promise<Object>} Result object
+     */
+    async updateSchedule(date, objectId) {
+        const token = await this.authManager.getApiAccessToken();
+        if (!token) {
+            throw new Error('Authentication required');
+        }
+        
+        try {
+            const res = await fetch('/.netlify/functions/updateSchedule', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`
+                },
+                body: JSON.stringify({ date, objectId })
+            });
+            
+            if (!res.ok) {
+                let details = '';
+                try { 
+                    const errorData = await res.json();
+                    details = errorData.error || res.statusText;
+                } catch { 
+                    details = res.statusText;
+                }
+                console.error('updateSchedule failed:', res.status, details);
+                throw new Error(details || 'Failed to update schedule');
+            }
+            
+            return await res.json();
+        } catch (error) {
+            console.error('Failed to update schedule:', error);
+            throw error;
+        }
+    }
 }
 
