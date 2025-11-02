@@ -2,6 +2,8 @@
  * Shared history rendering logic
  * Renders user's album history in a consistent format across pages
  */
+import { i18n } from './i18n.js';
+
 export class HistoryRenderer {
     /**
      * @param {Object} elements - DOM elements
@@ -28,12 +30,12 @@ export class HistoryRenderer {
         
         if (gameMode === 'daily') {
             badge.classList.add('game-mode-daily');
-            badge.innerHTML = '<i class="bi bi-calendar-check"></i> Daily';
-            badge.title = 'Album of the day';
+            badge.innerHTML = `<i class="bi bi-calendar-check"></i> ${i18n.t('game.gameModeDaily')}`;
+            badge.title = i18n.t('game.gameModeDailyTitle');
         } else {
             badge.classList.add('game-mode-random');
-            badge.innerHTML = '<i class="bi bi-shuffle"></i> Random';
-            badge.title = 'Random album';
+            badge.innerHTML = `<i class="bi bi-shuffle"></i> ${i18n.t('game.gameModeRandom')}`;
+            badge.title = i18n.t('game.gameModeRandomTitle');
         }
         
         return badge;
@@ -51,12 +53,12 @@ export class HistoryRenderer {
         if (!subtitleEl || !listEl) return;
 
         if (!isAuthenticated) {
-            subtitleEl.textContent = 'Log in to save and see your history';
+            subtitleEl.textContent = i18n.t('profile.historySubtitle');
             listEl.replaceChildren();
             return;
         }
 
-        subtitleEl.textContent = 'Recent wins saved to your account';
+        subtitleEl.textContent = i18n.t('profile.historySubtitleAuthed');
         
         try {
             if (!history || history.length === 0) {
@@ -83,15 +85,16 @@ export class HistoryRenderer {
                 
                 // Format metadata
                 const date = item.timestamp ? new Date(item.timestamp) : null;
+                const guessWord = item.guesses === 1 ? i18n.t('stats.guess') : i18n.t('stats.guesses');
                 const meta = [
                     item.release_year ? String(item.release_year) : null,
-                    `${item.guesses} guess${item.guesses === 1 ? '' : 'es'}`,
+                    `${item.guesses} ${guessWord}`,
                     date && !isNaN(date.getTime()) ? date.toLocaleDateString() : null
                 ].filter(Boolean).join(' • ');
                 
                 const artist = (item.artists && item.artists.length > 0) 
                     ? item.artists.join(', ') 
-                    : 'Unknown artist';
+                    : i18n.t('game.unknownArtist');
 
                 // Update text content
                 const titleEl = el.querySelector('.history-title');

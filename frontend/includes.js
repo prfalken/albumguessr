@@ -54,6 +54,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     await inject('#site-footer', 'partials/footer.html', 'albumguessr:footer-ready');
+    
+    // Apply translations again after footer injection
+    i18n.applyTranslations();
 });
 
 

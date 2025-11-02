@@ -312,13 +312,8 @@ main {
     grid-template-columns: 1fr;
     gap: 1.5rem;
     padding: 0 1.5rem;
-}
-
-@media (min-width: 980px) {
-    .stats-grid {
-        grid-template-columns: 1fr 1fr;
-        align-items: start;
-    }
+    max-width: 900px;
+    margin: 0 auto;
 }
 
 /* Stats cards */
@@ -1371,6 +1366,14 @@ footer .contenu {
     margin-bottom: 0.25rem;
     color: var(--text-primary);
     font-size: 1.1rem;
+}
+
+#user-stats-title {
+    font-size: 1.5rem;
+}
+
+#stats-title {
+    font-size: 1.5rem;
 }
 
 .user-history-subtitle {

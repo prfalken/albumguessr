@@ -2,6 +2,8 @@
  * Shared statistics calculation and rendering
  * Computes and displays user stats based on their game history
  */
+import { i18n } from './i18n.js';
+
 export class StatsRenderer {
     /**
      * Compute statistics from user history
@@ -121,25 +123,22 @@ export class StatsRenderer {
         };
 
         const cards = [];
-        cards.push(make('bi-trophy', 'Albums found', String(stats.totalWins)));
-        cards.push(make('bi-lightning-charge', 'Fastest win', 
-            stats.fastest ? `${stats.fastest.guesses} guess(es)` : '—', 
+        const guessWord = stats.totalWins === 1 ? i18n.t('stats.guess') : i18n.t('stats.guesses');
+        const dayWord = stats.bestStreak === 1 ? i18n.t('stats.day') : i18n.t('stats.days');
+        const currentDayWord = stats.currentStreak === 1 ? i18n.t('stats.day') : i18n.t('stats.days');
+        const fastestGuessWord = stats.fastest && stats.fastest.guesses === 1 ? i18n.t('stats.guess') : i18n.t('stats.guesses');
+        const slowestGuessWord = stats.slowest && stats.slowest.guesses === 1 ? i18n.t('stats.guess') : i18n.t('stats.guesses');
+        
+        cards.push(make('bi-trophy', i18n.t('stats.albumsFound'), String(stats.totalWins)));
+        cards.push(make('bi-lightning-charge', i18n.t('stats.fastestWin'), 
+            stats.fastest ? `${stats.fastest.guesses} ${fastestGuessWord}` : '—', 
             stats.fastest ? `${stats.fastest.title}` : undefined));
-        cards.push(make('bi-hourglass-split', 'Slowest win', 
-            stats.slowest ? `${stats.slowest.guesses} guess(es)` : '—', 
+        cards.push(make('bi-hourglass-split', i18n.t('stats.slowestWin'), 
+            stats.slowest ? `${stats.slowest.guesses} ${slowestGuessWord}` : '—', 
             stats.slowest ? `${stats.slowest.title}` : undefined));
-        cards.push(make('bi-bar-chart', 'Average guesses', `${stats.avgGuesses || 0}`));
-        cards.push(make('bi-fire', 'Best streak', `${stats.bestStreak} day(s)`));
-        cards.push(make('bi-activity', 'Current streak', `${stats.currentStreak} day(s)`));
-        
-        if (stats.oldestYear || stats.newestYear) {
-            cards.push(make('bi-calendar2', 'Oldest win year', stats.oldestYear ? String(stats.oldestYear) : '—'));
-            cards.push(make('bi-calendar-event', 'Newest win year', stats.newestYear ? String(stats.newestYear) : '—'));
-        }
-        
-        if (stats.avgYear) {
-            cards.push(make('bi-calendar3', 'Average year', String(stats.avgYear)));
-        }
+        cards.push(make('bi-bar-chart', i18n.t('stats.averageGuesses'), `${stats.avgGuesses || 0}`));
+        cards.push(make('bi-fire', i18n.t('stats.bestStreak'), `${stats.bestStreak} ${dayWord}`));
+        cards.push(make('bi-activity', i18n.t('stats.currentStreak'), `${stats.currentStreak} ${currentDayWord}`));
 
         return cards;
     }

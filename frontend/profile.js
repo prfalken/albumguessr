@@ -2,6 +2,7 @@ import { AuthManager } from './js/shared/auth-manager.js';
 import { ApiClient } from './js/shared/api-client.js';
 import { HistoryRenderer } from './js/shared/history-renderer.js';
 import { StatsRenderer } from './js/shared/stats-renderer.js';
+import { i18n } from './js/shared/i18n.js';
 
 class AlbumGuessrProfile {
     constructor() {
@@ -37,12 +38,31 @@ class AlbumGuessrProfile {
                     }
                 }
                 this.authManager.updateAuthUI(this.elements, authed);
+                this.updateAuthUI(authed);
                 await this.renderUserProfile();
                 this.renderUserHistory();
                 this.renderUserStats();
             } catch (err) {
                 console.warn('Auth setup failed:', err);
             }
+        });
+
+        // Listen for language changes to update translations
+        document.addEventListener('albumguessr:language-changed', () => {
+            const isAuthenticated = !!this.authManager.authenticatedUser;
+            this.updateAuthUI(isAuthenticated);
+            // Re-render stats and history with new translations
+            this.renderUserStats();
+            this.renderUserHistory();
+        });
+
+        // Update auth UI after all translations are applied
+        document.addEventListener('albumguessr:footer-ready', () => {
+            // Small delay to ensure translations are fully applied
+            setTimeout(() => {
+                const isAuthenticated = !!this.authManager.authenticatedUser;
+                this.updateAuthUI(isAuthenticated);
+            }, 100);
         });
     }
 
@@ -112,11 +132,19 @@ class AlbumGuessrProfile {
 
     updateAuthUI(isAuthenticated) {
         this.authManager.updateAuthUI(this.elements, isAuthenticated);
-        // Update subtitles visibility
+        // Update subtitles with translations
         const statsSubtitle = this.elements.userStatsSubtitle;
         const histSubtitle = this.elements.userHistorySubtitle;
-        if (statsSubtitle) statsSubtitle.textContent = isAuthenticated ? 'Your personal game stats' : 'Log in to see your stats';
-        if (histSubtitle) histSubtitle.textContent = isAuthenticated ? 'Recent wins saved to your account' : 'Log in to save and see your history';
+        if (statsSubtitle) {
+            statsSubtitle.textContent = isAuthenticated 
+                ? i18n.t('profile.statsSubtitleAuthed') 
+                : i18n.t('profile.statsSubtitle');
+        }
+        if (histSubtitle) {
+            histSubtitle.textContent = isAuthenticated 
+                ? i18n.t('profile.historySubtitleAuthed') 
+                : i18n.t('profile.historySubtitle');
+        }
     }
 
     async renderUserProfile() {
