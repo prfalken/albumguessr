@@ -1415,6 +1415,10 @@ footer .contenu {
     font-size: 1.5rem;
 }
 
+#bug-report-title {
+    font-size: 1.5rem;
+}
+
 .user-history-subtitle {
     color: var(--text-secondary);
     font-size: 0.85rem;
