@@ -118,10 +118,7 @@ class AlbumGuessrPastDailies {
         const pastMonths = {};
         const futureMonths = {};
         
-        for (const [monthKey, albums] of Object.entries(albumsByMonth)) {
-            // Explicitly exclude October 2025
-            if (monthKey === '2025-10') continue;
-            
+        for (const [monthKey, albums] of Object.entries(albumsByMonth)) {            
             if (monthKey > todayMonthKey) {
                 futureMonths[monthKey] = albums;
             } else if (monthKey <= todayMonthKey) {
@@ -139,8 +136,8 @@ class AlbumGuessrPastDailies {
             this.elements.calendarContainer.appendChild(monthEl);
         }
         
-        // Render past months after
-        const sortedPastMonths = Object.entries(pastMonths).sort((a, b) => a[0].localeCompare(b[0]));
+        // Render past months after (latest first)
+        const sortedPastMonths = Object.entries(pastMonths).sort((a, b) => b[0].localeCompare(a[0]));
         for (const [monthKey, albums] of sortedPastMonths) {
             const monthEl = this.renderMonth(monthKey, albums);
             this.elements.calendarContainer.appendChild(monthEl);
