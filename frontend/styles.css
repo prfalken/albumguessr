@@ -1366,8 +1366,25 @@ footer .contenu {
 }
 
 /* Sidebar: User History */
+.user-profile {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.user-profile .avatar-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.user-profile .avatar,
+.user-profile .avatar-placeholder {
+    vertical-align: middle;
+}
+
 .user-profile .user-name {
-    margin-left: 4px;
+    margin-left: 0;
     color: black;
     font-size: 0.9rem;
     font-weight: 600;
