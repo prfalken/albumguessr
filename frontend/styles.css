@@ -1503,6 +1503,35 @@ footer .contenu {
         overflow-x: hidden;
     }
     
+    /* Ensure subtitle has padding on mobile */
+    .subtitle {
+        padding: 0 1rem;
+        box-sizing: border-box;
+    }
+    
+    /* Ensure main content has padding on mobile */
+    #main-content,
+    main,
+    .game-container {
+        padding: 0 1rem;
+        box-sizing: border-box;
+    }
+    
+    /* Adjust padding for containers that already have their own padding to avoid double padding */
+    .ranking-container {
+        padding: 1.5rem 0;
+    }
+    
+    .stats-grid {
+        padding: 0;
+    }
+    
+    /* Break title on mobile for ranking page */
+    .ranking-title {
+        white-space: pre-line;
+        line-height: 1.2;
+    }
+    
     /* Header and footer stay full width */
     header, footer {
         width: 100%;
@@ -2524,10 +2553,15 @@ footer .contenu {
     text-align: center;
     padding: 3rem;
     color: var(--text-secondary);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
 
 .ranking-empty i {
     font-size: 3rem;
     margin-bottom: 1rem;
     color: var(--text-secondary);
+    display: block;
 }

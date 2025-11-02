@@ -12,7 +12,7 @@
     <div class="container">
         <div id="site-header"></div>
         <div class="subtitle">
-            <h1 style="color: white; font-size: 2.5rem; margin-bottom: 0.5rem;" data-i18n="ranking.title">Daily Ranking</h1>
+            <h1 class="ranking-title" style="color: white; font-size: 2.5rem; margin-bottom: 0.5rem;" data-i18n="ranking.title">Daily Ranking</h1>
             <p id="ranking-subtitle" data-i18n="ranking.subtitleDetail">Here are the players who found the daily album the fastest.</p>
         </div>
 
@@ -41,7 +41,11 @@
 
                 <div class="ranking-empty" id="ranking-empty" style="display: none;">
                     <i class="bi bi-trophy"></i>
-                    <p data-i18n="ranking.empty">No rankings yet for today. Be the first to find the album!</p>
+                    <p>
+                        <span data-i18n="ranking.empty">No rankings yet for today.</span>
+                        <br>
+                        <span data-i18n="ranking.emptyAction">Be the first to find the album!</span>
+                    </p>
                 </div>
             </div>
         </main>

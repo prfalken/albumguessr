@@ -204,7 +204,8 @@ class I18nManager {
                     attempts: 'Attempts',
                     duration: 'Duration',
                     time: 'Time',
-                    empty: 'No rankings yet for today. Be the first to find the album!',
+                    empty: 'No rankings yet for today.',
+                    emptyAction: 'Be the first to find the album!',
                     loading: 'Loading ranking...',
                     error: 'Failed to load ranking'
                 },
@@ -456,7 +457,7 @@ class I18nManager {
                     days: 'jours'
                 },
                 ranking: {
-                    title: 'Classement quotidien',
+                    title: 'Classement du jour',
                     subtitle: 'Meilleurs joueurs du jour',
                     subtitleDetail: 'Voici les joueurs qui ont trouvé l\'album du jour le plus rapidement.',
                     rank: 'Rang',
@@ -464,7 +465,8 @@ class I18nManager {
                     attempts: 'Tentatives',
                     duration: 'Durée',
                     time: 'Heure',
-                    empty: 'Pas encore de classement pour aujourd\'hui. Soyez le premier à trouver l\'album !',
+                    empty: 'Pas encore de classement pour aujourd\'hui.',
+                    emptyAction: 'Soyez le premier à trouver l\'album !',
                     loading: 'Chargement du classement...',
                     error: 'Échec du chargement du classement'
                 },
@@ -520,7 +522,7 @@ class I18nManager {
                     albumOfDay: 'AlbumGuessr - Album du jour',
                     randomAlbum: 'AlbumGuessr - Découvrez l\'album mystère',
                     profile: 'AlbumGuessr - Profil',
-                    ranking: 'AlbumGuessr - Classement quotidien',
+                    ranking: 'AlbumGuessr - Classement du jour',
                     statistics: 'AlbumGuessr - Statistiques',
                     admin: 'AlbumGuessr - Administration',
                     reportBug: 'AlbumGuessr - Signaler un bug'
@@ -724,7 +726,8 @@ class I18nManager {
                     attempts: 'Intentos',
                     duration: 'Duración',
                     time: 'Hora',
-                    empty: 'Aún no hay clasificaciones para hoy. ¡Sé el primero en encontrar el álbum!',
+                    empty: 'Aún no hay clasificaciones para hoy.',
+                    emptyAction: '¡Sé el primero en encontrar el álbum!',
                     loading: 'Cargando clasificación...',
                     error: 'Error al cargar clasificación'
                 },

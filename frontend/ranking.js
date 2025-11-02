@@ -1,5 +1,6 @@
 import { AuthManager } from './js/shared/auth-manager.js';
 import { ApiClient } from './js/shared/api-client.js';
+import { i18n } from './js/shared/i18n.js';
 
 class AlbumGuessrRanking {
     constructor() {
@@ -39,6 +40,47 @@ class AlbumGuessrRanking {
         });
 
         this.fetchAndRenderRanking();
+        
+        // Setup responsive title after translations are applied
+        document.addEventListener('albumguessr:footer-ready', () => {
+            this.setupResponsiveTitle();
+        });
+        
+        // Update title on language change
+        document.addEventListener('albumguessr:language-changed', () => {
+            this.setupResponsiveTitle();
+        });
+        
+        // Handle window resize
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => this.setupResponsiveTitle(), 150);
+        });
+    }
+    
+    setupResponsiveTitle() {
+        const titleEl = document.querySelector('.ranking-title');
+        if (!titleEl) return;
+        
+        // Wait a bit for translations to be applied
+        setTimeout(() => {
+            if (window.innerWidth <= 640) {
+                // On mobile, replace "Classement du jour" with "Classement\ndu jour"
+                const text = titleEl.textContent || '';
+                if (text.includes('Classement du jour')) {
+                    titleEl.textContent = 'Classement\ndu jour';
+                } else if (text.includes('Daily Ranking')) {
+                    titleEl.textContent = 'Daily\nRanking';
+                } else if (text.includes('Clasificación diaria')) {
+                    titleEl.textContent = 'Clasificación\ndiaria';
+                }
+            } else {
+                // On desktop, ensure normal text (in case window was resized)
+                const originalText = i18n.t('ranking.title');
+                titleEl.textContent = originalText.replace('\n', ' ');
+            }
+        }, 100);
     }
 
     initializeDOM() {
