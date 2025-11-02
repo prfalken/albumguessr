@@ -267,8 +267,24 @@ header .contenu {
     margin:0px;
     padding:0px;
     border-radius: 50%;
-    vertical-align: middle;
     object-fit: cover;
+}
+
+.avatar-placeholder {
+    width: 30px;
+    height: 30px;
+    margin: 0px;
+    padding: 0px;
+    border-radius: 50%;
+    background: #ffffff;
+    color: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.85rem;
+    flex-shrink: 0;
+    text-decoration: none;
 }
 
 @keyframes spin {
@@ -792,12 +808,14 @@ main {
 }
 
 .guess-item.victory .mystery-album-title {
-    margin-bottom: 0.25rem;
+    margin-bottom: 0.1rem;
+    line-height: 1.2;
 }
 
 .guess-item.victory .mystery-album-artist {
     margin-top: 0;
     margin-bottom: 1rem;
+    line-height: 1.2;
 }
 
 .victory-congratulations-title {
@@ -1349,7 +1367,7 @@ footer .contenu {
 
 /* Sidebar: User History */
 .user-profile .user-name {
-    margin-left: 8px;
+    margin-left: 4px;
     color: black;
     font-size: 0.9rem;
     font-weight: 600;
@@ -1366,6 +1384,10 @@ footer .contenu {
     margin-bottom: 0.25rem;
     color: var(--text-primary);
     font-size: 1.1rem;
+}
+
+#profile-settings-title {
+    font-size: 1.5rem;
 }
 
 #user-stats-title {
@@ -1532,6 +1554,74 @@ footer .contenu {
         line-height: 1.2;
     }
     
+    /* Stack avatar above username in ranking table on mobile */
+    .ranking-user-container {
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    /* Reduce table font size on mobile */
+    .ranking-table {
+        font-size: 0.85rem;
+    }
+    
+    .ranking-table th,
+    .ranking-table td {
+        padding: 0.3rem 0.3rem;
+        font-size: 0.85rem;
+    }
+    
+    .ranking-table th:first-child,
+    .ranking-table td:first-child {
+        padding-left: 0.4rem;
+    }
+    
+    .ranking-table th:last-child,
+    .ranking-table td:last-child {
+        padding-right: 0.4rem;
+    }
+    
+    .ranking-username {
+        min-width: auto;
+        max-width: 70px;
+    }
+    
+    .ranking-username-text {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        max-width: 60px;
+        font-size: 0.75rem;
+    }
+    
+    .ranking-user-container {
+        gap: 0.3rem;
+    }
+    
+    .ranking-rank {
+        width: auto;
+        min-width: 40px;
+    }
+    
+    .ranking-attempts {
+        width: auto;
+        min-width: 40px;
+        max-width: 50px;
+        font-size: 0.8rem;
+    }
+    
+    .ranking-avatar,
+    .ranking-avatar-initials {
+        width: 24px;
+        height: 24px;
+        font-size: 0.7rem;
+    }
+    
+    .ranking-username-text {
+        font-size: 0.85rem;
+    }
+    
     /* Header and footer stay full width */
     header, footer {
         width: 100%;
@@ -1661,6 +1751,7 @@ footer .contenu {
     display: inline-block;
     border-radius: 50%;
     transition: opacity 0.2s ease;
+    text-decoration: none;
 }
 
 .avatar-link:hover {
@@ -1698,6 +1789,13 @@ footer .contenu {
     height: 80px;
     border-radius: 50%;
     object-fit: cover;
+    border: 3px solid var(--border);
+}
+
+.profile-avatar-container .avatar-placeholder {
+    width: 80px;
+    height: 80px;
+    font-size: 1.8rem;
     border: 3px solid var(--border);
 }
 
@@ -2499,7 +2597,8 @@ footer .contenu {
 }
 
 .ranking-username {
-    min-width: 200px;
+    min-width: 80px;
+    max-width: 120px;
 }
 
 .ranking-user-container {
@@ -2539,6 +2638,12 @@ footer .contenu {
 .ranking-time {
     text-align: center;
     font-weight: 500;
+}
+
+.ranking-attempts {
+    width: 70px;
+    min-width: 60px;
+    max-width: 80px;
 }
 
 .ranking-time-valid {

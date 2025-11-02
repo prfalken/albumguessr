@@ -461,7 +461,7 @@ class I18nManager {
                     subtitle: 'Meilleurs joueurs du jour',
                     subtitleDetail: 'Voici les joueurs qui ont trouvé l\'album du jour le plus rapidement.',
                     rank: 'Rang',
-                    username: 'Nom d\'utilisateur',
+                    username: 'Utilisateur',
                     attempts: 'Tentatives',
                     duration: 'Durée',
                     time: 'Heure',

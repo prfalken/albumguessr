@@ -221,18 +221,43 @@ export class AuthManager {
         show(elements.navReportBug, !!isAuthenticated);
         
         if (isAuthenticated && this.authenticatedUser) {
-            if (elements.userAvatar && this.authenticatedUser.picture) {
-                // Only set src if it's different to avoid unnecessary reloads
-                if (elements.userAvatar.src !== this.authenticatedUser.picture) {
+            if (elements.userAvatar) {
+                const displayName = this.customUsername || 
+                                   this.authenticatedUser.name || 
+                                   this.authenticatedUser.email || '';
+                
+                // Remove existing placeholder if any
+                const existingPlaceholder = elements.userAvatar.parentElement.querySelector('.avatar-placeholder');
+                if (existingPlaceholder) {
+                    existingPlaceholder.remove();
+                }
+                
+                if (this.authenticatedUser.picture) {
+                    // Always reset the image state to ensure proper error handling
                     elements.userAvatar.src = this.authenticatedUser.picture;
+                    elements.userAvatar.style.display = '';
+                    
+                    // Set up error handler that will create placeholder if image fails
                     elements.userAvatar.onerror = () => {
                         elements.userAvatar.style.display = 'none';
+                        // Clear the src to prevent repeated error events
+                        elements.userAvatar.src = '';
+                        this.showAvatarPlaceholder(elements.userAvatar, displayName);
                         elements.userAvatar.onerror = null;
                     };
+                    
+                    // Check if image is already loaded and valid
+                    if (elements.userAvatar.complete && elements.userAvatar.naturalHeight === 0) {
+                        // Image failed to load, show placeholder
+                        elements.userAvatar.style.display = 'none';
+                        elements.userAvatar.src = '';
+                        this.showAvatarPlaceholder(elements.userAvatar, displayName);
+                    }
+                } else {
+                    elements.userAvatar.style.display = 'none';
+                    elements.userAvatar.src = '';
+                    this.showAvatarPlaceholder(elements.userAvatar, displayName);
                 }
-                elements.userAvatar.style.display = '';
-            } else if (elements.userAvatar) {
-                elements.userAvatar.style.display = 'none';
             }
             if (elements.userName) {
                 const displayName = this.customUsername || 
@@ -243,6 +268,33 @@ export class AuthManager {
             show(elements.userProfile, true);
         } else {
             show(elements.userProfile, false);
+        }
+    }
+
+    /**
+     * Show avatar placeholder with initials
+     * @param {HTMLElement} avatarElement - The avatar image element
+     * @param {string} displayName - User's display name
+     */
+    showAvatarPlaceholder(avatarElement, displayName) {
+        if (!avatarElement || !avatarElement.parentElement) return;
+        
+        // Check if placeholder already exists
+        const existingPlaceholder = avatarElement.parentElement.querySelector('.avatar-placeholder');
+        if (existingPlaceholder) return;
+        
+        const placeholder = document.createElement('div');
+        placeholder.className = 'avatar-placeholder';
+        const initials = (displayName || 'U').substring(0, 2).toUpperCase();
+        placeholder.textContent = initials;
+        
+        // Insert placeholder in the same position as the avatar (before it)
+        // If avatar is inside a link, insert inside the link
+        const parentLink = avatarElement.closest('a');
+        if (parentLink) {
+            parentLink.insertBefore(placeholder, avatarElement);
+        } else {
+            avatarElement.parentElement.insertBefore(placeholder, avatarElement);
         }
     }
 

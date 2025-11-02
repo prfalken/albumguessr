@@ -1074,14 +1074,19 @@ export class AlbumGuessrGame {
                 
                 const guessStat = document.createElement('div');
                 guessStat.className = 'stat';
-                const guessLabel = document.createElement('span');
-                guessLabel.className = 'stat-label';
-                guessLabel.textContent = i18n.t('game.guessesNeeded');
-                const guessValue = document.createElement('span');
-                guessValue.className = 'stat-value';
-                guessValue.textContent = this.guessCount;
-                guessStat.appendChild(guessLabel);
-                guessStat.appendChild(guessValue);
+                guessStat.style.display = 'flex';
+                guessStat.style.flexDirection = 'row';
+                guessStat.style.justifyContent = 'center';
+                guessStat.style.gap = '0.5rem';
+                guessStat.style.alignItems = 'center';
+                const guessLabelText = document.createElement('span');
+                guessLabelText.textContent = i18n.t('game.guessesNeeded');
+                const guessValueText = document.createElement('span');
+                guessValueText.textContent = this.guessCount;
+                guessValueText.style.fontWeight = 'bold';
+                guessValueText.style.fontSize = '1.5rem';
+                guessStat.appendChild(guessLabelText);
+                guessStat.appendChild(guessValueText);
                 
                 statsContainer.appendChild(guessStat);
                 

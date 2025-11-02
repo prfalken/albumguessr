@@ -158,12 +158,43 @@ class AlbumGuessrProfile {
         const emailEl = this.elements.profileEmail;
         const currentUsernameEl = this.elements.currentUsername;
 
-        if (avatarEl && this.authManager.authenticatedUser.picture) {
-            avatarEl.src = this.authManager.authenticatedUser.picture;
-            avatarEl.onerror = () => {
+        if (avatarEl) {
+            const displayName = this.authManager.customUsername || 
+                               this.authManager.authenticatedUser.name || 
+                               this.authManager.authenticatedUser.email || '';
+            
+            // Remove existing placeholder if any
+            const existingPlaceholder = avatarEl.parentElement.querySelector('.avatar-placeholder');
+            if (existingPlaceholder) {
+                existingPlaceholder.remove();
+            }
+            
+            if (this.authManager.authenticatedUser.picture) {
+                // Always reset the image state to ensure proper error handling
+                avatarEl.src = this.authManager.authenticatedUser.picture;
+                avatarEl.style.display = '';
+                
+                // Set up error handler that will create placeholder if image fails
+                avatarEl.onerror = () => {
+                    avatarEl.style.display = 'none';
+                    // Clear the src to prevent repeated error events
+                    avatarEl.src = '';
+                    this.showAvatarPlaceholder(avatarEl, displayName);
+                    avatarEl.onerror = null;
+                };
+                
+                // Check if image is already loaded and valid
+                if (avatarEl.complete && avatarEl.naturalHeight === 0) {
+                    // Image failed to load, show placeholder
+                    avatarEl.style.display = 'none';
+                    avatarEl.src = '';
+                    this.showAvatarPlaceholder(avatarEl, displayName);
+                }
+            } else {
                 avatarEl.style.display = 'none';
-                avatarEl.onerror = null;
-            };
+                avatarEl.src = '';
+                this.showAvatarPlaceholder(avatarEl, displayName);
+            }
         }
 
         if (emailEl) {
@@ -189,6 +220,24 @@ class AlbumGuessrProfile {
 
             // Final fallback to name or email
             currentUsernameEl.textContent = customUsername || this.authManager.authenticatedUser.name || this.authManager.authenticatedUser.email || '';
+        }
+    }
+    
+    showAvatarPlaceholder(avatarElement, displayName) {
+        if (!avatarElement || !avatarElement.parentElement) return;
+        
+        // Check if placeholder already exists
+        const existingPlaceholder = avatarElement.parentElement.querySelector('.avatar-placeholder');
+        if (existingPlaceholder) return;
+        
+        const placeholder = document.createElement('div');
+        placeholder.className = 'avatar-placeholder';
+        const initials = (displayName || 'U').substring(0, 2).toUpperCase();
+        placeholder.textContent = initials;
+        
+        // Insert placeholder in the same position as the avatar (replace it)
+        if (avatarElement.parentElement) {
+            avatarElement.parentElement.insertBefore(placeholder, avatarElement);
         }
     }
 
