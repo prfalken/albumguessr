@@ -14,6 +14,7 @@
         
         <div class="subtitle">
             <p data-i18n="archive.subtitle">Play past daily albums you haven't completed</p>
+            <p id="login-warning" data-i18n="archive.loginWarning" style="font-size: 0.9rem; color: #ffd41d; margin-top: 0.5rem;">Connect to save your history.</p>
         </div>
 
         <main id="main-content" class="game-container">
@@ -43,7 +44,7 @@
                 <div class="day-number"></div>
                 <img class="day-cover" alt="Album cover" />
                 <div class="day-play-overlay">
-                    <i class="bi bi-play-circle-fill"></i>
+                    <i class="bi bi-question-circle"></i>
                 </div>
             </a>
         </template>
@@ -51,9 +52,6 @@
         <template id="tpl-calendar-day-future">
             <div class="calendar-day-card future">
                 <div class="day-number"></div>
-                <div class="day-question-mark">
-                    <i class="bi bi-question-circle"></i>
-                </div>
             </div>
         </template>
         

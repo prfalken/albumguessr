@@ -243,6 +243,7 @@ class I18nManager {
                 archive: {
                     title: 'Album Archives',
                     subtitle: 'Play past daily albums you haven\'t completed',
+                    loginWarning: 'Connect to save your history.',
                     empty: 'No past daily albums available yet.',
                     completed: 'Completed',
                     play: 'Play',
@@ -513,6 +514,7 @@ class I18nManager {
                 archive: {
                     title: 'Archives des albums',
                     subtitle: 'Jouez aux albums du jour passés que vous n\'avez pas complétés',
+                    loginWarning: 'Connectez-vous pour conserver votre historique.',
                     empty: 'Aucun album du jour passé disponible pour le moment.',
                     completed: 'Complété',
                     play: 'Jouer',
@@ -783,6 +785,7 @@ class I18nManager {
                 archive: {
                     title: 'Archivos de álbumes',
                     subtitle: 'Juega a los álbumes diarios pasados que no has completado',
+                    loginWarning: 'Conéctate para guardar tu historial.',
                     empty: 'Aún no hay álbumes diarios pasados disponibles.',
                     completed: 'Completado',
                     play: 'Jugar',

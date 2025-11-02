@@ -32,6 +32,10 @@ class AlbumGuessrPastDailies {
                     } catch (profileErr) {
                         console.warn('Failed to fetch profile:', profileErr);
                     }
+                    // Hide login warning when authenticated
+                    if (this.elements.loginWarning) {
+                        this.elements.loginWarning.style.display = 'none';
+                    }
                 }
                 this.authManager.updateAuthUI(this.elements, authed);
             } catch (err) {
@@ -46,6 +50,7 @@ class AlbumGuessrPastDailies {
     initializeDOM() {
         this.elements = {
             calendarContainer: document.getElementById('calendar-container'),
+            loginWarning: document.getElementById('login-warning'),
             // Templates
             tplCompleted: document.getElementById('tpl-calendar-day-completed'),
             tplUncompleted: document.getElementById('tpl-calendar-day-uncompleted'),
@@ -64,6 +69,10 @@ class AlbumGuessrPastDailies {
                     this.authManager.setCustomUsername(dbUsername);
                 } catch (profileErr) {
                     console.warn('Failed to fetch profile:', profileErr);
+                }
+                // Hide login warning when authenticated
+                if (this.elements.loginWarning) {
+                    this.elements.loginWarning.style.display = 'none';
                 }
             }
         } catch (err) {
@@ -269,7 +278,40 @@ class AlbumGuessrPastDailies {
         // We could fetch it from Algolia, but for now show a placeholder
         coverImg.style.display = 'none';
         
+        // Check if album is started but not completed (has localStorage entry)
+        const storageKey = `albumguessr_daily_game_${album.object_id}`;
+        const hasGameState = this.checkGameState(storageKey);
+        
+        if (hasGameState) {
+            // Album is started but not completed - show pause icon
+            const playIcon = card.querySelector('.day-play-overlay i');
+            if (playIcon) {
+                playIcon.className = 'bi bi-pause-circle';
+            }
+        }
+        
         return card;
+    }
+    
+    checkGameState(storageKey) {
+        try {
+            const saved = localStorage.getItem(storageKey);
+            if (!saved) return false;
+            
+            const gameState = JSON.parse(saved);
+            
+            // Check if state is too old (more than 24 hours)
+            const stateAge = Date.now() - (gameState.timestamp || 0);
+            if (stateAge > 24 * 60 * 60 * 1000) return false;
+            
+            // Check if game is not won/over (still in progress)
+            if (gameState.gameOver || gameState.gameWon) return false;
+            
+            // Check if user has made at least one guess
+            return gameState.guessCount > 0;
+        } catch (error) {
+            return false;
+        }
     }
     
     renderDayCardFuture(day) {
