@@ -11,6 +11,7 @@ class I18nManager {
                     albumOfDay: 'Album of the Day',
                     randomAlbum: 'Random album',
                     ranking: 'Ranking',
+                    archives: 'All albums',
                     myStatistics: 'My statistics',
                     reportBug: 'Report a Bug'
                 },
@@ -239,6 +240,14 @@ class I18nManager {
                     success: 'Album scheduled successfully!',
                     error: 'Failed to schedule album'
                 },
+                archive: {
+                    title: 'Album Archives',
+                    subtitle: 'Play past daily albums you haven\'t completed',
+                    empty: 'No past daily albums available yet.',
+                    completed: 'Completed',
+                    play: 'Play',
+                    future: 'Coming soon'
+                },
                 common: {
                     submit: 'Submit',
                     cancel: 'Cancel',
@@ -272,6 +281,7 @@ class I18nManager {
                     albumOfDay: 'Album du jour',
                     randomAlbum: 'Album aléatoire',
                     ranking: 'Classement',
+                    archives: 'Tous les albums',
                     myStatistics: 'Mes statistiques',
                     reportBug: 'Signaler un bug'
                 },
@@ -500,6 +510,14 @@ class I18nManager {
                     success: 'Album programmé avec succès !',
                     error: 'Échec de la programmation de l\'album'
                 },
+                archive: {
+                    title: 'Archives des albums',
+                    subtitle: 'Jouez aux albums du jour passés que vous n\'avez pas complétés',
+                    empty: 'Aucun album du jour passé disponible pour le moment.',
+                    completed: 'Complété',
+                    play: 'Jouer',
+                    future: 'Bientôt disponible'
+                },
                 common: {
                     submit: 'Soumettre',
                     cancel: 'Annuler',
@@ -533,6 +551,7 @@ class I18nManager {
                     albumOfDay: 'Álbum del día',
                     randomAlbum: 'Álbum aleatorio',
                     ranking: 'Clasificación',
+                    archives: 'Todos los álbumes',
                     myStatistics: 'Mis estadísticas',
                     reportBug: 'Reportar un error'
                 },
@@ -760,6 +779,14 @@ class I18nManager {
                     loading: 'Cargando programa...',
                     success: '¡Álbum programado con éxito!',
                     error: 'Error al programar álbum'
+                },
+                archive: {
+                    title: 'Archivos de álbumes',
+                    subtitle: 'Juega a los álbumes diarios pasados que no has completado',
+                    empty: 'Aún no hay álbumes diarios pasados disponibles.',
+                    completed: 'Completado',
+                    play: 'Jugar',
+                    future: 'Próximamente'
                 },
                 common: {
                     submit: 'Enviar',

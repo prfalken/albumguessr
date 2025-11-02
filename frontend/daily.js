@@ -285,8 +285,33 @@ class AlbumGuessrDailyGame extends AlbumGuessrGame {
 
     async selectDailyAlbum() {
         try {
-            const res = await fetch('/.netlify/functions/albumOfTheDay', { cache: 'no-store' });
-            if (!res.ok) throw new Error('Failed to load today\'s album');
+            // Check if date parameter is in URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const requestedDate = urlParams.get('date');
+            
+            // Build URL with optional date parameter
+            let apiUrl = '/.netlify/functions/albumOfTheDay';
+            if (requestedDate) {
+                // Validate date format
+                const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+                if (!dateRegex.test(requestedDate)) {
+                    throw new Error('Invalid date format');
+                }
+                // Check if date is in the future
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const reqDate = new Date(requestedDate + 'T00:00:00');
+                if (reqDate > today) {
+                    throw new Error('Cannot play future albums');
+                }
+                apiUrl += `?date=${requestedDate}`;
+            }
+            
+            const res = await fetch(apiUrl, { cache: 'no-store' });
+            if (!res.ok) {
+                const errorText = await res.text();
+                throw new Error(`Failed to load album: ${errorText}`);
+            }
             const data = await res.json();
             const objectID = data && data.objectID;
             if (!objectID) throw new Error('Invalid album payload');

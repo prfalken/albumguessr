@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AlbumGuessr - Past Daily Albums</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+</head>
+<body>
+    <div class="container">
+        <div id="site-header"></div>
+        
+        <div class="subtitle">
+            <p data-i18n="archive.subtitle">Play past daily albums you haven't completed</p>
+        </div>
+
+        <main id="main-content" class="game-container">
+            <div class="calendar-container" id="calendar-container">
+                <!-- Calendar will be rendered here by past-dailies.js -->
+            </div>
+        </main>
+
+        <div id="site-footer"></div>
+    </div>
+
+    <!-- Templates for calendar day cards -->
+    <section style="display:none" aria-hidden="true">
+        <template id="tpl-calendar-day-completed">
+            <div class="calendar-day-card completed">
+                <div class="day-number"></div>
+                <img class="day-cover" alt="Album cover" />
+                <div class="day-overlay">
+                    <div class="day-title"></div>
+                    <div class="day-artist"></div>
+                </div>
+            </div>
+        </template>
+        
+        <template id="tpl-calendar-day-uncompleted">
+            <a href="#" class="calendar-day-card uncompleted">
+                <div class="day-number"></div>
+                <img class="day-cover" alt="Album cover" />
+                <div class="day-play-overlay">
+                    <i class="bi bi-play-circle-fill"></i>
+                </div>
+            </a>
+        </template>
+        
+        <template id="tpl-calendar-day-future">
+            <div class="calendar-day-card future">
+                <div class="day-number"></div>
+                <div class="day-question-mark">
+                    <i class="bi bi-question-circle"></i>
+                </div>
+            </div>
+        </template>
+        
+        <template id="tpl-calendar-month">
+            <div class="calendar-month">
+                <h2 class="calendar-month-title"></h2>
+                <div class="calendar-grid"></div>
+            </div>
+        </template>
+    </section>
+
+    <script src="https://cdn.auth0.com/js/auth0-spa-js/2.1/auth0-spa-js.production.js"></script>
+    <script src="config.js"></script>
+    <script src="includes.js"></script>
+    <script src="nav.js"></script>
+    <script type="module" src="past-dailies.js"></script>
+</body>
+</html>
+
