@@ -2341,7 +2341,8 @@ footer .contenu {
     top: 100%;
     left: 0;
     right: 0;
-    background: var(--clue-bg);
+    background: #ffd41d;
+    color: #000000;
     border: 1px solid var(--border-color);
     border-radius: 8px;
     max-height: 400px;
@@ -2362,7 +2363,7 @@ footer .contenu {
 }
 
 .admin-search-result:hover {
-    background-color: var(--guess-item-bg-hover);
+    background-color: rgba(0, 0, 0, 0.1);
 }
 
 .admin-search-result:last-child {
@@ -2384,7 +2385,7 @@ footer .contenu {
 
 .admin-search-result-title {
     font-weight: 600;
-    color: var(--text-primary);
+    color: #000000;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -2392,7 +2393,7 @@ footer .contenu {
 
 .admin-search-result-artist {
     font-size: 0.9rem;
-    color: var(--text-secondary);
+    color: #000000;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -2400,13 +2401,13 @@ footer .contenu {
 
 .admin-search-result-year {
     font-size: 0.85rem;
-    color: var(--text-tertiary);
+    color: #000000;
 }
 
 .admin-search-no-results {
     padding: 1rem;
     text-align: center;
-    color: var(--text-secondary);
+    color: #000000;
 }
 
 .selected-album-display {
