@@ -81,7 +81,6 @@ body {
     background-attachment: fixed;
     color: var(--text-primary); */
     background-color: #565349;
-    line-height: 1.6;
     overflow-x: hidden;
 }
 
@@ -2994,44 +2993,6 @@ footer .contenu {
     z-index: -1;
 }
 
-.hint-button-container {
-    display: flex;
-    justify-content: center;
-    margin: 1.5rem 0;
-}
-
-.next-hint-btn {
-    background: var(--border);
-    color: #000;
-    border: none;
-    padding: 0.75rem 1.5rem;
-    border-radius: var(--radius);
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    transition: all 0.2s ease;
-    font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
-}
-
-.next-hint-btn:hover {
-    background: #ffc107;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
-
-.next-hint-btn:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    transform: none;
-}
-
-.next-hint-btn i {
-    font-size: 1.1rem;
-}
-
 /* Search container for Cover Guess */
 .cover-guess-wrapper .search-container {
     width: 400px;
@@ -3046,4 +3007,40 @@ footer .contenu {
 .cover-guess-wrapper .search-results {
     width: 100%;
     max-width: 400px;
+}
+
+/* Next hint button - small version under search */
+.cover-guess-wrapper .next-hint-btn-small {
+    width: 400px;
+    margin: 0.75rem auto 0;
+    background: var(--border);
+    color: #000;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: all 0.2s ease;
+    font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.cover-guess-wrapper .next-hint-btn-small:hover:not(:disabled) {
+    background: #ffc107;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.cover-guess-wrapper .next-hint-btn-small:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.cover-guess-wrapper .next-hint-btn-small i {
+    font-size: 0.9rem;
 }

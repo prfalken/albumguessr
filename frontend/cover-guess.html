@@ -39,13 +39,6 @@
                     </div>
                 </div>
 
-                <!-- Next hint button -->
-                <div class="hint-button-container">
-                    <button id="next-hint-btn" class="next-hint-btn">
-                        <i class="bi bi-eye"></i> <span>Révéler le carré suivant</span>
-                    </button>
-                </div>
-
                 <!-- Search Input -->
                 <div class="search-container">
                     <div class="search-box">
@@ -59,11 +52,49 @@
                     </div>
                     <div class="search-results" id="search-results"></div>
                 </div>
+
+                <!-- Next hint button -->
+                <button id="next-hint-btn" class="next-hint-btn-small">
+                    <i class="bi bi-eye"></i> <span>Révéler le carré suivant</span>
+                </button>
+
+                <!-- Guesses History -->
+                <div class="guesses-history" id="guesses-history">
+                    <div class="guesses-container" id="guesses-container">
+                        <!-- Guesses will be displayed here -->
+                    </div>
+                </div>
             </div>
         </main>
 
         <div id="site-footer"></div>
     </div>
+
+    <!-- Templates -->
+    <section style="display:none" aria-hidden="true">
+        <template id="tpl-guess-item">
+            <div class="guess-item">
+                <div class="guess-header">
+                    <img class="guess-cover" alt="Cover">
+                    <div class="guess-cover placeholder"></div>
+                    <div class="guess-basic">
+                        <div class="guess-title"></div>
+                        <div class="guess-artist"></div>
+                    </div>
+                    <div class="guess-clues"></div>
+                </div>
+                <div class="guess-details"></div>
+            </div>
+        </template>
+        <template id="tpl-mystery-album">
+            <div class="mystery-album">
+                <div class="mystery-album-title"></div>
+                <div class="mystery-album-artist"></div>
+                <img class="mystery-album-cover" alt="Cover">
+                <div class="mystery-album-meta"></div>
+            </div>
+        </template>
+    </section>
 
     <!-- Loading Spinner -->
     <div class="loading" id="loading">
