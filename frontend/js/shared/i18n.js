@@ -79,6 +79,7 @@ class I18nManager {
                     gameModeRandomTitle: 'Random album',
                     clueCategories: {
                         artists: 'Artists',
+                        artist_type: 'Artist Type',
                         genres: 'Genres',
                         release_year: 'Year',
                         total_length_seconds: 'Length',
@@ -350,6 +351,7 @@ class I18nManager {
                     gameModeRandomTitle: 'Album aléatoire',
                     clueCategories: {
                         artists: 'Artistes',
+                        artist_type: 'Type d\'artiste',
                         genres: 'Genres',
                         release_year: 'Année',
                         total_length_seconds: 'Durée',
@@ -621,6 +623,7 @@ class I18nManager {
                     gameModeRandomTitle: 'Álbum aleatorio',
                     clueCategories: {
                         artists: 'Artistas',
+                        artist_type: 'Tipo de artista',
                         genres: 'Géneros',
                         release_year: 'Año',
                         total_length_seconds: 'Duración',

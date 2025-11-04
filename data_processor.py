@@ -85,6 +85,16 @@ class AlbumDataProcessor:
         album["artists"] = [self.clean_text(a) for a in artist_names if a]
         album["countries"] = [self.clean_text(c) for c in countries if c]
 
+        # Artist type (solo vs group)
+        main_artist_type = row.get("main_artist_type")
+        if main_artist_type:
+            cleaned_type = self.clean_text(main_artist_type)
+            if cleaned_type:
+                album["artist_type"] = cleaned_type
+                # Boolean fields for easier use
+                album["is_solo_artist"] = (cleaned_type.lower() == "person")
+                album["is_group"] = (cleaned_type.lower() == "group")
+
         # Genres mapped from tags (should map a genre from the DB)
         tag_names = row.get("tag_names") or []
         genres = [self.clean_text(t) for t in tag_names if self.all_genres.get(t)]

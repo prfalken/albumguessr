@@ -8,6 +8,7 @@ SELECT
     rgm.rating AS rating_0_100,
     rgm.rating_count AS rating_count,
     ac_info.artist_names,
+    ac_info.main_artist_type,
     ac_info.countries,
     tags.tag_names,
     sec_types.secondary_names,
@@ -22,7 +23,14 @@ LEFT JOIN musicbrainz.release_group_meta rgm ON rgm.id = rg.id
 LEFT JOIN LATERAL (
     SELECT
         ARRAY_AGG(acn.name ORDER BY acn."position") AS artist_names,
-        ARRAY_REMOVE(ARRAY_AGG(DISTINCT i1.code), NULL) AS countries
+        ARRAY_REMOVE(ARRAY_AGG(DISTINCT i1.code), NULL) AS countries,
+        (SELECT at.name 
+         FROM musicbrainz.artist_credit_name acn2
+         JOIN musicbrainz.artist a2 ON a2.id = acn2.artist
+         LEFT JOIN musicbrainz.artist_type at ON at.id = a2.type
+         WHERE acn2.artist_credit = rg.artist_credit
+         ORDER BY acn2."position"
+         LIMIT 1) AS main_artist_type
     FROM musicbrainz.artist_credit_name acn
     JOIN musicbrainz.artist a ON a.id = acn.artist
     LEFT JOIN musicbrainz.area ar ON ar.id = a.area
