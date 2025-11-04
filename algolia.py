@@ -37,10 +37,7 @@ class AlgoliaApp:
             self.client.set_settings(
                 index_name=self.index_name,
                 index_settings={
-                    "searchableAttributes": [
-                        "title",
-                        "main_artist",
-                    ],
+                    "searchableAttributes": ["unordered(main_artist , title )"],
                     "attributesForFaceting": [
                         "filterOnly(release_year)",
                         "filterOnly(primary_genre)",

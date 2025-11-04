@@ -420,6 +420,9 @@ export class AlbumGuessrGame {
                 attributesToRetrieve: [
                     'objectID', 'title', 'artists', 'genres', 'release_year', 'countries', 'contributors',
                     'cover_art_url', 'label', 'total_length_seconds'
+                ],
+                optionalFilters: [
+                    'rating_score > 100'
                 ]
             });
 
