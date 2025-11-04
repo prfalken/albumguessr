@@ -959,15 +959,23 @@ export class AlbumGuessrGame {
                 iconEl.className = `bi ${catConf.icon}`;
                 valuesEl.appendChild(iconEl);
 
-                Array.from(values).forEach(value => {
+                // For instruments, translate and de-duplicate before displaying
+                let displayValues = Array.from(values);
+                if (catConf.key === 'instruments') {
+                    const translatedSet = new Set();
+                    displayValues.forEach(value => {
+                        const translated = this.getInstrumentName(String(value));
+                        if (translated) translatedSet.add(translated);
+                    });
+                    displayValues = Array.from(translatedSet);
+                }
+
+                displayValues.forEach(value => {
                     const chip = this.templates.clueValue.content.firstElementChild.cloneNode(true);
                     if (catConf.key === 'contributors') chip.classList.add('clue-musician');
                     if (catConf.key === 'artists') chip.classList.add('clue-artist');
-                    // Translate instruments if this is the instruments category
+                    // For non-instrument categories, use the value directly
                     let displayText = String(value);
-                    if (catConf.key === 'instruments') {
-                        displayText = this.getInstrumentName(String(value));
-                    }
                     chip.textContent = displayText;
                     valuesEl.appendChild(chip);
                 });
@@ -1233,23 +1241,44 @@ export class AlbumGuessrGame {
 
                         const guessValues = Array.isArray(guessVal) ? guessVal : [guessVal];
                         const chips = [];
-                        guessValues.forEach(v => {
-                            const vStr = String(v);
-                            // Translate countries and instruments
-                            let display = vStr;
-                            if (catKey === 'countries') {
-                                display = this.getCountryName(vStr);
-                            } else if (catKey === 'instruments') {
-                                display = this.getInstrumentName(vStr);
-                            }
-                            const isCommon = revealed.has(vStr);
-                            const chip = this.templates.guessChip.content.firstElementChild.cloneNode(true);
-                            chip.classList.add(isCommon ? 'guess-chip-hit' : 'guess-chip-miss');
-                            chip.textContent = display;
-                            chip.setAttribute('aria-label', `${display}: ${i18n.t(isCommon ? 'game.chipLabels.hit' : 'game.chipLabels.miss')}`);
-                            chip.setAttribute('title', i18n.t(isCommon ? 'game.chipLabels.hit' : 'game.chipLabels.miss'));
-                            chips.push(chip);
-                        });
+                        
+                        // For instruments, de-duplicate by translated display text
+                        if (catKey === 'instruments') {
+                            const displayMap = new Map(); // Map<displayText, {isHit: boolean}>
+                            guessValues.forEach(v => {
+                                const vStr = String(v);
+                                const display = this.getInstrumentName(vStr);
+                                const isCommon = revealed.has(vStr);
+                                // If any variant is a hit, mark the display text as a hit
+                                if (!displayMap.has(display) || isCommon) {
+                                    displayMap.set(display, { isHit: isCommon || (displayMap.get(display)?.isHit || false) });
+                                }
+                            });
+                            displayMap.forEach((data, display) => {
+                                const chip = this.templates.guessChip.content.firstElementChild.cloneNode(true);
+                                chip.classList.add(data.isHit ? 'guess-chip-hit' : 'guess-chip-miss');
+                                chip.textContent = display;
+                                chip.setAttribute('aria-label', `${display}: ${i18n.t(data.isHit ? 'game.chipLabels.hit' : 'game.chipLabels.miss')}`);
+                                chip.setAttribute('title', i18n.t(data.isHit ? 'game.chipLabels.hit' : 'game.chipLabels.miss'));
+                                chips.push(chip);
+                            });
+                        } else {
+                            guessValues.forEach(v => {
+                                const vStr = String(v);
+                                // Translate countries
+                                let display = vStr;
+                                if (catKey === 'countries') {
+                                    display = this.getCountryName(vStr);
+                                }
+                                const isCommon = revealed.has(vStr);
+                                const chip = this.templates.guessChip.content.firstElementChild.cloneNode(true);
+                                chip.classList.add(isCommon ? 'guess-chip-hit' : 'guess-chip-miss');
+                                chip.textContent = display;
+                                chip.setAttribute('aria-label', `${display}: ${i18n.t(isCommon ? 'game.chipLabels.hit' : 'game.chipLabels.miss')}`);
+                                chip.setAttribute('title', i18n.t(isCommon ? 'game.chipLabels.hit' : 'game.chipLabels.miss'));
+                                chips.push(chip);
+                            });
+                        }
 
                         if (catKey === 'countries') {
                             const continents = this.getContinentsForCountryCodes(guessValues);
@@ -1452,7 +1481,10 @@ export class AlbumGuessrGame {
         validDetails.forEach(c => {
             const list = Array.isArray(c.instruments) ? c.instruments : [];
             list.forEach(inst => {
-                if (inst) instrumentsSet.add(String(inst));
+                if (inst) {
+                    const normalized = String(inst).trim();
+                    if (normalized) instrumentsSet.add(normalized);
+                }
             });
         });
         album.contributors_details = validDetails;
