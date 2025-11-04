@@ -1094,12 +1094,17 @@ export class AlbumGuessrGame {
                 const shareSection = document.createElement('div');
                 shareSection.className = 'victory-share-section';
                 
-                const showRankingsBtn = document.createElement('button');
-                showRankingsBtn.className = 'share-button';
-                showRankingsBtn.innerHTML = `<i class="bi bi-trophy-fill"></i> ${i18n.t('game.victory.showRankings')}`;
-                showRankingsBtn.addEventListener('click', () => {
-                    window.location.href = '/ranking.html';
-                });
+                // Only show rankings button for daily mode, not random mode
+                // (reuse isRandomAlbum already declared above)
+                if (!isRandomAlbum) {
+                    const showRankingsBtn = document.createElement('button');
+                    showRankingsBtn.className = 'share-button';
+                    showRankingsBtn.innerHTML = `<i class="bi bi-trophy-fill"></i> ${i18n.t('game.victory.showRankings')}`;
+                    showRankingsBtn.addEventListener('click', () => {
+                        window.location.href = '/ranking.html';
+                    });
+                    shareSection.appendChild(showRankingsBtn);
+                }
                 
                 const challengeBtn = document.createElement('button');
                 challengeBtn.className = 'share-button';
@@ -1108,7 +1113,6 @@ export class AlbumGuessrGame {
                     this.copyChallengeLinkToClipboard(challengeBtn);
                 });
                 
-                shareSection.appendChild(showRankingsBtn);
                 shareSection.appendChild(challengeBtn);
                 
                 itemEl.appendChild(mysteryAlbumBlock);
@@ -1316,6 +1320,14 @@ export class AlbumGuessrGame {
         // Update stats
         this.elements.finalGuesses.textContent = this.guessCount;
         this.elements.finalClues.textContent = this.discoveredClues.size;
+
+        // Hide show rankings button in random mode
+        const isRandomAlbum = this.constructor.name === 'AlbumGuessrGame' && 
+                             (window.location.pathname.includes('game.html') || 
+                              (this.elements.gameDate && this.elements.gameDate.classList.contains('game-date-random')));
+        if (this.elements.showRankingsButton) {
+            this.elements.showRankingsButton.style.display = isRandomAlbum ? 'none' : '';
+        }
 
         this.elements.victoryModal.classList.add('show');
 
