@@ -571,6 +571,14 @@ export class AlbumGuessrGame {
         this.updateLengthHint();
 
         this.updateUI();
+        
+        // Trigger victory celebration after UI is updated so we can find the image
+        if (isCorrect) {
+            // Wait for DOM to update
+            setTimeout(() => {
+                this.celebrateVictory();
+            }, 100);
+        }
         this.elements.albumSearch.value = '';
         this.hideSearchResults();
         this.selectedResult = null;
@@ -582,6 +590,145 @@ export class AlbumGuessrGame {
             
             // Victory modal is no longer shown - user can see victory in guesses history
         }
+    }
+
+    celebrateVictory() {
+        // Play victory sound
+        this.playVictorySound();
+        
+        // Create confetti animation
+        this.createConfetti();
+    }
+
+    playVictorySound() {
+        try {
+            const audio = new Audio('sounds/pow-pow-pow.mp3');
+            audio.volume = 0.6; // Set volume (0.0 to 1.0)
+            audio.play().catch(error => {
+                console.warn('Could not play victory sound:', error);
+            });
+        } catch (error) {
+            console.warn('Could not play victory sound:', error);
+        }
+    }
+
+    createConfetti() {
+        // Find the victory image - look for the mystery-album-cover in the victory guess item
+        const victoryGuessItem = document.querySelector('.guess-item.victory');
+        let centerX = window.innerWidth / 2;
+        let centerY = window.innerHeight / 2;
+        
+        if (victoryGuessItem) {
+            const coverImage = victoryGuessItem.querySelector('.mystery-album-cover');
+            if (coverImage) {
+                const rect = coverImage.getBoundingClientRect();
+                centerX = rect.left + rect.width / 2;
+                centerY = rect.top + rect.height / 2;
+            }
+        }
+        
+        const colors = ['#ffd41d', '#ff6b6b', '#4ecdc4', '#45b7d1', '#ffa07a', '#98d8c8', '#f7dc6f', '#bb8fce'];
+        const confettiCount = 100;
+        const duration = 2400; // 2.4 seconds
+        const maxDistance = Math.max(window.innerWidth, window.innerHeight) * 0.8;
+        
+        // Create confetti container if it doesn't exist
+        let confettiContainer = document.getElementById('confetti-container');
+        if (!confettiContainer) {
+            confettiContainer = document.createElement('div');
+            confettiContainer.id = 'confetti-container';
+            confettiContainer.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                pointer-events: none;
+                z-index: 10000;
+            `;
+            document.body.appendChild(confettiContainer);
+        }
+        
+        // Clear any existing confetti and remove old style tag
+        confettiContainer.innerHTML = '';
+        const oldStyle = document.getElementById('confetti-dynamic-styles');
+        if (oldStyle) oldStyle.remove();
+        
+        // Create a single style element for all keyframes
+        const styleEl = document.createElement('style');
+        styleEl.id = 'confetti-dynamic-styles';
+        let keyframesCSS = '';
+        
+        // Create confetti pieces exploding from center
+        for (let i = 0; i < confettiCount; i++) {
+            const confetti = document.createElement('div');
+            const color = colors[Math.floor(Math.random() * colors.length)];
+            const size = Math.random() * 10 + 5;
+            const isRect = Math.random() > 0.5;
+            
+            // Random angle in all directions (360 degrees)
+            const angle = Math.random() * Math.PI * 2;
+            // Random distance with some variation
+            const distance = maxDistance * (0.7 + Math.random() * 0.3);
+            // Random delay for a more natural explosion
+            const delay = Math.random() * 0.1;
+            
+            // Calculate end position
+            const endX = Math.cos(angle) * distance;
+            const endY = Math.sin(angle) * distance;
+            const rotation = Math.random() * 360;
+            const endRotation = rotation + 360 * (2 + Math.random() * 2);
+            
+            // Make confetti pieces more varied (squares or circles)
+            if (isRect) {
+                confetti.style.borderRadius = '2px';
+            } else {
+                confetti.style.borderRadius = '50%';
+            }
+            
+            // Position at center
+            confetti.style.cssText += `
+                position: fixed;
+                left: ${centerX}px;
+                top: ${centerY}px;
+                width: ${size}px;
+                height: ${size}px;
+                background-color: ${color};
+                opacity: 0.95;
+                transform: translate(-50%, -50%) rotate(0deg);
+                animation: confettiExplode${i} ${duration}ms ease-out forwards;
+                animation-delay: ${delay * 1000}ms;
+            `;
+            
+            // Add keyframe for this confetti piece with explosion effect
+            keyframesCSS += `
+                @keyframes confettiExplode${i} {
+                    0% {
+                        transform: translate(-50%, -50%) rotate(0deg) scale(1);
+                        opacity: 1;
+                    }
+                    100% {
+                        transform: translate(calc(-50% + ${endX}px), calc(-50% + ${endY}px)) rotate(${endRotation}deg) scale(0.8);
+                        opacity: 0;
+                    }
+                }
+            `;
+            
+            confettiContainer.appendChild(confetti);
+        }
+        
+        // Add all keyframes to the style element
+        styleEl.textContent = keyframesCSS;
+        document.head.appendChild(styleEl);
+        
+        // Clean up after animation
+        setTimeout(() => {
+            if (confettiContainer && confettiContainer.parentNode) {
+                confettiContainer.remove();
+            }
+            const styleToRemove = document.getElementById('confetti-dynamic-styles');
+            if (styleToRemove) styleToRemove.remove();
+        }, duration + 200);
     }
 
     analyzeSharedAttributes(guess, mystery) {
@@ -1105,9 +1252,13 @@ export class AlbumGuessrGame {
                 const shareSection = document.createElement('div');
                 shareSection.className = 'victory-share-section';
                 
-                // Only show rankings button for daily mode, not random mode
+                // Only show rankings button for daily mode, not random mode, and not for past dailies
                 // (reuse isRandomAlbum already declared above)
-                if (!isRandomAlbum) {
+                // Check if we're playing a past daily (has date parameter in URL)
+                const urlParams = new URLSearchParams(window.location.search);
+                const isPastDaily = urlParams.has('date');
+                
+                if (!isRandomAlbum && !isPastDaily) {
                     const showRankingsBtn = document.createElement('button');
                     showRankingsBtn.className = 'share-button';
                     showRankingsBtn.innerHTML = `<i class="bi bi-trophy-fill"></i> ${i18n.t('game.victory.showRankings')}`;
