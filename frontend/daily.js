@@ -25,7 +25,23 @@ class AlbumGuessrDailyGame extends AlbumGuessrGame {
         }
         
         try {
-            const today = new Date();
+            // Check if there's a date parameter in the URL (for past dailies)
+            const urlParams = new URLSearchParams(window.location.search);
+            const requestedDate = urlParams.get('date');
+            
+            let dateToDisplay;
+            if (requestedDate) {
+                // Validate date format and use it
+                const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+                if (dateRegex.test(requestedDate)) {
+                    dateToDisplay = new Date(requestedDate + 'T00:00:00');
+                } else {
+                    dateToDisplay = new Date();
+                }
+            } else {
+                dateToDisplay = new Date();
+            }
+            
             let currentLang = 'en';
             try {
                 if (i18n && typeof i18n.getCurrentLanguage === 'function') {
@@ -38,7 +54,7 @@ class AlbumGuessrDailyGame extends AlbumGuessrGame {
             const localeMap = { 'en': 'en-US', 'fr': 'fr-FR', 'es': 'es-ES' };
             const locale = localeMap[currentLang] || 'en-US';
             
-            const label = today.toLocaleDateString(locale, { year: 'numeric', month: 'long', day: 'numeric' });
+            const label = dateToDisplay.toLocaleDateString(locale, { year: 'numeric', month: 'long', day: 'numeric' });
             
             // Check if i18n is ready
             if (!i18n || typeof i18n.t !== 'function') {
