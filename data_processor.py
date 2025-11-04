@@ -92,8 +92,8 @@ class AlbumDataProcessor:
             if cleaned_type:
                 album["artist_type"] = cleaned_type
                 # Boolean fields for easier use
-                album["is_solo_artist"] = (cleaned_type.lower() == "person")
-                album["is_group"] = (cleaned_type.lower() == "group")
+                album["is_solo_artist"] = cleaned_type.lower() == "person"
+                album["is_group"] = cleaned_type.lower() == "group"
 
         # Genres mapped from tags (should map a genre from the DB)
         tag_names = row.get("tag_names") or []
@@ -123,7 +123,11 @@ class AlbumDataProcessor:
                     continue
                 # Skip contributor if they have "assistant" or "additional" instruments
                 raw_instruments = md.get("instruments") or []
-                if any(self.clean_text(i).lower() in ("additional", "assistant") for i in raw_instruments if i):
+                if any(
+                    self.clean_text(i).lower() in ("additional", "assistant", "co", "guest", "task")
+                    for i in raw_instruments
+                    if i
+                ):
                     continue
                 name = self.clean_text(md.get("name"))
                 instruments = [self.clean_text(i) for i in raw_instruments if i]
