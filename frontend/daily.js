@@ -59,12 +59,30 @@ class AlbumGuessrDailyGame extends AlbumGuessrGame {
             // Check if i18n is ready
             if (!i18n || typeof i18n.t !== 'function') {
                 console.warn('i18n not ready, using default text');
-                this.elements.gameDate.textContent = `Album of the day - ${label}`;
+                if (requestedDate) {
+                    this.elements.gameDate.textContent = `Album du ${label}`;
+                } else {
+                    this.elements.gameDate.textContent = `Album of the day - ${label}`;
+                }
                 return;
             }
             
-            const albumLabel = i18n.t('game.albumOfDayLabel');
-            const fullText = `${albumLabel} - ${label}`;
+            // Different format for past dailies vs current day
+            let fullText;
+            if (requestedDate) {
+                // For past dailies: "Album du [date]"
+                if (currentLang === 'fr') {
+                    fullText = `Album du ${label}`;
+                } else if (currentLang === 'es') {
+                    fullText = `Álbum del ${label}`;
+                } else {
+                    fullText = `Album of ${label}`;
+                }
+            } else {
+                // For current day: "Album of the day - [date]"
+                const albumLabel = i18n.t('game.albumOfDayLabel');
+                fullText = `${albumLabel} - ${label}`;
+            }
             
             console.log('updateStatusSubtitle: Setting date to:', fullText);
             this.elements.gameDate.textContent = fullText;
