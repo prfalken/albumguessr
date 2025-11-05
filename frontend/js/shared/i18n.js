@@ -10,6 +10,7 @@ class I18nManager {
                 nav: {
                     albumOfDay: 'Album of the Day',
                     randomAlbum: 'Random album',
+                    coverGuess: 'Cover Guess',
                     ranking: 'Ranking',
                     archives: 'All albums',
                     myStatistics: 'My statistics',
@@ -77,6 +78,19 @@ class I18nManager {
                     gameModeRandom: 'Random',
                     gameModeDailyTitle: 'Album of the day',
                     gameModeRandomTitle: 'Random album',
+                    coverGuess: {
+                        nextHint: 'Reveal next square',
+                        loading: 'Loading the mystery album...',
+                        victoryMessage: 'You found the album!',
+                        defeatMessage: 'You didn\'t find it, it was:',
+                        points: 'Points:',
+                        rankingLine1: 'You are <strong>#{position}</strong> in the ranking',
+                        rankingLine2: 'with <strong>{points} points</strong>',
+                        rankingLine1Loading: 'You are <strong>#-</strong> in the ranking',
+                        rankingLine2Loading: 'with <strong>- points</strong>',
+                        playAgain: 'Play again',
+                        viewRanking: 'View ranking'
+                    },
                     clueCategories: {
                         artists: 'Artists',
                         artist_type: 'Artist Type',
@@ -271,6 +285,7 @@ class I18nManager {
                 pageTitles: {
                     albumOfDay: 'AlbumGuessr - Album of the Day',
                     randomAlbum: 'AlbumGuessr - Discover the mystery album',
+                    coverGuess: 'AlbumGuessr - Cover Guess',
                     profile: 'AlbumGuessr - Profile',
                     ranking: 'AlbumGuessr - Daily Ranking',
                     statistics: 'AlbumGuessr - Statistics',
@@ -282,6 +297,7 @@ class I18nManager {
                 nav: {
                     albumOfDay: 'Album du jour',
                     randomAlbum: 'Album aléatoire',
+                    coverGuess: 'Devine la Pochette',
                     ranking: 'Classement',
                     archives: 'Tous les albums',
                     myStatistics: 'Mes statistiques',
@@ -349,6 +365,19 @@ class I18nManager {
                     gameModeRandom: 'Aléatoire',
                     gameModeDailyTitle: 'Album du jour',
                     gameModeRandomTitle: 'Album aléatoire',
+                    coverGuess: {
+                        nextHint: 'Révéler le carré suivant',
+                        loading: 'Chargement de l\'album mystère...',
+                        victoryMessage: 'Vous avez trouvé l\'album !',
+                        defeatMessage: 'Vous n\'avez pas trouvé, c\'était :',
+                        points: 'Points :',
+                        rankingLine1: 'Vous êtes <strong>#{position}</strong> au classement',
+                        rankingLine2: 'avec <strong>{points} points</strong>',
+                        rankingLine1Loading: 'Vous êtes <strong>#-</strong> au classement',
+                        rankingLine2Loading: 'avec <strong>- points</strong>',
+                        playAgain: 'Rejouer',
+                        viewRanking: 'Voir le classement'
+                    },
                     clueCategories: {
                         artists: 'Artistes',
                         artist_type: 'Type d\'artiste',
@@ -543,6 +572,7 @@ class I18nManager {
                 pageTitles: {
                     albumOfDay: 'AlbumGuessr - Album du jour',
                     randomAlbum: 'AlbumGuessr - Découvrez l\'album mystère',
+                    coverGuess: 'AlbumGuessr - Devine la Pochette',
                     profile: 'AlbumGuessr - Profil',
                     ranking: 'AlbumGuessr - Classement du jour',
                     statistics: 'AlbumGuessr - Statistiques',
@@ -554,6 +584,7 @@ class I18nManager {
                 nav: {
                     albumOfDay: 'Álbum del día',
                     randomAlbum: 'Álbum aleatorio',
+                    coverGuess: 'Adivina la Portada',
                     ranking: 'Clasificación',
                     archives: 'Todos los álbumes',
                     myStatistics: 'Mis estadísticas',
@@ -621,6 +652,19 @@ class I18nManager {
                     gameModeRandom: 'Aleatorio',
                     gameModeDailyTitle: 'Álbum del día',
                     gameModeRandomTitle: 'Álbum aleatorio',
+                    coverGuess: {
+                        nextHint: 'Revelar el siguiente cuadrado',
+                        loading: 'Cargando el álbum misterioso...',
+                        victoryMessage: '¡Encontraste el álbum!',
+                        defeatMessage: 'No lo encontraste, era:',
+                        points: 'Puntos:',
+                        rankingLine1: 'Estás en el lugar <strong>#{position}</strong> del ranking',
+                        rankingLine2: 'con <strong>{points} puntos</strong>',
+                        rankingLine1Loading: 'Estás en el lugar <strong>#-</strong> del ranking',
+                        rankingLine2Loading: 'con <strong>- puntos</strong>',
+                        playAgain: 'Jugar de nuevo',
+                        viewRanking: 'Ver ranking'
+                    },
                     clueCategories: {
                         artists: 'Artistas',
                         artist_type: 'Tipo de artista',
@@ -815,6 +859,7 @@ class I18nManager {
                 pageTitles: {
                     albumOfDay: 'AlbumGuessr - Álbum del día',
                     randomAlbum: 'AlbumGuessr - Descubre el álbum misterioso',
+                    coverGuess: 'AlbumGuessr - Adivina la Portada',
                     profile: 'AlbumGuessr - Perfil',
                     ranking: 'AlbumGuessr - Clasificación diaria',
                     statistics: 'AlbumGuessr - Estadísticas',
@@ -977,6 +1022,8 @@ class I18nManager {
             titleKey = 'pageTitles.admin';
         } else if (page === 'report-bug.html') {
             titleKey = 'pageTitles.reportBug';
+        } else if (page === 'cover-guess.html') {
+            titleKey = 'pageTitles.coverGuess';
         }
         
         if (titleKey) {

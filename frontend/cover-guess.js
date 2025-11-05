@@ -1,5 +1,6 @@
 import { AuthManager } from './js/shared/auth-manager.js';
 import { ApiClient } from './js/shared/api-client.js';
+import { i18n } from './js/shared/i18n.js';
 // ALGOLIA_CONFIG is loaded globally via script tag in HTML
 
 class CoverGuessGame {
@@ -124,6 +125,19 @@ class CoverGuessGame {
     }
 
     bindEvents() {
+        // Listen for language changes to update victory/defeat messages
+        document.addEventListener('albumguessr:language-changed', () => {
+            // Re-render victory/defeat messages if game is over
+            if (this.gameWon || this.gameOver) {
+                setTimeout(() => {
+                    if (this.gameWon) {
+                        this.updateGuessesHistory();
+                    } else {
+                        this.showDefeatMessage();
+                    }
+                }, 100);
+            }
+        });
         // Search input events
         if (this.elements.albumSearch) {
             this.elements.albumSearch.addEventListener('input', 
@@ -290,7 +304,16 @@ class CoverGuessGame {
             return;
         }
 
-        this.searchResults.forEach((result, index) => {
+        // Filtrer les albums déjà proposés
+        const proposedObjectIDs = new Set(this.guesses.map(guess => guess.album.objectID));
+        const filteredResults = this.searchResults.filter(result => !proposedObjectIDs.has(result.objectID));
+
+        if (filteredResults.length === 0) {
+            container.classList.remove('show');
+            return;
+        }
+
+        filteredResults.forEach((result, index) => {
             const el = document.createElement('div');
             el.className = 'search-result';
             if (index === 0) {
@@ -422,7 +445,8 @@ class CoverGuessGame {
                 // Add congratulations message (no title)
                 const congratulationsMessage = document.createElement('div');
                 congratulationsMessage.className = 'victory-congratulations-message';
-                congratulationsMessage.innerHTML = '<strong>Vous avez trouvé l\'album !</strong>';
+                const victoryText = i18n.t('game.coverGuess.victoryMessage');
+                congratulationsMessage.innerHTML = `<strong>${victoryText}</strong>`;
 
                 mysteryAlbumBlock.insertBefore(congratulationsMessage, mysteryAlbumBlock.firstChild);
 
@@ -439,7 +463,7 @@ class CoverGuessGame {
                 // Set title and artist
                 if (titleEl) titleEl.textContent = this.mysteryAlbum.title || '';
                 if (artistEl) {
-                    artistEl.textContent = (this.mysteryAlbum.artists && this.mysteryAlbum.artists.length > 0) ? this.mysteryAlbum.artists.join(', ') : 'Artiste inconnu';
+                    artistEl.textContent = (this.mysteryAlbum.artists && this.mysteryAlbum.artists.length > 0) ? this.mysteryAlbum.artists.join(', ') : i18n.t('game.unknownArtist');
                     // Reduce margin-bottom to reduce space between album and stats
                     artistEl.style.marginBottom = '0.25rem';
                 }
@@ -467,7 +491,7 @@ class CoverGuessGame {
                 const pointsLabelText = document.createElement('span');
                 pointsLabelText.style.fontSize = '1.2rem';
                 pointsLabelText.style.color = 'rgba(0, 0, 0, 0.7)';
-                pointsLabelText.textContent = 'Points :';
+                pointsLabelText.textContent = i18n.t('game.coverGuess.points');
                 const pointsValueText = document.createElement('span');
                 pointsValueText.style.fontSize = '2rem';
                 pointsValueText.style.fontWeight = '700';
@@ -490,9 +514,9 @@ class CoverGuessGame {
                 rankingContainer.style.textAlign = 'center';
 
                 const rankingLine1 = document.createElement('div');
-                rankingLine1.innerHTML = 'Vous êtes <strong>#-</strong> au classement';
+                rankingLine1.innerHTML = i18n.t('game.coverGuess.rankingLine1Loading');
                 const rankingLine2 = document.createElement('div');
-                rankingLine2.innerHTML = 'avec <strong>- points</strong>';
+                rankingLine2.innerHTML = i18n.t('game.coverGuess.rankingLine2Loading');
 
                 rankingContainer.appendChild(rankingLine1);
                 rankingContainer.appendChild(rankingLine2);
@@ -507,7 +531,7 @@ class CoverGuessGame {
 
                 const playAgainBtn = document.createElement('button');
                 playAgainBtn.className = 'share-button';
-                playAgainBtn.innerHTML = '<i class="bi bi-arrow-repeat"></i> Rejouer';
+                playAgainBtn.innerHTML = `<i class="bi bi-arrow-repeat"></i> ${i18n.t('game.coverGuess.playAgain')}`;
                 playAgainBtn.addEventListener('click', () => {
                     window.location.reload();
                 });
@@ -515,7 +539,7 @@ class CoverGuessGame {
 
                 const rankingBtn = document.createElement('button');
                 rankingBtn.className = 'share-button';
-                rankingBtn.innerHTML = '<i class="bi bi-trophy-fill"></i> Voir le classement';
+                rankingBtn.innerHTML = `<i class="bi bi-trophy-fill"></i> ${i18n.t('game.coverGuess.viewRanking')}`;
                 rankingBtn.addEventListener('click', () => {
                     window.location.href = '/cover-guess-ranking.html';
                 });
@@ -570,7 +594,8 @@ class CoverGuessGame {
             // Add defeat message (no title)
             const defeatMessage = document.createElement('div');
             defeatMessage.className = 'victory-congratulations-message';
-            defeatMessage.innerHTML = '<strong>Vous n\'avez pas trouvé, c\'était :</strong>';
+            const defeatText = i18n.t('game.coverGuess.defeatMessage');
+            defeatMessage.innerHTML = `<strong>${defeatText}</strong>`;
 
             mysteryAlbumBlock.insertBefore(defeatMessage, mysteryAlbumBlock.firstChild);
 
@@ -587,7 +612,7 @@ class CoverGuessGame {
             // Set title and artist
             if (titleEl) titleEl.textContent = this.mysteryAlbum.title || '';
             if (artistEl) {
-                artistEl.textContent = (this.mysteryAlbum.artists && this.mysteryAlbum.artists.length > 0) ? this.mysteryAlbum.artists.join(', ') : 'Artiste inconnu';
+                artistEl.textContent = (this.mysteryAlbum.artists && this.mysteryAlbum.artists.length > 0) ? this.mysteryAlbum.artists.join(', ') : i18n.t('game.unknownArtist');
                 // Reduce margin-bottom to reduce space between album and stats
                 artistEl.style.marginBottom = '0.25rem';
             }
@@ -615,7 +640,7 @@ class CoverGuessGame {
             const pointsLabelText = document.createElement('span');
             pointsLabelText.style.fontSize = '1.2rem';
             pointsLabelText.style.color = 'rgba(0, 0, 0, 0.7)';
-            pointsLabelText.textContent = 'Points :';
+            pointsLabelText.textContent = i18n.t('game.coverGuess.points');
             const pointsValueText = document.createElement('span');
             pointsValueText.style.fontSize = '2rem';
             pointsValueText.style.fontWeight = '700';
@@ -638,9 +663,9 @@ class CoverGuessGame {
             rankingContainer.style.textAlign = 'center';
 
             const rankingLine1 = document.createElement('div');
-            rankingLine1.innerHTML = 'Vous êtes <strong>#-</strong> au classement';
+            rankingLine1.innerHTML = i18n.t('game.coverGuess.rankingLine1Loading');
             const rankingLine2 = document.createElement('div');
-            rankingLine2.innerHTML = 'avec <strong>- points</strong>';
+            rankingLine2.innerHTML = i18n.t('game.coverGuess.rankingLine2Loading');
 
             rankingContainer.appendChild(rankingLine1);
             rankingContainer.appendChild(rankingLine2);
@@ -655,7 +680,7 @@ class CoverGuessGame {
 
             const playAgainBtn = document.createElement('button');
             playAgainBtn.className = 'share-button';
-            playAgainBtn.innerHTML = '<i class="bi bi-arrow-repeat"></i> Rejouer';
+            playAgainBtn.innerHTML = `<i class="bi bi-arrow-repeat"></i> ${i18n.t('game.coverGuess.playAgain')}`;
             playAgainBtn.addEventListener('click', () => {
                 window.location.reload();
             });
@@ -663,7 +688,7 @@ class CoverGuessGame {
 
             const rankingBtn = document.createElement('button');
             rankingBtn.className = 'share-button';
-            rankingBtn.innerHTML = '<i class="bi bi-trophy-fill"></i> Voir le classement';
+            rankingBtn.innerHTML = `<i class="bi bi-trophy-fill"></i> ${i18n.t('game.coverGuess.viewRanking')}`;
             rankingBtn.addEventListener('click', () => {
                 window.location.href = '/cover-guess-ranking.html';
             });
@@ -691,15 +716,15 @@ class CoverGuessGame {
         try {
             const userId = this.authManager.authenticatedUser?.sub;
             if (!userId) {
-                rankingLine1Element.innerHTML = 'Vous êtes <strong>#-</strong> au classement';
-                rankingLine2Element.innerHTML = 'avec <strong>- points</strong>';
+                rankingLine1Element.innerHTML = i18n.t('game.coverGuess.rankingLine1Loading');
+                rankingLine2Element.innerHTML = i18n.t('game.coverGuess.rankingLine2Loading');
                 return;
             }
 
             const response = await fetch('/.netlify/functions/coverGuessRanking');
             if (!response.ok) {
-                rankingLine1Element.innerHTML = 'Vous êtes <strong>#-</strong> au classement';
-                rankingLine2Element.innerHTML = 'avec <strong>- points</strong>';
+                rankingLine1Element.innerHTML = i18n.t('game.coverGuess.rankingLine1Loading');
+                rankingLine2Element.innerHTML = i18n.t('game.coverGuess.rankingLine2Loading');
                 return;
             }
 
@@ -711,20 +736,23 @@ class CoverGuessGame {
                     const userRanking = data.ranking[userIndex];
                     const position = userIndex + 1; // Position is index + 1 (1-based ranking)
                     const totalPoints = userRanking.total_points || 0;
-                    rankingLine1Element.innerHTML = `Vous êtes <strong>#${position}</strong> au classement`;
-                    rankingLine2Element.innerHTML = `avec <strong>${totalPoints} points</strong>`;
+                    // Replace {position} and {points} in the translated templates
+                    const line1Template = i18n.t('game.coverGuess.rankingLine1');
+                    const line2Template = i18n.t('game.coverGuess.rankingLine2');
+                    rankingLine1Element.innerHTML = line1Template.replace('{position}', position);
+                    rankingLine2Element.innerHTML = line2Template.replace('{points}', totalPoints);
                 } else {
-                    rankingLine1Element.innerHTML = 'Vous êtes <strong>#-</strong> au classement';
-                    rankingLine2Element.innerHTML = 'avec <strong>- points</strong>';
+                    rankingLine1Element.innerHTML = i18n.t('game.coverGuess.rankingLine1Loading');
+                    rankingLine2Element.innerHTML = i18n.t('game.coverGuess.rankingLine2Loading');
                 }
             } else {
-                rankingLine1Element.innerHTML = 'Vous êtes <strong>#-</strong> au classement';
-                rankingLine2Element.innerHTML = 'avec <strong>- points</strong>';
+                rankingLine1Element.innerHTML = i18n.t('game.coverGuess.rankingLine1Loading');
+                rankingLine2Element.innerHTML = i18n.t('game.coverGuess.rankingLine2Loading');
             }
         } catch (error) {
             console.warn('Failed to fetch ranking position and points:', error);
-            rankingLine1Element.innerHTML = 'Vous êtes <strong>#-</strong> au classement';
-            rankingLine2Element.innerHTML = 'avec <strong>- points</strong>';
+            rankingLine1Element.innerHTML = i18n.t('game.coverGuess.rankingLine1Loading');
+            rankingLine2Element.innerHTML = i18n.t('game.coverGuess.rankingLine2Loading');
         }
     }
 
@@ -894,10 +922,12 @@ class CoverGuessGame {
 
     shareResult() {
         if (!this.mysteryAlbum) return;
-        const albumInfo = `"${this.mysteryAlbum.title}" par ${this.mysteryAlbum.artists ? this.mysteryAlbum.artists.join(', ') : 'Artiste inconnu'}`;
-        const stats = `${this.guessCount} tentative(s)`;
-
-        const shareText = `🎵 J'ai trouvé l'album mystère !\n\n${albumInfo}\n${stats}\n\n🎵 AlbumGuessr 🎵`;
+        // Note: This function is kept for potential future use, but share button was removed
+        const albumInfo = `"${this.mysteryAlbum.title}" ${i18n.getCurrentLanguage() === 'fr' ? 'par' : i18n.getCurrentLanguage() === 'es' ? 'por' : 'by'} ${this.mysteryAlbum.artists ? this.mysteryAlbum.artists.join(', ') : i18n.t('game.unknownArtist')}`;
+        const guessWord = this.guessCount === 1 ? i18n.t('game.guessCounterSingle') : i18n.t('game.guessCounter');
+        const stats = `${this.guessCount} ${guessWord}`;
+        const foundText = i18n.getCurrentLanguage() === 'fr' ? 'J\'ai trouvé l\'album mystère !' : i18n.getCurrentLanguage() === 'es' ? '¡Encontré el álbum misterioso!' : 'I found the mystery album!';
+        const shareText = `🎵 ${foundText}\n\n${albumInfo}\n${stats}\n\n🎵 AlbumGuessr 🎵`;
 
         if (navigator.share) {
             navigator.share({
