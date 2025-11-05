@@ -76,8 +76,10 @@ class I18nManager {
                     albumOfDayLabel: 'Album of the day',
                     gameModeDaily: 'Daily',
                     gameModeRandom: 'Random',
+                    gameModeCoverGuess: 'Cover Guess',
                     gameModeDailyTitle: 'Album of the day',
                     gameModeRandomTitle: 'Random album',
+                    gameModeCoverGuessTitle: 'Cover Guess',
                     coverGuess: {
                         nextHint: 'Reveal next square',
                         loading: 'Loading the mystery album...',
@@ -367,8 +369,10 @@ class I18nManager {
                     albumOfDayLabel: 'Album du jour',
                     gameModeDaily: 'Quotidien',
                     gameModeRandom: 'Aléatoire',
+                    gameModeCoverGuess: 'Cover Guess',
                     gameModeDailyTitle: 'Album du jour',
                     gameModeRandomTitle: 'Album aléatoire',
+                    gameModeCoverGuessTitle: 'Cover Guess',
                     coverGuess: {
                         nextHint: 'Révéler le carré suivant',
                         loading: 'Chargement de l\'album mystère...',
@@ -658,8 +662,10 @@ class I18nManager {
                     albumOfDayLabel: 'Álbum del día',
                     gameModeDaily: 'Diario',
                     gameModeRandom: 'Aleatorio',
+                    gameModeCoverGuess: 'Cover Guess',
                     gameModeDailyTitle: 'Álbum del día',
                     gameModeRandomTitle: 'Álbum aleatorio',
+                    gameModeCoverGuessTitle: 'Cover Guess',
                     coverGuess: {
                         nextHint: 'Revelar el siguiente cuadrado',
                         loading: 'Cargando el álbum misterioso...',

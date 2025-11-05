@@ -1513,6 +1513,11 @@ footer .contenu {
     color: #4c1d95;
 }
 
+.game-mode-cover-guess {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: #064e3b;
+}
+
 /* Loading Spinner */
 .loading {
     position: fixed;

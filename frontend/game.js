@@ -1518,12 +1518,8 @@ export class AlbumGuessrGame {
                                 if (!isNaN(gyi) && !isNaN(myi)) {
                                     if (gyi === myi) {
                                         cls = 'guess-chip-hit';
-                                    } else if (gyi < myi) {
-                                        const beforeText = i18n.t('game.guessLabels.beforeYear');
-                                        label = `${beforeText} ${gyi}`;
-                                    } else if (gyi > myi) {
-                                        const afterText = i18n.t('game.guessLabels.afterYear');
-                                        label = `${afterText} ${gyi}`;
+                                    } else {
+                                        label = `${gyi}`;
                                     }
                                 }
                             }
@@ -1557,12 +1553,8 @@ export class AlbumGuessrGame {
                                 if (!isNaN(gli) && !isNaN(mli)) {
                                     if (gli === mli) {
                                         cls = 'guess-chip-hit';
-                                    } else if (gli < mli) {
-                                        const shorterText = i18n.t('game.guessLabels.shorterThan');
-                                        label = `${shorterText} ${this.formatSeconds(gl)}`;
-                                    } else if (gli > mli) {
-                                        const longerText = i18n.t('game.guessLabels.longerThan');
-                                        label = `${longerText} ${this.formatSeconds(gl)}`;
+                                    } else {
+                                        label = this.formatSeconds(gl);
                                     }
                                 }
                             }

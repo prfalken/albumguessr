@@ -78,16 +78,27 @@ export async function handler(event) {
         ORDER BY ts DESC
         LIMIT 200
       `;
-      const data = rows.map(r => ({
-        objectID: r.object_id,
-        title: r.title,
-        artists: Array.isArray(r.artists) ? r.artists : (r.artists?.array || r.artists) || [],
-        release_year: r.release_year,
-        coverUrl: r.cover_url,
-        guesses: r.guesses,
-        gameMode: r.game_mode || 'random',
-        timestamp: Number(r.ts)
-      }));
+      const data = rows.map(r => {
+        // Normalize game_mode: handle null, undefined, and ensure correct format
+        let gameMode = r.game_mode;
+        if (!gameMode || gameMode === null || gameMode === undefined) {
+          gameMode = 'random';
+        } else {
+          // Ensure it's a string and trim any whitespace
+          gameMode = String(gameMode).trim();
+        }
+        
+        return {
+          objectID: r.object_id,
+          title: r.title,
+          artists: Array.isArray(r.artists) ? r.artists : (r.artists?.array || r.artists) || [],
+          release_year: r.release_year,
+          coverUrl: r.cover_url,
+          guesses: r.guesses,
+          gameMode: gameMode,
+          timestamp: Number(r.ts)
+        };
+      });
       return {
         statusCode: 200,
         headers: { ...baseHeaders, "Content-Type": "application/json" },

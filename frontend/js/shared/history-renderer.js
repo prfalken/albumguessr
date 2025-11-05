@@ -21,17 +21,27 @@ export class HistoryRenderer {
 
     /**
      * Create a game mode badge element
-     * @param {string} gameMode - Game mode ('daily' or 'random')
+     * @param {string} gameMode - Game mode ('daily', 'random', or 'cover-guess')
      * @returns {HTMLElement} Badge element
      */
     createGameModeBadge(gameMode) {
         const badge = document.createElement('span');
         badge.className = 'game-mode-badge';
         
-        if (gameMode === 'daily') {
+        // Normalize gameMode (handle different possible formats)
+        const normalizedMode = gameMode ? String(gameMode).toLowerCase().trim() : 'random';
+        
+        console.log('createGameModeBadge - original:', gameMode, 'normalized:', normalizedMode);
+        
+        if (normalizedMode === 'daily') {
             badge.classList.add('game-mode-daily');
             badge.innerHTML = `<i class="bi bi-calendar-check"></i> ${i18n.t('game.gameModeDaily')}`;
             badge.title = i18n.t('game.gameModeDailyTitle');
+        } else if (normalizedMode === 'cover-guess' || normalizedMode === 'coverguess') {
+            console.log('Creating cover-guess badge');
+            badge.classList.add('game-mode-cover-guess');
+            badge.innerHTML = `<i class="bi bi-image"></i> ${i18n.t('game.gameModeCoverGuess')}`;
+            badge.title = i18n.t('game.gameModeCoverGuessTitle');
         } else {
             badge.classList.add('game-mode-random');
             badge.innerHTML = `<i class="bi bi-shuffle"></i> ${i18n.t('game.gameModeRandom')}`;
@@ -106,6 +116,8 @@ export class HistoryRenderer {
                 
                 // Add game mode badge
                 const gameMode = item.gameMode || 'random';
+                // Debug: log all gameMode values to see what we're getting
+                console.log('History item gameMode:', gameMode, 'item:', item);
                 const badge = this.createGameModeBadge(gameMode);
                 const actionsEl = el.querySelector('.history-actions');
                 if (actionsEl) {
