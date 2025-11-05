@@ -183,7 +183,9 @@ class AlbumGuessrDailyGame extends AlbumGuessrGame {
                         countries: guess.album.countries,
                         contributors: guess.album.contributors,
                         total_length_seconds: guess.album.total_length_seconds,
-                        label: guess.album.label
+                        label: guess.album.label,
+                        is_solo_artist: guess.album.is_solo_artist,
+                        is_group: guess.album.is_group
                     },
                     correct: guess.correct,
                     guessNumber: guess.guessNumber,
@@ -355,7 +357,7 @@ class AlbumGuessrDailyGame extends AlbumGuessrGame {
             const attrs = [
                 'objectID', 'title', 'artists', 'genres', 'release_year', 'countries', 'tags',
                 'contributors', 'rating_value', 'rating_count', 'rating',
-                'cover_art_url', 'label', 'total_length_seconds'
+                'cover_art_url', 'label', 'total_length_seconds', 'is_solo_artist', 'is_group'
             ];
 
             this.mysteryAlbum = await this.algoliaIndex.getObject(objectID, { attributesToRetrieve: attrs });

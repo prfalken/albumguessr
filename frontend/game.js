@@ -497,6 +497,25 @@ export class AlbumGuessrGame {
                 if (album.release_year) parts.push(String(album.release_year));
                 if (album.genres && album.genres.length > 0) parts.push(String(album.genres[0]));
                 if (album.countries && album.countries.length > 0) parts.push(this.getCountryName(album.countries[0]));
+                
+                // Ajouter le type d'artiste (artiste solo ou groupe)
+                // Priorité: is_group > is_solo_artist > fallback sur nombre d'artistes
+                let isSolo = false;
+                if (album.is_group === true) {
+                    isSolo = false;
+                } else if (album.is_solo_artist === true) {
+                    isSolo = true;
+                } else if (album.artists && album.artists.length === 1) {
+                    // Fallback: compter les artistes
+                    isSolo = true;
+                } else {
+                    // Sinon, c'est un groupe (par défaut)
+                    isSolo = false;
+                }
+                const artistTypeKey = isSolo ? 'solo' : 'group';
+                const artistType = i18n.t(`game.artistTypes.${artistTypeKey}`);
+                parts.push(artistType);
+                
                 parts.forEach(text => {
                     const span = document.createElement('span');
                     span.textContent = text;
@@ -757,12 +776,32 @@ export class AlbumGuessrGame {
             // Handle artist_type separately
             if (category.key === 'artist_type') {
                 // Déterminer le type du guess et de l'album mystère
-                const guessIsSolo = guess.is_solo_artist === true || 
-                    (guess.is_solo_artist === undefined && guess.is_group === undefined && 
-                     guess.artists && guess.artists.length === 1);
-                const mysteryIsSolo = mystery.is_solo_artist === true || 
-                    (mystery.is_solo_artist === undefined && mystery.is_group === undefined && 
-                     mystery.artists && mystery.artists.length === 1);
+                // Priorité: is_group > is_solo_artist > fallback sur nombre d'artistes
+                let guessIsSolo = false; // Par défaut, c'est un groupe
+                if (guess.is_group === true) {
+                    guessIsSolo = false;
+                } else if (guess.is_solo_artist === true) {
+                    guessIsSolo = true;
+                } else if (guess.artists && guess.artists.length === 1) {
+                    // Fallback: compter les artistes
+                    guessIsSolo = true;
+                } else {
+                    // Sinon, c'est un groupe (par défaut)
+                    guessIsSolo = false;
+                }
+                
+                let mysteryIsSolo = false; // Par défaut, c'est un groupe
+                if (mystery.is_group === true) {
+                    mysteryIsSolo = false;
+                } else if (mystery.is_solo_artist === true) {
+                    mysteryIsSolo = true;
+                } else if (mystery.artists && mystery.artists.length === 1) {
+                    // Fallback: compter les artistes
+                    mysteryIsSolo = true;
+                } else {
+                    // Sinon, c'est un groupe (par défaut)
+                    mysteryIsSolo = false;
+                }
                 
                 // Si les types correspondent, ajouter le clue
                 if (guessIsSolo === mysteryIsSolo) {
@@ -1109,6 +1148,25 @@ export class AlbumGuessrGame {
         if (artistTypeSet && artistTypeSet.size > 0) {
             const artistTypeCat = GAME_CONFIG.clueCategories.find(c => c.key === 'artist_type');
             if (artistTypeCat) {
+                // Déterminer le type d'artiste de l'album mystère pour afficher la bonne valeur
+                // Priorité: is_group > is_solo_artist > fallback sur nombre d'artistes
+                let mysteryIsSolo = false; // Par défaut, c'est un groupe
+                if (this.mysteryAlbum) {
+                    if (this.mysteryAlbum.is_group === true) {
+                        mysteryIsSolo = false;
+                    } else if (this.mysteryAlbum.is_solo_artist === true) {
+                        mysteryIsSolo = true;
+                    } else if (this.mysteryAlbum.artists && this.mysteryAlbum.artists.length === 1) {
+                        // Fallback: compter les artistes
+                        mysteryIsSolo = true;
+                    } else {
+                        // Sinon, c'est un groupe (par défaut)
+                        mysteryIsSolo = false;
+                    }
+                }
+                const artistTypeKey = mysteryIsSolo ? 'solo' : 'group';
+                const artistType = i18n.t(`game.artistTypes.${artistTypeKey}`);
+                
                 const catEl = this.templates.clueCategory.content.firstElementChild.cloneNode(true);
                 const titleEl = catEl.querySelector('.clue-category-title');
                 if (titleEl) {
@@ -1126,11 +1184,10 @@ export class AlbumGuessrGame {
                     iconEl.className = `bi ${artistTypeCat.icon}`;
                     valuesEl.appendChild(iconEl);
                     
-                    Array.from(artistTypeSet).forEach(value => {
-                        const chip = this.templates.clueValue.content.firstElementChild.cloneNode(true);
-                        chip.textContent = String(value);
-                        valuesEl.appendChild(chip);
-                    });
+                    // Afficher le type correct basé sur l'album mystère
+                    const chip = this.templates.clueValue.content.firstElementChild.cloneNode(true);
+                    chip.textContent = artistType;
+                    valuesEl.appendChild(chip);
                 }
                 container.appendChild(catEl);
             }
@@ -1393,26 +1450,40 @@ export class AlbumGuessrGame {
                         
                         if (catKey === 'artist_type') {
                             // Déterminer le type d'artiste du guess et de l'album mystère
-                            // Utiliser is_solo_artist/is_group depuis Algolia, sinon fallback sur le nombre d'artistes
-                            const guessIsSolo = guess.album.is_solo_artist === true || 
-                                (guess.album.is_solo_artist === undefined && guess.album.is_group === undefined && 
-                                 guess.album.artists && guess.album.artists.length === 1);
-                            const guessIsGroup = guess.album.is_group === true || 
-                                (guess.album.is_solo_artist === undefined && guess.album.is_group === undefined && 
-                                 guess.album.artists && guess.album.artists.length > 1);
+                            // Priorité: is_group > is_solo_artist > fallback sur nombre d'artistes
+                            const guessAlbum = guess.album;
+                            let guessIsSolo = false; // Par défaut, c'est un groupe
                             
-                            const mysteryIsSolo = this.mysteryAlbum && (
-                                this.mysteryAlbum.is_solo_artist === true || 
-                                (this.mysteryAlbum.is_solo_artist === undefined && this.mysteryAlbum.is_group === undefined && 
-                                 this.mysteryAlbum.artists && this.mysteryAlbum.artists.length === 1)
-                            );
-                            const mysteryIsGroup = this.mysteryAlbum && (
-                                this.mysteryAlbum.is_group === true || 
-                                (this.mysteryAlbum.is_solo_artist === undefined && this.mysteryAlbum.is_group === undefined && 
-                                 this.mysteryAlbum.artists && this.mysteryAlbum.artists.length > 1)
-                            );
+                            if (guessAlbum) {
+                                if (guessAlbum.is_group === true) {
+                                    guessIsSolo = false;
+                                } else if (guessAlbum.is_solo_artist === true) {
+                                    guessIsSolo = true;
+                                } else if (guessAlbum.artists && guessAlbum.artists.length === 1) {
+                                    // Fallback: compter les artistes
+                                    guessIsSolo = true;
+                                } else {
+                                    // Sinon, c'est un groupe (par défaut)
+                                    guessIsSolo = false;
+                                }
+                            }
                             
-                            const isMatch = (guessIsSolo && mysteryIsSolo) || (guessIsGroup && mysteryIsGroup);
+                            let mysteryIsSolo = false; // Par défaut, c'est un groupe
+                            if (this.mysteryAlbum) {
+                                if (this.mysteryAlbum.is_group === true) {
+                                    mysteryIsSolo = false;
+                                } else if (this.mysteryAlbum.is_solo_artist === true) {
+                                    mysteryIsSolo = true;
+                                } else if (this.mysteryAlbum.artists && this.mysteryAlbum.artists.length === 1) {
+                                    // Fallback: compter les artistes
+                                    mysteryIsSolo = true;
+                                } else {
+                                    // Sinon, c'est un groupe (par défaut)
+                                    mysteryIsSolo = false;
+                                }
+                            }
+                            
+                            const isMatch = guessIsSolo === mysteryIsSolo;
                             // Afficher le type du guess (pas celui de l'album mystère)
                             const guessArtistTypeKey = guessIsSolo ? 'solo' : 'group';
                             const guessArtistType = i18n.t(`game.artistTypes.${guessArtistTypeKey}`);
