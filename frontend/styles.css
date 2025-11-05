@@ -1745,11 +1745,11 @@ footer .contenu {
         box-sizing: border-box;
     }
     
-    /* Cover guess wrapper - full width to adapt to window */
+    /* Cover guess wrapper - ensure proper centering */
     .game-container .cover-guess-wrapper {
-        margin-left: -1rem;
-        margin-right: -1rem;
-        width: calc(100% + 2rem);
+        margin-left: 0;
+        margin-right: 0;
+        width: 100%;
         padding: 0;
         box-sizing: border-box;
     }
@@ -1763,21 +1763,6 @@ footer .contenu {
         flex-direction: column;
         align-items: center;
         box-sizing: border-box;
-    }
-    
-    .cover-guess-wrapper .cover-reveal-container {
-        width: calc(100% - 2rem) !important;
-        max-width: calc(100% - 2rem) !important;
-    }
-    
-    .cover-guess-wrapper .search-container {
-        width: calc(100% - 2rem) !important;
-        max-width: calc(100% - 2rem) !important;
-    }
-    
-    .cover-guess-wrapper .next-hint-btn-small {
-        width: calc(100% - 2rem) !important;
-        max-width: calc(100% - 2rem) !important;
     }
     
     /* Adjust padding for containers that already have their own padding to avoid double padding */
@@ -3211,11 +3196,15 @@ footer .contenu {
     .cover-reveal-container {
         max-width: 100%;
         width: 100%;
+        margin-left: auto;
+        margin-right: auto;
     }
     
     .cover-guess-wrapper .search-container {
         max-width: 100%;
         width: 100%;
+        margin-left: auto;
+        margin-right: auto;
     }
     
     .cover-guess-wrapper .search-results {
@@ -3226,6 +3215,45 @@ footer .contenu {
     .cover-guess-wrapper .next-hint-btn-small {
         max-width: 100%;
         width: 100%;
+        margin-left: auto;
+        margin-right: auto;
+    }
+}
+
+@media (max-width: 640px) {
+    .cover-guess-wrapper {
+        padding: 0 1rem;
+        width: 100%;
+        max-width: 100%;
+        margin-left: auto;
+        margin-right: auto;
+        align-items: center;
+    }
+    
+    .cover-reveal-container {
+        max-width: calc(100% - 2rem);
+        width: calc(100% - 2rem);
+        margin-left: auto;
+        margin-right: auto;
+    }
+    
+    .cover-guess-wrapper .search-container {
+        max-width: calc(100% - 2rem);
+        width: calc(100% - 2rem);
+        margin-left: auto;
+        margin-right: auto;
+    }
+    
+    .cover-guess-wrapper .search-results {
+        max-width: 100%;
+        width: 100%;
+    }
+    
+    .cover-guess-wrapper .next-hint-btn-small {
+        max-width: calc(100% - 2rem);
+        width: calc(100% - 2rem);
+        margin-left: auto;
+        margin-right: auto;
     }
 }
 
@@ -3234,16 +3262,23 @@ footer .contenu {
         padding: 0 1rem;
         width: 100%;
         max-width: 100%;
+        margin-left: auto;
+        margin-right: auto;
+        align-items: center;
     }
     
     .cover-reveal-container {
-        max-width: 100%;
-        width: 100%;
+        max-width: calc(100% - 2rem);
+        width: calc(100% - 2rem);
+        margin-left: auto;
+        margin-right: auto;
     }
     
     .cover-guess-wrapper .search-container {
-        max-width: 100%;
-        width: 100%;
+        max-width: calc(100% - 2rem);
+        width: calc(100% - 2rem);
+        margin-left: auto;
+        margin-right: auto;
     }
     
     .cover-guess-wrapper .search-results {
@@ -3252,8 +3287,10 @@ footer .contenu {
     }
     
     .cover-guess-wrapper .next-hint-btn-small {
-        max-width: 100%;
-        width: 100%;
+        max-width: calc(100% - 2rem);
+        width: calc(100% - 2rem);
+        margin-left: auto;
+        margin-right: auto;
     }
     
     /* Ensure victory buttons are visible in cover-guess */
