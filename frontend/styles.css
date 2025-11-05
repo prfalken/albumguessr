@@ -1300,8 +1300,9 @@ footer .contenu {
 
 /* Style spécifique pour le bouton de connexion */
 #btn-login.footer-button {
-    background: black;
-    color: white;
+    background: transparent;
+    color: black;
+    border: 1px solid black;
 }
 
 #btn-login.footer-button:hover {

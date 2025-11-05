@@ -18,7 +18,7 @@ class I18nManager {
                     reportBug: 'Report a Bug'
                 },
                 auth: {
-                    login: 'Log in',
+                    login: 'Connection / Sign up',
                     logout: 'Log out',
                     viewProfile: 'View Profile'
                 },
@@ -312,7 +312,7 @@ class I18nManager {
                     reportBug: 'Signaler un bug'
                 },
                 auth: {
-                    login: 'Se connecter',
+                    login: 'Connexion / Inscription',
                     logout: 'Se déconnecter',
                     viewProfile: 'Voir le profil'
                 },
@@ -606,7 +606,7 @@ class I18nManager {
                     reportBug: 'Reportar un error'
                 },
                 auth: {
-                    login: 'Iniciar sesión',
+                    login: 'Conexión / Registro',
                     logout: 'Cerrar sesión',
                     viewProfile: 'Ver perfil'
                 },
