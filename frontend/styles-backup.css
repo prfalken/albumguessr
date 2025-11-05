@@ -1,32 +1,45 @@
-/* ============================================================================
-   TABLE DES MATIÈRES
-   ========================================================================= */
-/*
-  1. VARIABLES CSS
-  2. RESET & BASE
-  3. LAYOUT
-  4. COMPOSANTS
-     4.1 Header & Navigation
-     4.2 Boutons
-     4.3 Formulaires
-     4.4 Modales
-     4.5 Recherche
-  5. PAGES SPÉCIFIQUES
-     5.1 Jeu
-     5.2 Profil
-     5.3 Classement
-     5.4 Admin
-     5.5 Cover Guess
-     5.6 Calendrier (Past Dailies)
-  6. ANIMATIONS
-  7. UTILITIES
-  8. MEDIA QUERIES (RESPONSIVE)
-*/
+.site-nav {
+    position: relative;
+    display: block;
+    width: 100%;
+}
+.site-nav .nav-list {
+    display: none;
+    flex-direction: column;
+    align-items: stretch;
+    padding: 3px;
+    gap: 3px 0;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: auto;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    z-index: 10;
+    min-width: 0;
+    width: max-content;
+    white-space: nowrap;
+}
+.site-nav.open .nav-list {
+    display: flex;
+}
 
-/* ============================================================================
-   1. VARIABLES CSS
-   ========================================================================= */
+/* Make inactive items take full dropdown width like active */
+.site-nav .nav-list .nav-link {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    width: 100%;
+    text-align: left;
+    box-sizing: border-box;
+}
 
+/* Ensure each list item spans the same width */
+.site-nav .nav-list .nav-item {
+    width: 100%;
+}
 :root {
     --primary-color: #ffffff;
     --primary-dark: #4f46e5;
@@ -48,10 +61,6 @@
     --radius: 0.5rem;
     --radius-lg: 10px;
 }
-
-/* ============================================================================
-   2. RESET & BASE
-   ========================================================================= */
 
 * {
     margin: 0;
@@ -75,9 +84,7 @@ body {
     overflow-x: hidden;
 }
 
-/* ============================================================================
-   3. LAYOUT
-   ========================================================================= */
+
 
 .container {
     /* max-width: 1200px; */
@@ -88,61 +95,7 @@ body {
     flex-direction: column;
 }
 
-/* ============================================================================
-   4. COMPOSANTS
-   ========================================================================= */
-
-/* ----------------------------------------------------------------------------
-   4.1 Header & Navigation
-   ---------------------------------------------------------------------------- */
-
-/* Site Navigation - Mobile Burger Menu */
-.site-nav {
-    position: relative;
-    display: block;
-    width: 100%;
-}
-
-.site-nav .nav-list {
-    display: none;
-    flex-direction: column;
-    align-items: stretch;
-    padding: 3px;
-    gap: 3px 0;
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: auto;
-    background: #fff;
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    z-index: 10;
-    min-width: 0;
-    width: max-content;
-    white-space: nowrap;
-}
-
-.site-nav.open .nav-list {
-    display: flex;
-}
-
-/* Make inactive items take full dropdown width like active */
-.site-nav .nav-list .nav-link {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    width: 100%;
-    text-align: left;
-    box-sizing: border-box;
-}
-
-/* Ensure each list item spans the same width */
-.site-nav .nav-list .nav-item {
-    width: 100%;
-}
-
-/* Header */
+/* Header Styles */
 header {
     text-align: center;
     width:100%;
@@ -270,10 +223,6 @@ header .contenu {
     color: #000 !important;
 }
 
-/* ============================================================================
-   7. UTILITIES
-   ========================================================================= */
-
 .visually-hidden {
     position: absolute;
     width: 1px;
@@ -298,10 +247,7 @@ header .contenu {
     font-size: 1.1rem;
 }
 
-/* ----------------------------------------------------------------------------
-   4.2 Boutons (Buttons)
-   ---------------------------------------------------------------------------- */
-
+/* Navigation Buttons */
 .nav-buttons-container {
     display: flex;
     justify-content: center;
@@ -396,23 +342,12 @@ header .contenu {
     text-decoration: none;
 }
 
-/* ============================================================================
-   6. ANIMATIONS
-   ========================================================================= */
-
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
 
-/* ============================================================================
-   5. PAGES SPÉCIFIQUES
-   ========================================================================= */
-
-/* ----------------------------------------------------------------------------
-   5.1 Jeu (Game)
-   ---------------------------------------------------------------------------- */
-
+/* Game Container */
 .game-container,
 main {
     flex: 1;
@@ -570,10 +505,7 @@ main {
     font-weight: 500;
 }
 
-/* ----------------------------------------------------------------------------
-   4.5 Recherche (Search)
-   ---------------------------------------------------------------------------- */
-
+/* Search Container */
 .search-container {
     position: relative;
 }
@@ -1161,10 +1093,7 @@ main {
     }
 }
 
-/* ----------------------------------------------------------------------------
-   4.4 Modales (Modals)
-   ---------------------------------------------------------------------------- */
-
+/* Modal Styles */
 .modal {
     position: fixed;
     top: 0;
@@ -1346,10 +1275,7 @@ main {
     font-style: italic;
 }
 
-/* ----------------------------------------------------------------------------
-   How to Play / Instructions
-   ---------------------------------------------------------------------------- */
-
+/* Instructions */
 .instructions,
 .instructions-container {
     display: flex;
@@ -1432,9 +1358,7 @@ main {
     font-weight: bold;
 }
 
-/* ----------------------------------------------------------------------------
-   4.6 Footer
-   ---------------------------------------------------------------------------- */
+/* Footer */
 
 #site-footer {
     margin-top: auto;
@@ -1860,10 +1784,7 @@ footer .contenu {
     font-weight: 500;
 }
 
-/* ============================================================================
-   8. MEDIA QUERIES (RESPONSIVE)
-   ========================================================================= */
-
+/* Responsive Design */
 @media (max-width: 640px) {
     .container {
         padding: 0;
@@ -1994,10 +1915,7 @@ footer .contenu {
     }
 }
 
-/* ----------------------------------------------------------------------------
-   5.6 Calendrier - Past Dailies
-   ---------------------------------------------------------------------------- */
-
+/* Calendar Styles for Past Dailies */
 .calendar-container {
     display: flex;
     flex-direction: column;
@@ -2380,10 +2298,7 @@ footer .contenu {
 
 }
 
-/* ----------------------------------------------------------------------------
-   5.2 Profil (Profile)
-   ---------------------------------------------------------------------------- */
-
+/* Profile Page Styles */
 .avatar-link {
     display: inline-block;
     border-radius: 50%;
@@ -2472,10 +2387,6 @@ footer .contenu {
     gap: 1rem;
     max-width: 400px;
 }
-
-/* ----------------------------------------------------------------------------
-   4.3 Formulaires (Forms)
-   ---------------------------------------------------------------------------- */
 
 .form-group {
     display: flex;
@@ -2657,9 +2568,9 @@ footer .contenu {
     }
 }
 
-/* ----------------------------------------------------------------------------
-   5.4 Admin Dashboard
-   ---------------------------------------------------------------------------- */
+/* ============================================
+   Admin Dashboard Styles
+   ============================================ */
 
 .admin-form-content {
     padding: 1.5rem;
@@ -3176,10 +3087,7 @@ footer .contenu {
     }
 }
 
-/* ----------------------------------------------------------------------------
-   5.3 Classement (Ranking)
-   ---------------------------------------------------------------------------- */
-
+/* Ranking Page Styles */
 .ranking-container {
     display: flex;
     flex-direction: column;
@@ -3328,10 +3236,7 @@ footer .contenu {
     overflow: hidden;
 }
 
-/* ----------------------------------------------------------------------------
-   5.5 Cover Guess
-   ---------------------------------------------------------------------------- */
-
+/* Cover Guess Game Styles */
 .cover-guess-wrapper {
     display: flex;
     flex-direction: column;
