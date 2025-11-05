@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n-title="pageTitles.howToPlay">AlbumGuessr - How to Play</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+</head>
+<body>
+    <div class="container">
+        <div id="site-header"></div>
+        
+        <main id="main-content" class="game-container">
+            <div class="content-grid">
+                <div class="main-column">
+                    <h1 data-i18n="howToPlay.title">Comment jouer</h1>
+                    
+                    <!-- Album du jour / Random Album -->
+                    <section class="how-to-play-section">
+                        <h2 data-i18n="howToPlay.dailyGame.title">Album du jour / Album aléatoire</h2>
+                        
+                        <div class="instructions-container">
+                            <div class="instruction">
+                                <i class="bi bi-search"></i>
+                                <div>
+                                    <h3 data-i18n="howToPlay.dailyGame.search.title">Rechercher et soumettre</h3>
+                                    <p data-i18n="howToPlay.dailyGame.search.text">Tapez le nom d'un album ou d'un artiste ou groupe dans le champ de recherche. Sélectionnez un résultat dans la liste et soumettez-le comme tentative.</p>
+                                </div>
+                            </div>
+                            <div class="instruction">
+                                <i class="bi bi-lightbulb"></i>
+                                <div>
+                                    <h3 data-i18n="howToPlay.dailyGame.reveal.title">Révéler les indices</h3>
+                                    <p data-i18n="howToPlay.dailyGame.reveal.text">Chaque tentative révèle les attributs partagés avec l'album mystère : artiste(s), genre(s), année, label, pays, durée, etc. Les similitudes sont mise en avant, ce qui ne correspont pas est barré.</p>
+                                </div>
+                            </div>
+                            <div class="instruction">
+                                <i class="bi bi-puzzle"></i>
+                                <div>
+                                    <h3 data-i18n="howToPlay.dailyGame.narrow.title">Affiner la recherche</h3>
+                                    <p data-i18n="howToPlay.dailyGame.narrow.text">Utilisez les indices accumulés pour éliminer les possibilités et vous rapprocher de l'album mystère. Plus vous faites de tentatives, plus vous accumulez d'indices !</p>
+                                </div>
+                            </div>
+                            <div class="instruction">
+                                <i class="bi bi-trophy"></i>
+                                <div>
+                                    <h3 data-i18n="howToPlay.dailyGame.find.title">Trouver l'album mystère</h3>
+                                    <p data-i18n="howToPlay.dailyGame.find.text">Quand vous identifiez le bon album, vous gagnez ! Un nouveau mystère vous attend chaque jour (album du jour) ou à chaque actualisation (album aléatoire).</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="guess-item">
+                            <h4 data-i18n="howToPlay.dailyGame.rules">Règles du jeu</h4>
+                            <ul>
+                                <li data-i18n="howToPlay.dailyGame.rule1">Aucune limite de tentatives — explorez autant que vous le souhaitez</li>
+                                <li data-i18n="howToPlay.dailyGame.rule2">Les indices montrent uniquement les similitudes, jamais les différences</li>
+                                <li data-i18n="howToPlay.dailyGame.rule3">Un album mystère par jour (album du jour) ou à chaque actualisation (album aléatoire)</li>
+                                <li data-i18n="howToPlay.dailyGame.rule5">La progression est sauvegardée uniquement si vous êtes connecté</li>
+                            </ul>
+                        </div>
+                    </section>
+                    
+                    <!-- Cover Guess -->
+                    <section class="how-to-play-section">
+                        <h2 data-i18n="howToPlay.coverGuess.title">Devine la Pochette</h2>
+                        
+                        <div class="instructions-container">
+                            <div class="instruction">
+                                <i class="bi bi-grid-3x3-gap"></i>
+                                <div>
+                                    <h3 data-i18n="howToPlay.coverGuess.grid.title">Grille 4x4</h3>
+                                    <p data-i18n="howToPlay.coverGuess.grid.text">La pochette de l'album mystère est cachée dans une grille de 16 carrés (4x4). Au début, un carré est révélé.</p>
+                                </div>
+                            </div>
+                            <div class="instruction">
+                                <i class="bi bi-eye"></i>
+                                <div>
+                                    <h3 data-i18n="howToPlay.coverGuess.reveal.title">Révéler les carrés</h3>
+                                    <p data-i18n="howToPlay.coverGuess.reveal.text">Chaque tentative révèle un nouveau carré de la pochette dans un ordre aléatoire. Utilisez le bouton "Révéler le prochain carré" pour obtenir un indice supplémentaire. Attention, chaque carré révélé retire 1 point à votre total de départ qui est de 15 points.</p>
+                                </div>
+                            </div>
+                            <div class="instruction">
+                                <i class="bi bi-search"></i>
+                                <div>
+                                    <h3 data-i18n="howToPlay.coverGuess.search.title">Rechercher l'album</h3>
+                                    <p data-i18n="howToPlay.coverGuess.search.text">Tapez le nom d'un album ou d'un artiste dans le champ de recherche et soumettez votre tentative. Plus vous révélez de carrés, plus vous avez d'indices visuels !</p>
+                                </div>
+                            </div>
+                            <div class="instruction">
+                                <i class="bi bi-trophy-fill"></i>
+                                <div>
+                                    <h3 data-i18n="howToPlay.coverGuess.points.title">Système de points</h3>
+                                    <p data-i18n="howToPlay.coverGuess.points.text">Vous partez avec un total de 15 points. Plus vous trouvez rapidement l'album, plus vous gagnez de points ! Chaque carré découvert vous retire 1 point à votre total donc moins de tentatives et moins de carrés révélés = plus de points. Un classement est disponible pour voir votre position.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="guess-item">
+                            <h4 data-i18n="howToPlay.coverGuess.rules">Règles du jeu</h4>
+                            <ul>
+                                <li data-i18n="howToPlay.coverGuess.rule1">Aucune limite journalière, jouez autant que vous voulez</li>
+                                <li data-i18n="howToPlay.coverGuess.rule2">Vous pouvez révéler jusqu'à 16 carrés (toute la pochette)</li>
+                                <li data-i18n="howToPlay.coverGuess.rule3">Les points sont calculés selon le nombre de tentatives et de carrés révélés</li>
+                                <li data-i18n="howToPlay.coverGuess.rule4">Un nouveau mystère à chaque actualisation</li>
+                                <li data-i18n="howToPlay.coverGuess.rule5">Vous devez être connecté pour participer au classement</li>
+                            </ul>
+                        </div>
+                    </section>
+                    
+                </div>
+            </div>
+        </main>
+
+        <div id="site-footer"></div>
+    </div>
+
+    <script src="https://cdn.auth0.com/js/auth0-spa-js/2.1/auth0-spa-js.production.js"></script>
+    <script src="config.js"></script>
+    <script src="includes.js"></script>
+    <script src="nav.js"></script>
+    <script src="js/shared/i18n.js"></script>
+    <script type="module" src="how-to-play.js"></script>
+</body>
+</html>
+

@@ -11,7 +11,8 @@ class I18nManager {
                     albumOfDay: 'Album of the Day',
                     randomAlbum: 'Random album',
                     coverGuess: 'Cover Guess',
-                    ranking: 'Ranking',
+                    ranking: 'Daily Album Ranking',
+                    coverGuessRanking: 'Cover Guess Ranking',
                     archives: 'All albums',
                     profile: 'Profile',
                     myStatistics: 'My statistics',
@@ -219,7 +220,7 @@ class I18nManager {
                     days: 'days'
                 },
                 ranking: {
-                    title: 'Daily Ranking',
+                    title: 'Daily Album Ranking',
                     subtitle: 'Top players of the day',
                     subtitleDetail: 'Here are the players who found the daily album the fastest.',
                     rank: 'Rank',
@@ -289,12 +290,65 @@ class I18nManager {
                     howToPlay: 'How to play',
                     tagline: 'A musical deduction game • Inspired by'
                 },
+                howToPlay: {
+                    title: 'How to Play',
+                    dailyGame: {
+                        title: 'Album of the Day / Random Album',
+                        search: {
+                            title: 'Search and submit',
+                            text: 'Type the name of an album or an artist or group in the search field. Select a result from the list and submit it as a guess.'
+                        },
+                        reveal: {
+                            title: 'Reveal clues',
+                            text: 'Each guess reveals attributes shared with the mystery album: artist(s), genre(s), year, label, country, duration, etc. Clues only show similarities, never differences.'
+                        },
+                        narrow: {
+                            title: 'Narrow it down',
+                            text: 'Use accumulated clues to eliminate possibilities and get closer to the mystery album. The more guesses you make, the more clues you accumulate!'
+                        },
+                        find: {
+                            title: 'Find the mystery album',
+                            text: 'When you identify the right album, you win! A new mystery awaits every day (album of the day) or on each refresh (random album).'
+                        },
+                        rules: 'Game rules',
+                        rule1: 'No limit on guesses — explore as much as you like',
+                        rule2: 'Clues only show similarities, never differences',
+                        rule3: 'One mystery album per day (album of the day) or on each refresh (random album)',
+                        rule5: 'Progress is only saved if you are logged in'
+                    },
+                    coverGuess: {
+                        title: 'Cover Guess',
+                        grid: {
+                            title: '4x4 Grid',
+                            text: 'The mystery album cover is hidden in a 16-square grid (4x4). At the start, one square is revealed.'
+                        },
+                        reveal: {
+                            title: 'Reveal squares',
+                            text: 'Each guess reveals a new square of the cover in random order. Use the "Reveal next square" button to get an additional clue. Note: each revealed square deducts 1 point from your starting total of 15 points.'
+                        },
+                        search: {
+                            title: 'Search for the album',
+                            text: 'Type the name of an album or an artist in the search field and submit your guess. The more squares you reveal, the more visual clues you have!'
+                        },
+                        points: {
+                            title: 'Points system',
+                            text: 'You start with a total of 15 points. The faster you find the album, the more points you earn! Each discovered square deducts 1 point from your total, so fewer guesses and fewer revealed squares = more points. A ranking is available to see your position.'
+                        },
+                        rules: 'Game rules',
+                        rule1: 'No daily limit, play as much as you want',
+                        rule2: 'You can reveal up to 16 squares (the entire cover)',
+                        rule3: 'Points are calculated based on the number of guesses and revealed squares',
+                        rule4: 'A new mystery on each refresh',
+                        rule5: 'You must be logged in to participate in the ranking'
+                    }
+                },
                 pageTitles: {
                     albumOfDay: 'AlbumGuessr - Album of the Day',
                     randomAlbum: 'AlbumGuessr - Discover the mystery album',
                     coverGuess: 'AlbumGuessr - Cover Guess',
+                    howToPlay: 'AlbumGuessr - How to Play',
                     profile: 'AlbumGuessr - Profile',
-                    ranking: 'AlbumGuessr - Daily Ranking',
+                    ranking: 'AlbumGuessr - Daily Album Ranking',
                     statistics: 'AlbumGuessr - Statistics',
                     admin: 'AlbumGuessr - Admin Dashboard',
                     reportBug: 'AlbumGuessr - Report a Bug'
@@ -305,7 +359,8 @@ class I18nManager {
                     albumOfDay: 'Album du jour',
                     randomAlbum: 'Album aléatoire',
                     coverGuess: 'Devine la Pochette',
-                    ranking: 'Classement',
+                    ranking: 'Classement album du jour',
+                    coverGuessRanking: 'Classement Cover guess',
                     archives: 'Les anciens albums du jour',
                     profile: 'Profil',
                     myStatistics: 'Mes statistiques',
@@ -513,7 +568,7 @@ class I18nManager {
                     days: 'jours'
                 },
                 ranking: {
-                    title: 'Classement du jour',
+                    title: 'Classement album du jour',
                     subtitle: 'Meilleurs joueurs du jour',
                     subtitleDetail: 'Voici les joueurs qui ont trouvé l\'album du jour le plus rapidement.',
                     rank: 'Rang',
@@ -583,12 +638,65 @@ class I18nManager {
                     howToPlay: 'Comment jouer',
                     tagline: 'Un jeu musical de déduction • Inspiré de'
                 },
+                howToPlay: {
+                    title: 'Comment jouer',
+                    dailyGame: {
+                        title: 'Album du jour / Album aléatoire',
+                        search: {
+                            title: 'Rechercher et soumettre',
+                            text: 'Tapez le nom d\'un album ou d\'un artiste ou groupe dans le champ de recherche. Sélectionnez un résultat dans la liste et soumettez-le comme tentative.'
+                        },
+                        reveal: {
+                            title: 'Révéler les indices',
+                            text: 'Chaque tentative révèle les attributs partagés avec l\'album mystère : artiste(s), genre(s), année, label, pays, durée, etc. Les indices montrent uniquement les similitudes, jamais les différences.'
+                        },
+                        narrow: {
+                            title: 'Affiner la recherche',
+                            text: 'Utilisez les indices accumulés pour éliminer les possibilités et vous rapprocher de l\'album mystère. Plus vous faites de tentatives, plus vous accumulez d\'indices !'
+                        },
+                        find: {
+                            title: 'Trouver l\'album mystère',
+                            text: 'Quand vous identifiez le bon album, vous gagnez ! Un nouveau mystère vous attend chaque jour (album du jour) ou à chaque actualisation (album aléatoire).'
+                        },
+                        rules: 'Règles du jeu',
+                        rule1: 'Aucune limite de tentatives — explorez autant que vous le souhaitez',
+                        rule2: 'Les indices montrent uniquement les similitudes, jamais les différences',
+                        rule3: 'Un album mystère par jour (album du jour) ou à chaque actualisation (album aléatoire)',
+                        rule5: 'La progression est sauvegardée uniquement si vous êtes connecté'
+                    },
+                    coverGuess: {
+                        title: 'Devine la Pochette',
+                        grid: {
+                            title: 'Grille 4x4',
+                            text: 'La pochette de l\'album mystère est cachée dans une grille de 16 carrés (4x4). Au début, un carré est révélé.'
+                        },
+                        reveal: {
+                            title: 'Révéler les carrés',
+                            text: 'Chaque tentative révèle un nouveau carré de la pochette dans un ordre aléatoire. Utilisez le bouton "Révéler le prochain carré" pour obtenir un indice supplémentaire. Attention, chaque carré révélé retire 1 point à votre total de départ qui est de 15 points.'
+                        },
+                        search: {
+                            title: 'Rechercher l\'album',
+                            text: 'Tapez le nom d\'un album ou d\'un artiste dans le champ de recherche et soumettez votre tentative. Plus vous révélez de carrés, plus vous avez d\'indices visuels !'
+                        },
+                        points: {
+                            title: 'Système de points',
+                            text: 'Vous partez avec un total de 15 points. Plus vous trouvez rapidement l\'album, plus vous gagnez de points ! Chaque carré découvert vous retire 1 point à votre total donc moins de tentatives et moins de carrés révélés = plus de points. Un classement est disponible pour voir votre position.'
+                        },
+                        rules: 'Règles du jeu',
+                        rule1: 'Aucune limite journalière, jouez autant que vous voulez',
+                        rule2: 'Vous pouvez révéler jusqu\'à 16 carrés (toute la pochette)',
+                        rule3: 'Les points sont calculés selon le nombre de tentatives et de carrés révélés',
+                        rule4: 'Un nouveau mystère à chaque actualisation',
+                        rule5: 'Vous devez être connecté pour participer au classement'
+                    }
+                },
                 pageTitles: {
                     albumOfDay: 'AlbumGuessr - Album du jour',
                     randomAlbum: 'AlbumGuessr - Découvrez l\'album mystère',
                     coverGuess: 'AlbumGuessr - Devine la Pochette',
+                    howToPlay: 'AlbumGuessr - Comment jouer',
                     profile: 'AlbumGuessr - Profil',
-                    ranking: 'AlbumGuessr - Classement du jour',
+                    ranking: 'AlbumGuessr - Classement album du jour',
                     statistics: 'AlbumGuessr - Statistiques',
                     admin: 'AlbumGuessr - Administration',
                     reportBug: 'AlbumGuessr - Signaler un bug'
@@ -599,7 +707,8 @@ class I18nManager {
                     albumOfDay: 'Álbum del día',
                     randomAlbum: 'Álbum aleatorio',
                     coverGuess: 'Adivina la Portada',
-                    ranking: 'Clasificación',
+                    ranking: 'Clasificación del álbum del día',
+                    coverGuessRanking: 'Clasificación Cover Guess',
                     archives: 'Todos los álbumes',
                     profile: 'Perfil',
                     myStatistics: 'Mis estadísticas',
@@ -877,12 +986,65 @@ class I18nManager {
                     howToPlay: 'Cómo jugar',
                     tagline: 'Un juego musical de deducción • Inspirado en'
                 },
+                howToPlay: {
+                    title: 'Cómo jugar',
+                    dailyGame: {
+                        title: 'Álbum del día / Álbum aleatorio',
+                        search: {
+                            title: 'Buscar y enviar',
+                            text: 'Escribe el nombre de un álbum o un artista o grupo en el campo de búsqueda. Selecciona un resultado de la lista y envíalo como intento.'
+                        },
+                        reveal: {
+                            title: 'Revelar pistas',
+                            text: 'Cada intento revela los atributos compartidos con el álbum misterioso: artista(s), género(s), año, sello, país, duración, etc. Las pistas solo muestran similitudes, nunca diferencias.'
+                        },
+                        narrow: {
+                            title: 'Reducir opciones',
+                            text: 'Usa las pistas acumuladas para eliminar posibilidades y acercarte al álbum misterioso. ¡Cuántos más intentos hagas, más pistas acumularás!'
+                        },
+                        find: {
+                            title: 'Encontrar el álbum misterioso',
+                            text: '¡Cuando identifies el álbum correcto, ganas! Un nuevo misterio te espera cada día (álbum del día) o en cada actualización (álbum aleatorio).'
+                        },
+                        rules: 'Reglas del juego',
+                        rule1: 'Sin límite de intentos — explora todo lo que quieras',
+                        rule2: 'Las pistas solo muestran similitudes, nunca diferencias',
+                        rule3: 'Un álbum misterioso por día (álbum del día) o en cada actualización (álbum aleatorio)',
+                        rule5: 'El progreso solo se guarda si estás conectado'
+                    },
+                    coverGuess: {
+                        title: 'Adivina la Portada',
+                        grid: {
+                            title: 'Cuadrícula 4x4',
+                            text: 'La portada del álbum misterioso está oculta en una cuadrícula de 16 cuadrados (4x4). Al inicio, un cuadrado está revelado.'
+                        },
+                        reveal: {
+                            title: 'Revelar cuadrados',
+                            text: 'Cada intento revela un nuevo cuadrado de la portada en orden aleatorio. Usa el botón "Revelar siguiente cuadrado" para obtener una pista adicional. Atención, cada cuadrado revelado resta 1 punto de tu total inicial que es de 15 puntos.'
+                        },
+                        search: {
+                            title: 'Buscar el álbum',
+                            text: 'Escribe el nombre de un álbum o un artista en el campo de búsqueda y envía tu intento. ¡Cuántos más cuadrados reveles, más pistas visuales tendrás!'
+                        },
+                        points: {
+                            title: 'Sistema de puntos',
+                            text: 'Empiezas con un total de 15 puntos. ¡Cuanto más rápido encuentres el álbum, más puntos ganas! Cada cuadrado descubierto te resta 1 punto de tu total, por lo que menos intentos y menos cuadrados revelados = más puntos. Hay un ranking disponible para ver tu posición.'
+                        },
+                        rules: 'Reglas del juego',
+                        rule1: 'Sin límite diario, juega cuanto quieras',
+                        rule2: 'Puedes revelar hasta 16 cuadrados (toda la portada)',
+                        rule3: 'Los puntos se calculan según el número de intentos y cuadrados revelados',
+                        rule4: 'Un nuevo misterio en cada actualización',
+                        rule5: 'Debes estar conectado para participar en el ranking'
+                    }
+                },
                 pageTitles: {
                     albumOfDay: 'AlbumGuessr - Álbum del día',
                     randomAlbum: 'AlbumGuessr - Descubre el álbum misterioso',
                     coverGuess: 'AlbumGuessr - Adivina la Portada',
+                    howToPlay: 'AlbumGuessr - Cómo jugar',
                     profile: 'AlbumGuessr - Perfil',
-                    ranking: 'AlbumGuessr - Clasificación diaria',
+                    ranking: 'AlbumGuessr - Clasificación del álbum del día',
                     statistics: 'AlbumGuessr - Estadísticas',
                     admin: 'AlbumGuessr - Panel de administración',
                     reportBug: 'AlbumGuessr - Reportar un error'

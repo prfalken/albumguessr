@@ -119,9 +119,10 @@ header .contenu {
 
 
 .logo {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: inline-block;
+    line-height: 0;
+    padding: 0;
+    margin: 0;
 }
 
 .logo i {
@@ -374,6 +375,12 @@ main {
     max-width: 900px;
     width: 100%;
     margin: 0 auto;
+}
+
+.main-column h1 {
+    color: white;
+    text-align: center;
+    padding-bottom: 2rem;
 }
 
 /* Statistics Page Grid */
@@ -863,6 +870,36 @@ main {
     display: none;
 }
 
+/* Styles for guess-item when used for rules */
+.guess-item h4 {
+    margin-bottom: 1rem;
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.guess-item ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0;
+}
+
+.guess-item li {
+    color: var(--text-secondary);
+    position: relative;
+    padding-left: 1.5rem;
+}
+
+.guess-item li::before {
+    content: "•";
+    color: var(--primary-color);
+    position: absolute;
+    left: 0;
+    font-weight: bold;
+}
+
 /* Victory guess uses same styles as mystery-album in modal */
 .guess-item.victory .mystery-album {
     background: transparent;
@@ -1239,11 +1276,31 @@ main {
 }
 
 /* Instructions */
-.instructions {
+.instructions,
+.instructions-container {
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
     margin-bottom: 2rem;
+}
+
+.how-to-play-section {
+    margin-bottom: 3rem;
+}
+
+.how-to-play-section h2 {
+    color: var(--text-primary);
+    margin-bottom: 2rem;
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.how-to-play-section:first-child {
+    margin-top: 0;
+}
+
+.how-to-play-section:last-child {
+    margin-bottom: 0;
 }
 
 .instruction {
@@ -1255,12 +1312,14 @@ main {
 .instruction i {
     font-size: 1.5rem;
     color: var(--primary-color);
-    margin-top: 0.25rem;
+    flex-shrink: 0;
+    margin-top: 0.125rem;
 }
 
 .instruction h3 {
     margin-bottom: 0.5rem;
     font-weight: 600;
+    color: white;
 }
 
 .instruction p {
@@ -1312,10 +1371,9 @@ footer {
 }
 
 footer .contenu {
-  
   margin: 0 auto; /* centre horizontalement */
   display: flex;
-  justify-content: space-between; /* espace entre les 3 éléments */
+  justify-content: center; /* centre le contenu */
   align-items: center; /* aligne verticalement */
   height: 50px; /* exemple de hauteur */
   background-color: #ffd41d;
