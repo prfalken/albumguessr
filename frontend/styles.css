@@ -206,8 +206,8 @@ header .contenu {
     color: #fff;
 }
 
-/* Logout button in dropdown with yellow background */
-.nav-link-logout {
+/* Logout button in burger menu dropdown with yellow background */
+.site-nav .nav-link-logout {
     background: #ffd41d !important;
     color: #000 !important;
     border: none;
@@ -217,7 +217,7 @@ header .contenu {
     font-family: inherit;
 }
 
-.nav-link-logout:hover {
+.site-nav .nav-link-logout:hover {
     background: #ffc107 !important;
     color: #000 !important;
 }
@@ -1295,7 +1295,17 @@ footer .contenu {
 
 .footer-button:hover {
     background: white;
+    color: black;
+}
 
+/* Style spécifique pour le bouton de connexion */
+#btn-login.footer-button {
+    background: black;
+    color: white;
+}
+
+#btn-login.footer-button:hover {
+    background: white;
     color: black;
 }
 
@@ -1397,6 +1407,111 @@ footer .contenu {
     font-size: 0.9rem;
     font-weight: 600;
     white-space: nowrap;
+}
+
+/* User Profile Dropdown Menu */
+.user-profile-menu {
+    position: relative;
+}
+
+.user-profile-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: none;
+    border: none;
+    padding: 0.25rem 0.5rem;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    font-family: inherit;
+    font-size: 0.7rem;
+}
+
+.user-profile-toggle:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.user-profile-toggle .avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.user-profile-toggle .user-name {
+    color: black;
+    font-weight: 500;
+    font-size: 0.7rem;
+}
+
+.user-profile-toggle i {
+    font-size: 0.7rem;
+    color: black;
+    transition: transform 0.2s ease;
+}
+
+.user-profile-menu.open .user-profile-toggle i {
+    transform: rotate(180deg);
+}
+
+.user-profile-dropdown {
+    display: none;
+    flex-direction: column;
+    align-items: stretch;
+    padding: 3px;
+    gap: 3px 0;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    z-index: 10;
+    min-width: 200px;
+    white-space: nowrap;
+    list-style: none;
+    margin-top: 0.25rem;
+}
+
+.user-profile-menu.open .user-profile-dropdown {
+    display: flex;
+}
+
+.user-profile-dropdown .nav-item {
+    width: 100%;
+}
+
+.user-profile-dropdown .nav-link {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    width: 100%;
+    text-align: left;
+    box-sizing: border-box;
+    padding: 0.5rem 0.75rem;
+    border-radius: 5px;
+}
+
+.user-profile-dropdown .nav-link:hover {
+    background: #565349;
+    color: #fff;
+}
+
+.user-profile-dropdown .nav-link-logout {
+    background: none !important;
+    color: inherit !important;
+    border: none;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+.user-profile-dropdown .nav-link-logout:hover {
+    background: #565349 !important;
+    color: #fff !important;
 }
 .user-history {
     padding: 1rem;

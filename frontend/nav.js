@@ -14,11 +14,19 @@ function initNav() {
         toggle.setAttribute('aria-expanded', 'true');
     };
 
+    const profileMenu = document.getElementById('user-profile-menu');
+    
     toggle.addEventListener('click', () => {
         const isOpen = nav.classList.contains('open');
         if (isOpen) {
             closeMenu();
         } else {
+            // Close profile menu if open
+            if (profileMenu && profileMenu.classList.contains('open')) {
+                profileMenu.classList.remove('open');
+                const profileToggle = document.getElementById('user-profile-toggle');
+                if (profileToggle) profileToggle.setAttribute('aria-expanded', 'false');
+            }
             openMenu();
         }
     });
@@ -41,8 +49,68 @@ function initNav() {
     });
 }
 
-document.addEventListener('DOMContentLoaded', initNav);
-document.addEventListener('albumguessr:header-ready', initNav);
+function initUserProfileMenu() {
+    const profileMenu = document.getElementById('user-profile-menu');
+    const profileToggle = document.getElementById('user-profile-toggle');
+    const profileDropdown = document.getElementById('user-profile-dropdown');
+    if (!profileMenu || !profileToggle || !profileDropdown) return;
+
+    const nav = document.querySelector('.site-nav');
+    const navToggle = document.querySelector('.nav-toggle');
+
+    const closeMenu = () => {
+        profileMenu.classList.remove('open');
+        profileToggle.setAttribute('aria-expanded', 'false');
+    };
+
+    const openMenu = () => {
+        // Close main nav menu if open
+        if (nav && nav.classList.contains('open')) {
+            nav.classList.remove('open');
+            if (navToggle) navToggle.setAttribute('aria-expanded', 'false');
+        }
+        profileMenu.classList.add('open');
+        profileToggle.setAttribute('aria-expanded', 'true');
+    };
+
+    profileToggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isOpen = profileMenu.classList.contains('open');
+        if (isOpen) {
+            closeMenu();
+        } else {
+            openMenu();
+        }
+    });
+
+    profileDropdown.addEventListener('click', (e) => {
+        const target = e.target;
+        if (target && (target.closest('a') || target.closest('button'))) {
+            closeMenu();
+        }
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && profileMenu.classList.contains('open')) {
+            closeMenu();
+        }
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!profileMenu.contains(e.target) && e.target !== profileToggle) {
+            closeMenu();
+        }
+    });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    initNav();
+    initUserProfileMenu();
+});
+document.addEventListener('albumguessr:header-ready', () => {
+    initNav();
+    initUserProfileMenu();
+});
 
 // Update footer link for admin users
 async function updateFooterForAdmin() {

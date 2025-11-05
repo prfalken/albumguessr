@@ -13,6 +13,7 @@ class I18nManager {
                     coverGuess: 'Cover Guess',
                     ranking: 'Ranking',
                     archives: 'All albums',
+                    profile: 'Profile',
                     myStatistics: 'My statistics',
                     reportBug: 'Report a Bug'
                 },
@@ -306,6 +307,7 @@ class I18nManager {
                     coverGuess: 'Devine la Pochette',
                     ranking: 'Classement',
                     archives: 'Tous les albums',
+                    profile: 'Profil',
                     myStatistics: 'Mes statistiques',
                     reportBug: 'Signaler un bug'
                 },
@@ -599,6 +601,7 @@ class I18nManager {
                     coverGuess: 'Adivina la Portada',
                     ranking: 'Clasificación',
                     archives: 'Todos los álbumes',
+                    profile: 'Perfil',
                     myStatistics: 'Mis estadísticas',
                     reportBug: 'Reportar un error'
                 },

@@ -11,6 +11,26 @@ class AlbumGuessrDailyGame extends AlbumGuessrGame {
                 this.updateStatusSubtitle();
             }, 100);
         });
+        
+        // Re-check previous win when user logs in (after header is ready)
+        document.addEventListener('albumguessr:header-ready', async () => {
+            // If game is already initialized and user just logged in, check for previous win
+            if (this.mysteryAlbum) {
+                await this.recheckPreviousWinIfNeeded();
+            }
+        });
+        
+        // Also re-check when auth state changes (user logs in)
+        // Store previous auth state to detect changes
+        this.previousAuthState = false;
+        setInterval(async () => {
+            const currentAuthState = !!this.authManager.authenticatedUser;
+            if (currentAuthState && !this.previousAuthState && this.mysteryAlbum) {
+                // User just logged in
+                await this.recheckPreviousWinIfNeeded();
+            }
+            this.previousAuthState = currentAuthState;
+        }, 1000);
     }
     
     updateStatusSubtitle() {
@@ -120,17 +140,31 @@ class AlbumGuessrDailyGame extends AlbumGuessrGame {
             await this.selectDailyAlbum();
             
             // Wait for auth to be ready before checking previous wins
-            try {
-                await this.authManager.isAuthenticated();
-            } catch (authError) {
-                console.warn('Auth check skipped:', authError);
+            // Try multiple times with delays to ensure auth is fully ready
+            let authReady = false;
+            for (let i = 0; i < 3; i++) {
+                try {
+                    const isAuth = await this.authManager.isAuthenticated();
+                    if (isAuth && this.authManager.authenticatedUser) {
+                        authReady = true;
+                        break;
+                    }
+                } catch (authError) {
+                    console.warn('Auth check attempt', i + 1, 'failed:', authError);
+                }
+                if (i < 2) {
+                    await new Promise(resolve => setTimeout(resolve, 300));
+                }
             }
             
             // Try to restore game state from localStorage
             this.restoreGameState();
             
             // Check if user has already completed this album (must be before updateUI)
-            await this.checkAndRestorePreviousWin();
+            // Only check if auth is ready and user is authenticated
+            if (authReady && this.authManager.authenticatedUser) {
+                await this.checkAndRestorePreviousWin();
+            }
             
             // If game is won but not saved yet, try to save it (wait a bit for auth to be fully ready)
             if (this.gameWon && !this.winSaved) {
@@ -272,6 +306,20 @@ class AlbumGuessrDailyGame extends AlbumGuessrGame {
         } catch (error) {
             console.warn('Failed to restore game state:', error);
             return false;
+        }
+    }
+
+    async recheckPreviousWinIfNeeded() {
+        try {
+            const authed = await this.authManager.isAuthenticated();
+            if (authed && this.authManager.authenticatedUser && this.mysteryAlbum) {
+                // Re-check if user has already won this album
+                await this.checkAndRestorePreviousWin();
+                // Update UI to reflect the restored state
+                this.updateUI();
+            }
+        } catch (err) {
+            console.warn('Failed to re-check previous win after login:', err);
         }
     }
 

@@ -212,13 +212,24 @@ export class AuthManager {
         
         show(elements.btnLogin, !isAuthenticated);
         show(elements.btnLogout, !!isAuthenticated);
-        // Show/hide logout in dropdown menu
-        const navLogout = document.getElementById('nav-logout');
-        if (navLogout) {
-            navLogout.style.display = isAuthenticated ? '' : 'none';
+        
+        // Show/hide items in profile dropdown menu
+        const navStatisticsDropdown = document.getElementById('nav-statistics-dropdown');
+        if (navStatisticsDropdown) {
+            navStatisticsDropdown.style.display = isAuthenticated ? '' : 'none';
         }
-        show(elements.navStatistics, !!isAuthenticated);
-        show(elements.navReportBug, !!isAuthenticated);
+        
+        // Show/hide report bug in main menu
+        const navReportBug = document.getElementById('nav-report-bug');
+        if (navReportBug) {
+            navReportBug.style.display = isAuthenticated ? '' : 'none';
+        }
+        
+        // Show/hide profile menu container
+        const userProfileMenu = document.getElementById('user-profile-menu');
+        if (userProfileMenu) {
+            userProfileMenu.style.display = isAuthenticated ? '' : 'none';
+        }
         
         if (isAuthenticated && this.authenticatedUser) {
             if (elements.userAvatar) {
@@ -226,8 +237,9 @@ export class AuthManager {
                                    this.authenticatedUser.name || 
                                    this.authenticatedUser.email || '';
                 
-                // Remove existing placeholder if any
-                const existingPlaceholder = elements.userAvatar.parentElement.querySelector('.avatar-placeholder');
+                // Remove existing placeholder if any (check in toggle button)
+                const toggleButton = elements.userAvatar.closest('.user-profile-toggle');
+                const existingPlaceholder = toggleButton ? toggleButton.querySelector('.avatar-placeholder') : null;
                 if (existingPlaceholder) {
                     existingPlaceholder.remove();
                 }
@@ -265,9 +277,6 @@ export class AuthManager {
                                    this.authenticatedUser.email || '';
                 elements.userName.textContent = displayName;
             }
-            show(elements.userProfile, true);
-        } else {
-            show(elements.userProfile, false);
         }
     }
 
@@ -277,10 +286,15 @@ export class AuthManager {
      * @param {string} displayName - User's display name
      */
     showAvatarPlaceholder(avatarElement, displayName) {
-        if (!avatarElement || !avatarElement.parentElement) return;
+        if (!avatarElement) return;
+        
+        // Find the toggle button parent (new structure) or parent element (old structure)
+        const toggleButton = avatarElement.closest('.user-profile-toggle');
+        const parentElement = toggleButton || avatarElement.parentElement;
+        if (!parentElement) return;
         
         // Check if placeholder already exists
-        const existingPlaceholder = avatarElement.parentElement.querySelector('.avatar-placeholder');
+        const existingPlaceholder = parentElement.querySelector('.avatar-placeholder');
         if (existingPlaceholder) return;
         
         const placeholder = document.createElement('div');
@@ -288,11 +302,9 @@ export class AuthManager {
         const initials = (displayName || 'U').substring(0, 2).toUpperCase();
         placeholder.textContent = initials;
         
-        // Insert placeholder in the same position as the avatar (before it)
-        // If avatar is inside a link, insert inside the link
-        const parentLink = avatarElement.closest('a');
-        if (parentLink) {
-            parentLink.insertBefore(placeholder, avatarElement);
+        // Insert placeholder in the toggle button (new structure) or before avatar (old structure)
+        if (toggleButton) {
+            toggleButton.insertBefore(placeholder, avatarElement);
         } else {
             avatarElement.parentElement.insertBefore(placeholder, avatarElement);
         }
