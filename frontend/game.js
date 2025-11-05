@@ -1007,6 +1007,12 @@ export class AlbumGuessrGame {
     }
 
     updateUI() {
+        // Hide navigation buttons when game starts (when there are guesses)
+        const navButtonsContainer = document.getElementById('nav-buttons-container');
+        if (navButtonsContainer) {
+            navButtonsContainer.style.display = this.guesses.length === 0 ? '' : 'none';
+        }
+        
         // Update guess counter
         this.elements.guessCount.textContent = this.guessCount;
         // Update guess/guesses text

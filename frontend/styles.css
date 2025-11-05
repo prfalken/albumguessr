@@ -242,6 +242,51 @@ header .contenu {
 
 .subtitle {
     text-align: center;
+    color: white;
+    font-size: 1.1rem;
+}
+
+/* Navigation Buttons */
+.nav-buttons-container {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin: 2rem 0;
+    flex-wrap: wrap;
+}
+
+.nav-button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 1.5rem 2rem;
+    background: #ffd41d;
+    color: black;
+    text-decoration: none;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    transition: all 0.2s ease;
+    min-width: 150px;
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+.nav-button:hover {
+    background: #ffc107;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.nav-button i {
+    font-size: 2.5rem;
+    color: black;
+}
+
+.nav-button span {
+    text-align: center;
 }
 
 .date {
@@ -251,9 +296,17 @@ header .contenu {
     text-align: center;
 }
 
+
+.subtitle .daily-instruction {
+    text-align: center;
+    color: #ffd41d;
+    font-size: 0.95rem;
+    margin-top: 0;
+}
+
 #game-date {
     text-align: center;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0;
 }
 
 .date.game-date-random {
@@ -1303,6 +1356,9 @@ footer .contenu {
     background: transparent;
     color: black;
     border: 1px solid black;
+    cursor: pointer;
+    position: relative;
+    z-index: 1;
 }
 
 #btn-login.footer-button:hover {
@@ -3084,6 +3140,21 @@ footer .contenu {
     height: 400px;
     margin: 0 auto 2rem;
     position: relative;
+}
+
+/* Réduire légèrement l'image en responsive */
+@media (max-width: 768px) {
+    .cover-reveal-container {
+        width: 350px;
+        height: 350px;
+    }
+}
+
+@media (max-width: 480px) {
+    .cover-reveal-container {
+        width: 300px;
+        height: 300px;
+    }
 }
 
 .cover-mask {

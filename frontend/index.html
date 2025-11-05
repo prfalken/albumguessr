@@ -16,8 +16,11 @@
         <main id="main-content" class="game-container">
             <div class="content-grid">
                 <div class="main-column">
-                    <div class="date" id="game-date"></div>
-
+                    <div class="subtitle">
+                        <p id="game-date" class="subtitle"></p>
+                        <p class="daily-instruction" data-i18n="game.makeGuess">Faites une première tentative pour révéler les indices...</p>
+                    </div>
+                    
                     <!-- Search Input -->
                     <div class="search-container">
                         <div class="search-box">
@@ -32,15 +35,28 @@
                         </div>
                         <div class="search-results" id="search-results"></div>
                     </div>
+                    
+                    <!-- Navigation Buttons -->
+                    <div class="nav-buttons-container" id="nav-buttons-container">
+                        <a href="past-dailies.html" class="nav-button">
+                            <i class="bi bi-disc"></i>
+                            <span data-i18n="nav.archives">All albums</span>
+                        </a>
+                        <a href="game.html" class="nav-button">
+                            <i class="bi bi-controller"></i>
+                            <span data-i18n="nav.randomAlbum">Random album</span>
+                        </a>
+                        <a href="cover-guess.html" class="nav-button">
+                            <i class="bi bi-grid-3x3-gap"></i>
+                            <span data-i18n="nav.coverGuess">Cover Guess</span>
+                        </a>
+                    </div>
+                    
                    
                     <!-- Clues Board -->
                     <div class="clues-board" id="clues-board">
                         
                         <div class="clues-container" id="clues-container">
-                            <div class="no-clues">
-                                <i class="bi bi-search"></i>
-                                <p data-i18n="game.noClues">Make a first guess to reveal clues...</p>
-                            </div>
                         </div>
                     </div>
 
@@ -177,8 +193,6 @@
             </template>
             <template id="tpl-no-clues">
                 <div class="no-clues">
-                    <i class="bi bi-search"></i>
-                    <p data-i18n="game.noClues">Make a first guess to reveal clues...</p>
                 </div>
             </template>
             <template id="tpl-clue-category">
