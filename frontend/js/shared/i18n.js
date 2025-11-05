@@ -93,7 +93,7 @@ class I18nManager {
                     },
                     clueCategories: {
                         artists: 'Artists',
-                        artist_type: 'Artist Type',
+                        artist_type: 'Type',
                         genres: 'Genres',
                         release_year: 'Year',
                         total_length_seconds: 'Length',
@@ -102,6 +102,10 @@ class I18nManager {
                         contributors: 'Contributors',
                         instruments: 'Instruments',
                         label: 'Label'
+                    },
+                    artistTypes: {
+                        solo: 'solo artist',
+                        group: 'group'
                     },
                     guessLabels: {
                         before: 'before',
@@ -380,7 +384,7 @@ class I18nManager {
                     },
                     clueCategories: {
                         artists: 'Artistes',
-                        artist_type: 'Type d\'artiste',
+                        artist_type: 'Type',
                         genres: 'Genres',
                         release_year: 'Année',
                         total_length_seconds: 'Durée',
@@ -389,6 +393,10 @@ class I18nManager {
                         contributors: 'Contributeurs',
                         instruments: 'Instruments',
                         label: 'Label'
+                    },
+                    artistTypes: {
+                        solo: 'artiste solo',
+                        group: 'groupe'
                     },
                     guessLabels: {
                         before: 'avant',
@@ -667,7 +675,7 @@ class I18nManager {
                     },
                     clueCategories: {
                         artists: 'Artistas',
-                        artist_type: 'Tipo de artista',
+                        artist_type: 'Tipo',
                         genres: 'Géneros',
                         release_year: 'Año',
                         total_length_seconds: 'Duración',
@@ -676,6 +684,10 @@ class I18nManager {
                         contributors: 'Contribuidores',
                         instruments: 'Instrumentos',
                         label: 'Sello'
+                    },
+                    artistTypes: {
+                        solo: 'artista solista',
+                        group: 'grupo'
                     },
                     guessLabels: {
                         before: 'antes',

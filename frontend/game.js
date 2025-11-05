@@ -29,6 +29,8 @@ export class AlbumGuessrGame {
         this.postDomAuthSetup();
         // Ensure label is part of the clue categories
         this.ensureLabelClueCategory();
+        // Ensure artist_type is part of the clue categories
+        this.ensureArtistTypeClueCategory();
         this.initializeGame();
         this.bindEvents();
 
@@ -253,6 +255,19 @@ export class AlbumGuessrGame {
         }
     }
 
+    ensureArtistTypeClueCategory() {
+        try {
+            if (typeof GAME_CONFIG === 'object' && GAME_CONFIG && Array.isArray(GAME_CONFIG.clueCategories)) {
+                const exists = GAME_CONFIG.clueCategories.some(c => c && c.key === 'artist_type');
+                if (!exists) {
+                    GAME_CONFIG.clueCategories.push({ key: 'artist_type', label: 'Artist Type', icon: 'bi-person-badge' });
+                }
+            }
+        } catch (e) {
+            // no-op if GAME_CONFIG is not defined or malformed
+        }
+    }
+
     async selectDailyAlbum() {
         // Check if there's a challenge parameter in the URL
         const urlParams = new URLSearchParams(window.location.search);
@@ -267,7 +282,7 @@ export class AlbumGuessrGame {
                 const attrs = [
                     'objectID', 'title', 'artists', 'genres', 'release_year', 'countries', 'tags',
                     'contributors', 'rating_value', 'rating_count', 'rating',
-                    'cover_art_url', 'label', 'total_length_seconds'
+                    'cover_art_url', 'label', 'total_length_seconds', 'is_solo_artist', 'is_group'
                 ];
 
                 this.mysteryAlbum = await this.algoliaIndex.getObject(challengeObjectID, { attributesToRetrieve: attrs });
@@ -304,7 +319,7 @@ export class AlbumGuessrGame {
                 const attrs = [
                     'objectID', 'title', 'artists', 'genres', 'release_year', 'countries', 'tags',
                     'contributors', 'rating_value', 'rating_count', 'rating',
-                    'cover_art_url', 'label', 'total_length_seconds'
+                    'cover_art_url', 'label', 'total_length_seconds', 'is_solo_artist', 'is_group'
                 ];
 
                 this.mysteryAlbum = await this.algoliaIndex.getObject(objectID, { attributesToRetrieve: attrs });
@@ -419,7 +434,7 @@ export class AlbumGuessrGame {
                 hitsPerPage: 20,
                 attributesToRetrieve: [
                     'objectID', 'title', 'artists', 'genres', 'release_year', 'countries', 'contributors',
-                    'cover_art_url', 'label', 'total_length_seconds'
+                    'cover_art_url', 'label', 'total_length_seconds', 'is_solo_artist', 'is_group'
                 ],
                 optionalFilters: [
                     'rating_score > 100'
@@ -739,6 +754,29 @@ export class AlbumGuessrGame {
             if (category.key === 'release_year') return;
             // Skip total_length_seconds as it's handled separately (longer/shorter)
             if (category.key === 'total_length_seconds') return;
+            // Handle artist_type separately
+            if (category.key === 'artist_type') {
+                // Déterminer le type du guess et de l'album mystère
+                const guessIsSolo = guess.is_solo_artist === true || 
+                    (guess.is_solo_artist === undefined && guess.is_group === undefined && 
+                     guess.artists && guess.artists.length === 1);
+                const mysteryIsSolo = mystery.is_solo_artist === true || 
+                    (mystery.is_solo_artist === undefined && mystery.is_group === undefined && 
+                     mystery.artists && mystery.artists.length === 1);
+                
+                // Si les types correspondent, ajouter le clue
+                if (guessIsSolo === mysteryIsSolo) {
+                    const artistTypeKey = mysteryIsSolo ? 'solo' : 'group';
+                    const artistType = i18n.t(`game.artistTypes.${artistTypeKey}`);
+                    sharedClues.push({
+                        category: 'artist_type',
+                        label: category.label,
+                        icon: category.icon,
+                        values: [artistType]
+                    });
+                }
+                return;
+            }
             
             const guessValue = guess[category.key];
             const mysteryValue = mystery[category.key];
@@ -1036,6 +1074,17 @@ export class AlbumGuessrGame {
             if (artistsCat) {
                 const catEl = this.templates.clueCategory.content.firstElementChild.cloneNode(true);
                 catEl.classList.add('clue-artists-container');
+                
+                // Ajouter le titre avec l'indication solo/groupe
+                const titleEl = catEl.querySelector('.clue-category-title');
+                if (titleEl) {
+                    const iconEl = titleEl.querySelector('i');
+                    const labelEl = titleEl.querySelector('.clue-category-label');
+                    // Supprimer l'icône et le label du titre
+                    if (iconEl) iconEl.remove();
+                    if (labelEl) labelEl.remove();
+                }
+                
                 const valuesEl = catEl.querySelector('.clue-values');
                 if (valuesEl) {
                     valuesEl.classList.add('clue-artists-values');
@@ -1055,12 +1104,47 @@ export class AlbumGuessrGame {
             }
         }
 
+        // Render artist type (Type) if discovered
+        const artistTypeSet = this.discoveredClues.get('artist_type');
+        if (artistTypeSet && artistTypeSet.size > 0) {
+            const artistTypeCat = GAME_CONFIG.clueCategories.find(c => c.key === 'artist_type');
+            if (artistTypeCat) {
+                const catEl = this.templates.clueCategory.content.firstElementChild.cloneNode(true);
+                const titleEl = catEl.querySelector('.clue-category-title');
+                if (titleEl) {
+                    const iconEl = titleEl.querySelector('i');
+                    const labelEl = titleEl.querySelector('.clue-category-label');
+                    // Supprimer l'icône et le label du titre
+                    if (iconEl) iconEl.remove();
+                    if (labelEl) labelEl.remove();
+                }
+                
+                const valuesEl = catEl.querySelector('.clue-values');
+                if (valuesEl) {
+                    // Single icon before all values
+                    const iconEl = document.createElement('i');
+                    iconEl.className = `bi ${artistTypeCat.icon}`;
+                    valuesEl.appendChild(iconEl);
+                    
+                    Array.from(artistTypeSet).forEach(value => {
+                        const chip = this.templates.clueValue.content.firstElementChild.cloneNode(true);
+                        chip.textContent = String(value);
+                        valuesEl.appendChild(chip);
+                    });
+                }
+                container.appendChild(catEl);
+            }
+        }
+
         GAME_CONFIG.clueCategories.forEach(catConf => {
             // Skip standalone continents panel; continents merge under countries
             if (catConf.key === 'continents') return;
             
             // Skip artists as they're already rendered above
             if (catConf.key === 'artists') return;
+            
+            // Skip artist_type as it's already rendered above
+            if (catConf.key === 'artist_type') return;
 
             if (catConf.key === 'countries') {
                 const countriesSet = this.discoveredClues.get('countries') || new Set();
@@ -1306,6 +1390,50 @@ export class AlbumGuessrGame {
                     categories.forEach(catKey => {
                         // Skip continents as separate clue-attr (they're shown within countries)
                         if (catKey === 'continents') return;
+                        
+                        if (catKey === 'artist_type') {
+                            // Déterminer le type d'artiste du guess et de l'album mystère
+                            // Utiliser is_solo_artist/is_group depuis Algolia, sinon fallback sur le nombre d'artistes
+                            const guessIsSolo = guess.album.is_solo_artist === true || 
+                                (guess.album.is_solo_artist === undefined && guess.album.is_group === undefined && 
+                                 guess.album.artists && guess.album.artists.length === 1);
+                            const guessIsGroup = guess.album.is_group === true || 
+                                (guess.album.is_solo_artist === undefined && guess.album.is_group === undefined && 
+                                 guess.album.artists && guess.album.artists.length > 1);
+                            
+                            const mysteryIsSolo = this.mysteryAlbum && (
+                                this.mysteryAlbum.is_solo_artist === true || 
+                                (this.mysteryAlbum.is_solo_artist === undefined && this.mysteryAlbum.is_group === undefined && 
+                                 this.mysteryAlbum.artists && this.mysteryAlbum.artists.length === 1)
+                            );
+                            const mysteryIsGroup = this.mysteryAlbum && (
+                                this.mysteryAlbum.is_group === true || 
+                                (this.mysteryAlbum.is_solo_artist === undefined && this.mysteryAlbum.is_group === undefined && 
+                                 this.mysteryAlbum.artists && this.mysteryAlbum.artists.length > 1)
+                            );
+                            
+                            const isMatch = (guessIsSolo && mysteryIsSolo) || (guessIsGroup && mysteryIsGroup);
+                            // Afficher le type du guess (pas celui de l'album mystère)
+                            const guessArtistTypeKey = guessIsSolo ? 'solo' : 'group';
+                            const guessArtistType = i18n.t(`game.artistTypes.${guessArtistTypeKey}`);
+                            
+                            const catConf = GAME_CONFIG.clueCategories.find(c => c.key === 'artist_type');
+                            const attrEl = this.templates.guessAttr.content.firstElementChild.cloneNode(true);
+                            const icon = attrEl.querySelector('.guess-attr-title i');
+                            const lab = attrEl.querySelector('.guess-attr-label');
+                            if (icon) icon.className = `bi ${catConf.icon}`;
+                            if (lab) lab.textContent = i18n.t(`game.clueCategories.${catConf.key}`);
+                            
+                            const valuesEl = attrEl.querySelector('.guess-attr-values');
+                            const chip = this.templates.guessChip.content.firstElementChild.cloneNode(true);
+                            chip.classList.add(isMatch ? 'guess-chip-hit' : 'guess-chip-miss');
+                            chip.textContent = guessArtistType;
+                            chip.setAttribute('aria-label', `${guessArtistType}: ${i18n.t(isMatch ? 'game.chipLabels.hit' : 'game.chipLabels.miss')}`);
+                            chip.setAttribute('title', i18n.t(isMatch ? 'game.chipLabels.hit' : 'game.chipLabels.miss'));
+                            valuesEl.appendChild(chip);
+                            detailsEl.appendChild(attrEl);
+                            return;
+                        }
                         
                         if (catKey === 'release_year') {
                             const gy = guess.album.release_year;

@@ -50,6 +50,7 @@ function main() {
     `const GAME_CONFIG = {\n` +
     `    clueCategories: [\n` +
     `        { key: 'artists', label: 'Artists', icon: 'bi-person-fill', description: 'Shared artists' },\n` +
+    `        { key: 'artist_type', label: 'Artist Type', icon: 'bi-person-badge', description: 'Solo artist or group' },\n` +
     `        { key: 'genres', label: 'Genres', icon: 'bi-music-note-list', description: 'Shared musical genres' },\n` +
     `        { key: 'release_year', label: 'Year', icon: 'bi-calendar-fill', description: 'Release year' },\n` +
     `        { key: 'total_length_seconds', label: 'Length', icon: 'bi-stopwatch', description: 'Total runtime' },\n` +

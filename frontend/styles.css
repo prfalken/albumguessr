@@ -661,11 +661,15 @@ main {
 
 .clue-category-title {
     font-weight: 600;
-    color: var(--clue-border);
+    color: inherit;
     margin-bottom: 0.5rem;
     display: flex;
     align-items: center;
     gap: 0.5rem;
+}
+
+.clue-category-label {
+    display: none;
 }
 
 .clue-values {
