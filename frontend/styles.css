@@ -3218,6 +3218,24 @@ footer .contenu {
         margin-left: auto;
         margin-right: auto;
     }
+    
+    /* Ensure victory buttons are visible in cover-guess */
+    .cover-guess-wrapper .guess-item.victory .victory-share-section {
+        display: flex !important;
+        flex-direction: column;
+        gap: 0.5rem;
+        width: 100%;
+        max-width: 100%;
+        margin-top: 0.75rem;
+    }
+    
+    .cover-guess-wrapper .guess-item.victory .victory-share-section .share-button {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        display: flex !important;
+        justify-content: center;
+    }
 }
 
 @media (max-width: 640px) {
@@ -3254,6 +3272,33 @@ footer .contenu {
         width: calc(100% - 2rem);
         margin-left: auto;
         margin-right: auto;
+    }
+    
+    /* Ensure victory buttons are visible in cover-guess */
+    .cover-guess-wrapper .guess-item.victory .victory-share-section {
+        display: flex !important;
+        flex-direction: column;
+        gap: 0.5rem;
+        width: 100%;
+        max-width: 100%;
+        margin-top: 0.75rem;
+    }
+    
+    .cover-guess-wrapper .guess-item.victory .victory-share-section .share-button {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        display: flex !important;
+        justify-content: center;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+    
+    /* Ensure guesses container doesn't hide content */
+    .cover-guess-wrapper .guesses-container {
+        width: 100%;
+        max-width: 100%;
+        overflow: visible;
     }
 }
 
@@ -3300,11 +3345,24 @@ footer .contenu {
         gap: 0.5rem;
         width: 100%;
         max-width: 100%;
+        margin-top: 0.75rem;
     }
     
     .cover-guess-wrapper .guess-item.victory .victory-share-section .share-button {
         width: 100%;
         max-width: 100%;
+        min-width: 0;
+        display: flex !important;
+        justify-content: center;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+    
+    /* Ensure guesses container doesn't hide content */
+    .cover-guess-wrapper .guesses-container {
+        width: 100%;
+        max-width: 100%;
+        overflow: visible;
     }
 }
 
