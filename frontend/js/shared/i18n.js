@@ -306,7 +306,7 @@ class I18nManager {
                     randomAlbum: 'Album aléatoire',
                     coverGuess: 'Devine la Pochette',
                     ranking: 'Classement',
-                    archives: 'Tous les albums',
+                    archives: 'Les anciens albums du jour',
                     profile: 'Profil',
                     myStatistics: 'Mes statistiques',
                     reportBug: 'Signaler un bug'

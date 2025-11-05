@@ -194,6 +194,11 @@ class AlbumGuessrDailyGame extends AlbumGuessrGame {
     }
     
     saveGameState() {
+        // Don't save progress if user is not authenticated
+        if (!this.authManager.authenticatedUser) {
+            return;
+        }
+        
         if (!this.mysteryAlbum) return;
         
         const storageKey = this.getStorageKey();
@@ -239,6 +244,11 @@ class AlbumGuessrDailyGame extends AlbumGuessrGame {
     }
     
     restoreGameState() {
+        // Don't restore progress if user is not authenticated
+        if (!this.authManager.authenticatedUser) {
+            return false;
+        }
+        
         if (!this.mysteryAlbum) return false;
         
         const storageKey = this.getStorageKey();
