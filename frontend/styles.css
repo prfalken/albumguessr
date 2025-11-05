@@ -1745,6 +1745,41 @@ footer .contenu {
         box-sizing: border-box;
     }
     
+    /* Cover guess wrapper - full width to adapt to window */
+    .game-container .cover-guess-wrapper {
+        margin-left: -1rem;
+        margin-right: -1rem;
+        width: calc(100% + 2rem);
+        padding: 0;
+        box-sizing: border-box;
+    }
+    
+    .cover-guess-wrapper {
+        padding: 0 1rem;
+        margin: 0.5rem auto 2rem;
+        width: 100%;
+        max-width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        box-sizing: border-box;
+    }
+    
+    .cover-guess-wrapper .cover-reveal-container {
+        width: calc(100% - 2rem) !important;
+        max-width: calc(100% - 2rem) !important;
+    }
+    
+    .cover-guess-wrapper .search-container {
+        width: calc(100% - 2rem) !important;
+        max-width: calc(100% - 2rem) !important;
+    }
+    
+    .cover-guess-wrapper .next-hint-btn-small {
+        width: calc(100% - 2rem) !important;
+        max-width: calc(100% - 2rem) !important;
+    }
+    
     /* Adjust padding for containers that already have their own padding to avoid double padding */
     .ranking-container {
         padding: 1.5rem 0;
@@ -2132,12 +2167,31 @@ footer .contenu {
     /* Victory guess buttons stack on mobile */
     .guess-item.victory .victory-share-section {
         flex-direction: column;
-        gap: 5px;
+        gap: 0.5rem;
+        width: 100%;
+        max-width: 100%;
     }
     
     .guess-item.victory .victory-share-section .share-button {
         width: 100%;
         justify-content: center;
+        min-width: 0;
+    }
+    
+    /* Cover guess specific - ensure buttons are visible */
+    .cover-guess-wrapper .guess-item.victory .victory-share-section {
+        display: flex !important;
+        flex-direction: column;
+        gap: 0.5rem;
+        width: 100%;
+        max-width: 100%;
+        margin-top: 0.75rem;
+    }
+    
+    .cover-guess-wrapper .guess-item.victory .victory-share-section .share-button {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
     }
     
     .footer {
@@ -3124,9 +3178,11 @@ footer .contenu {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    max-width: 600px;
+    max-width: 100%;
     margin: 0.5rem auto 2rem;
     padding: 0 1rem;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .cover-guess-wrapper h2 {
@@ -3136,24 +3192,82 @@ footer .contenu {
 }
 
 .cover-reveal-container {
-    width: 400px;
-    height: 400px;
+    width: 100%;
+    max-width: 400px;
+    aspect-ratio: 1;
     margin: 0 auto 2rem;
     position: relative;
+    box-sizing: border-box;
 }
 
-/* Réduire légèrement l'image en responsive */
+/* Responsive adjustments - make content adapt to window width */
 @media (max-width: 768px) {
+    .cover-guess-wrapper {
+        padding: 0 1rem;
+        width: 100%;
+        max-width: 100%;
+    }
+    
     .cover-reveal-container {
-        width: 350px;
-        height: 350px;
+        max-width: 100%;
+        width: 100%;
+    }
+    
+    .cover-guess-wrapper .search-container {
+        max-width: 100%;
+        width: 100%;
+    }
+    
+    .cover-guess-wrapper .search-results {
+        max-width: 100%;
+        width: 100%;
+    }
+    
+    .cover-guess-wrapper .next-hint-btn-small {
+        max-width: 100%;
+        width: 100%;
     }
 }
 
 @media (max-width: 480px) {
+    .cover-guess-wrapper {
+        padding: 0 1rem;
+        width: 100%;
+        max-width: 100%;
+    }
+    
     .cover-reveal-container {
-        width: 300px;
-        height: 300px;
+        max-width: 100%;
+        width: 100%;
+    }
+    
+    .cover-guess-wrapper .search-container {
+        max-width: 100%;
+        width: 100%;
+    }
+    
+    .cover-guess-wrapper .search-results {
+        max-width: 100%;
+        width: 100%;
+    }
+    
+    .cover-guess-wrapper .next-hint-btn-small {
+        max-width: 100%;
+        width: 100%;
+    }
+    
+    /* Ensure victory buttons are visible in cover-guess */
+    .cover-guess-wrapper .guess-item.victory .victory-share-section {
+        display: flex !important;
+        flex-direction: column;
+        gap: 0.5rem;
+        width: 100%;
+        max-width: 100%;
+    }
+    
+    .cover-guess-wrapper .guess-item.victory .victory-share-section .share-button {
+        width: 100%;
+        max-width: 100%;
     }
 }
 
@@ -3174,10 +3288,12 @@ footer .contenu {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    object-position: center;
     position: absolute;
     top: 0;
     left: 0;
     z-index: 0;
+    display: block;
 }
 
 .cover-zone {
@@ -3196,9 +3312,11 @@ footer .contenu {
 
 /* Search container for Cover Guess */
 .cover-guess-wrapper .search-container {
-    width: 400px;
+    width: 100%;
+    max-width: 400px;
     margin: 0 auto;
     position: relative;
+    box-sizing: border-box;
 }
 
 .cover-guess-wrapper .search-box {
@@ -3208,11 +3326,13 @@ footer .contenu {
 .cover-guess-wrapper .search-results {
     width: 100%;
     max-width: 400px;
+    margin: 0 auto;
 }
 
 /* Next hint button - small version under search */
 .cover-guess-wrapper .next-hint-btn-small {
-    width: 400px;
+    width: 100%;
+    max-width: 400px;
     margin: 0.75rem auto 0;
     background: var(--border);
     color: #000;
@@ -3228,6 +3348,7 @@ footer .contenu {
     gap: 0.5rem;
     transition: all 0.2s ease;
     font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
+    box-sizing: border-box;
 }
 
 .cover-guess-wrapper .next-hint-btn-small:hover:not(:disabled) {
