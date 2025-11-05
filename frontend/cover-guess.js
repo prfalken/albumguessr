@@ -187,7 +187,7 @@ class CoverGuessGame {
             if (!this.algoliaIndex) throw new Error('Algolia index not initialized');
 
             this.mysteryAlbum = await this.algoliaIndex.getObject(objectID, { 
-                attributesToRetrieve: ['objectID', 'title', 'artists', 'cover_art_url']
+                attributesToRetrieve: ['objectID', 'title', 'artists', 'cover_art_url', 'release_year']
             });
             
             console.log('Selected album:', this.mysteryAlbum);
@@ -284,15 +284,46 @@ class CoverGuessGame {
         try {
             const results = await this.algoliaIndex.search(query, {
                 hitsPerPage: 8,
-                attributesToRetrieve: ['objectID', 'title', 'artists', 'cover_art_url']
+                attributesToRetrieve: ['objectID', 'title', 'artists', 'cover_art_url', 'release_year']
             });
 
             this.searchResults = results.hits || [];
+            
+            // Vérifier si l'album mystère correspond à la recherche et l'ajouter s'il n'est pas déjà présent
+            if (this.mysteryAlbum && this.matchesSearch(this.mysteryAlbum, query)) {
+                const mysteryAlbumInResults = this.searchResults.some(
+                    result => result.objectID === this.mysteryAlbum.objectID
+                );
+                if (!mysteryAlbumInResults) {
+                    // Ajouter l'album mystère en premier dans les résultats
+                    this.searchResults.unshift(this.mysteryAlbum);
+                }
+            }
+            
             this.displaySearchResults();
         } catch (error) {
             console.error('Search error:', error);
             this.hideSearchResults();
         }
+    }
+
+    matchesSearch(album, query) {
+        if (!album || !query) return false;
+        const lowerQuery = query.toLowerCase();
+        
+        // Vérifier si le titre correspond
+        if (album.title && album.title.toLowerCase().includes(lowerQuery)) {
+            return true;
+        }
+        
+        // Vérifier si l'un des artistes correspond
+        if (album.artists && Array.isArray(album.artists)) {
+            return album.artists.some(artist => 
+                artist && artist.toLowerCase().includes(lowerQuery)
+            );
+        }
+        
+        return false;
     }
 
     displaySearchResults() {
@@ -304,16 +335,31 @@ class CoverGuessGame {
             return;
         }
 
-        // Filtrer les albums déjà proposés
+        // Filtrer les albums déjà proposés, mais toujours inclure l'album mystère
         const proposedObjectIDs = new Set(this.guesses.map(guess => guess.album.objectID));
-        const filteredResults = this.searchResults.filter(result => !proposedObjectIDs.has(result.objectID));
+        const mysteryAlbumID = this.mysteryAlbum?.objectID;
+        const filteredResults = this.searchResults.filter(result => {
+            // Toujours inclure l'album mystère même s'il a déjà été proposé
+            if (result.objectID === mysteryAlbumID) {
+                return true;
+            }
+            // Exclure les autres albums déjà proposés
+            return !proposedObjectIDs.has(result.objectID);
+        });
 
         if (filteredResults.length === 0) {
             container.classList.remove('show');
             return;
         }
 
-        filteredResults.forEach((result, index) => {
+        // Trier les résultats par année (décroissant, les plus récents en premier)
+        const sortedResults = [...filteredResults].sort((a, b) => {
+            const yearA = a.release_year || 0;
+            const yearB = b.release_year || 0;
+            return yearB - yearA;
+        });
+
+        sortedResults.forEach((result, index) => {
             const el = document.createElement('div');
             el.className = 'search-result';
             if (index === 0) {
@@ -324,7 +370,7 @@ class CoverGuessGame {
             el.innerHTML = `
                 <div class="search-result-text">
                     <div class="search-result-title">${result.title || ''}</div>
-                    <div class="search-result-artist">${(result.artists || []).join(', ') || 'Unknown'}</div>
+                    <div class="search-result-artist">${(result.artists || []).join(', ') || 'Unknown'}${result.release_year ? ` • ${result.release_year}` : ''}</div>
                 </div>
             `;
 
