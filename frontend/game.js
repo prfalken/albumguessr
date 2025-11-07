@@ -374,7 +374,9 @@ export class AlbumGuessrGame {
         
 
         // Modal events
-        this.elements.closeVictory.addEventListener('click', () => this.hideVictoryModal());
+        if (this.elements.closeVictory) {
+            this.elements.closeVictory.addEventListener('click', () => this.hideVictoryModal());
+        }
         this.elements.shareButton.addEventListener('click', this.shareResult.bind(this));
         if (this.elements.playAgainButton) {
             this.elements.playAgainButton.addEventListener('click', () => window.location.reload());
@@ -391,14 +393,7 @@ export class AlbumGuessrGame {
             this.elements.closeInstructions.addEventListener('click', this.hideInstructionsModal.bind(this));
         }
 
-        // Close modals on background click
-        if (this.elements.victoryModal) {
-            this.elements.victoryModal.addEventListener('click', (e) => {
-                if (e.target === this.elements.victoryModal) {
-                    this.hideVictoryModal();
-                }
-            });
-        }
+        // Close modals on background click - Not applicable for victory modal (inline display)
 
         if (this.elements.instructionsModal) {
             this.elements.instructionsModal.addEventListener('click', (e) => {
@@ -1063,8 +1058,8 @@ export class AlbumGuessrGame {
             this.elements.cluesBoard.style.display = (this.gameWon || this.gameOver) ? 'none' : '';
         }
         if (this.elements.gameStatus) {
-            // Hide game status when no guesses or after victory
-            this.elements.gameStatus.style.display = (this.guessCount === 0 || this.gameWon || this.gameOver) ? 'none' : '';
+            // Show game status when we have guesses, even after victory
+            this.elements.gameStatus.style.display = (this.guessCount === 0) ? 'none' : '';
         }
         
         // Always show guesses history if we have guesses, even after victory
@@ -1280,15 +1275,16 @@ export class AlbumGuessrGame {
 
     updateGuessesHistory() {
         const container = this.elements.guessesContainer;
+        
         if (this.guesses.length === 0) {
             container.replaceChildren();
             return;
         }
 
         container.replaceChildren();
-        this.guesses.slice().reverse().forEach(guess => {
+        this.guesses.slice().reverse().forEach((guess, index) => {
             const itemEl = this.templates.guessItem.content.firstElementChild.cloneNode(true);
-            if (guess.correct) itemEl.classList.add('victory');
+            // Don't add victory class - display winning guess like others
 
             const coverUrl = this.getCoverUrl(guess.album, 250);
             const img = itemEl.querySelector('img.guess-cover');
@@ -1302,151 +1298,44 @@ export class AlbumGuessrGame {
                 if (placeholder) placeholder.style.display = 'inline-block';
             }
 
-            if (guess.correct) {
-                // Special layout for victory guess - same content as victory modal
-                const headerEl = itemEl.querySelector('.guess-header');
-                const detailsEl = itemEl.querySelector('.guess-details');
-                
-                // Hide regular header, details, and cover image
-                if (headerEl) headerEl.style.display = 'none';
-                if (detailsEl) detailsEl.style.display = 'none';
-                if (img) img.style.display = 'none';
-                if (placeholder) placeholder.style.display = 'none';
-                
-                // Use the same mystery-album template as the victory modal
-                const mysteryAlbumBlock = this.templates.mysteryAlbum.content.firstElementChild.cloneNode(true);
-                const titleEl = mysteryAlbumBlock.querySelector('.mystery-album-title');
-                const artistEl = mysteryAlbumBlock.querySelector('.mystery-album-artist');
-                const coverEl = mysteryAlbumBlock.querySelector('.mystery-album-cover');
-                const metaEl = mysteryAlbumBlock.querySelector('.mystery-album-meta');
+            // Display title and artist for all guesses
+            const titleEl = itemEl.querySelector('.guess-title');
+            const artistEl = itemEl.querySelector('.guess-artist');
+            if (titleEl) titleEl.textContent = guess.album.title || '';
+            if (artistEl) artistEl.textContent = (guess.album.artists && guess.album.artists.length > 0) ? guess.album.artists.join(', ') : 'Unknown artist';
 
-                // Remove title and artist from their original positions
-                if (titleEl) titleEl.remove();
-                if (artistEl) artistEl.remove();
-
-                // Add congratulations message at the top
-                const congratulationsTitle = document.createElement('div');
-                congratulationsTitle.className = 'victory-congratulations-title';
-                congratulationsTitle.textContent = i18n.t('game.victory.title');
-
-                const congratulationsMessage = document.createElement('div');
-                congratulationsMessage.className = 'victory-congratulations-message';
-                // Check if this is random album game (game.html) or daily game (index.html)
-                // game.html uses AlbumGuessrGame, index.html uses AlbumGuessrDailyGame
-                // We can check by the constructor name or by checking if we're on game.html
-                const isRandomAlbum = this.constructor.name === 'AlbumGuessrGame' && 
-                                     (window.location.pathname.includes('game.html') || 
-                                      (this.elements.gameDate && this.elements.gameDate.classList.contains('game-date-random')));
-                if (isRandomAlbum) {
-                    congratulationsMessage.textContent = i18n.t('game.victory.messageRandom');
-                } else {
-                    congratulationsMessage.textContent = i18n.t('game.victory.message');
-                }
-
-                // Insert congratulations messages at the beginning
-                mysteryAlbumBlock.insertBefore(congratulationsMessage, mysteryAlbumBlock.firstChild);
-                mysteryAlbumBlock.insertBefore(congratulationsTitle, mysteryAlbumBlock.firstChild);
-
-                // Set cover image
-                if (coverEl) {
-                    const coverUrl = this.getCoverUrl(guess.album, 250);
-                    if (coverUrl) {
-                        coverEl.src = coverUrl;
-                        coverEl.style.display = '';
-                    } else {
-                        coverEl.style.display = 'none';
-                    }
-                }
-
-                // Re-add title and artist after the cover image
-                if (coverEl && titleEl && artistEl) {
-                    titleEl.textContent = guess.album.title || '';
-                    artistEl.textContent = (guess.album.artists && guess.album.artists.length > 0) ? guess.album.artists.join(', ') : 'Unknown artist';
-                    
-                    // Insert title and artist after the cover image
-                    coverEl.insertAdjacentElement('afterend', titleEl);
-                    titleEl.insertAdjacentElement('afterend', artistEl);
-                }
-
-                // Hide meta in victory guess
-                if (metaEl) {
-                    metaEl.style.display = 'none';
-                }
-                
-                // Add stats like in victory modal
-                const statsContainer = document.createElement('div');
-                statsContainer.className = 'victory-stats';
-                
-                const guessStat = document.createElement('div');
-                guessStat.className = 'stat';
-                guessStat.style.display = 'flex';
-                guessStat.style.flexDirection = 'row';
-                guessStat.style.justifyContent = 'center';
-                guessStat.style.gap = '0.5rem';
-                guessStat.style.alignItems = 'center';
-                const guessLabelText = document.createElement('span');
-                guessLabelText.textContent = i18n.t('game.guessesNeeded');
-                const guessValueText = document.createElement('span');
-                guessValueText.textContent = this.guessCount;
-                guessValueText.style.fontWeight = 'bold';
-                guessValueText.style.fontSize = '1.5rem';
-                guessStat.appendChild(guessLabelText);
-                guessStat.appendChild(guessValueText);
-                
-                statsContainer.appendChild(guessStat);
-                
-                // Add share section with buttons
-                const shareSection = document.createElement('div');
-                shareSection.className = 'victory-share-section';
-                
-                // Only show rankings button for daily mode, not random mode, and not for past dailies
-                // (reuse isRandomAlbum already declared above)
-                // Check if we're playing a past daily (has date parameter in URL)
-                const urlParams = new URLSearchParams(window.location.search);
-                const isPastDaily = urlParams.has('date');
-                
-                if (!isRandomAlbum && !isPastDaily) {
-                    const showRankingsBtn = document.createElement('button');
-                    showRankingsBtn.className = 'share-button';
-                    showRankingsBtn.innerHTML = `<i class="bi bi-trophy-fill"></i> ${i18n.t('game.victory.showRankings')}`;
-                    showRankingsBtn.addEventListener('click', () => {
-                        window.location.href = '/ranking.html';
-                    });
-                    shareSection.appendChild(showRankingsBtn);
-                }
-                
-                const challengeBtn = document.createElement('button');
-                challengeBtn.className = 'share-button';
-                challengeBtn.innerHTML = `<i class="bi bi-link-45deg"></i> ${i18n.t('game.victory.challengeFriend')}`;
-                challengeBtn.addEventListener('click', () => {
-                    this.copyChallengeLinkToClipboard(challengeBtn);
-                });
-                
-                shareSection.appendChild(challengeBtn);
-                
-                itemEl.appendChild(mysteryAlbumBlock);
-                itemEl.appendChild(statsContainer);
-                itemEl.appendChild(shareSection);
-            } else {
-                const titleEl = itemEl.querySelector('.guess-title');
-                const artistEl = itemEl.querySelector('.guess-artist');
-                if (titleEl) titleEl.textContent = guess.album.title || '';
-                if (artistEl) artistEl.textContent = (guess.album.artists && guess.album.artists.length > 0) ? guess.album.artists.join(', ') : 'Unknown artist';
-
-                const cluesEl = itemEl.querySelector('.guess-clues');
-                if (cluesEl) {
-                    const icon = document.createElement('i');
-                    icon.className = 'bi bi-lightbulb';
-                    const text = document.createTextNode(` ${guess.cluesRevealed.length} clue(s)`);
-                    cluesEl.appendChild(icon);
-                    cluesEl.appendChild(text);
-                }
+            const cluesEl = itemEl.querySelector('.guess-clues');
+            if (cluesEl) {
+                const icon = document.createElement('i');
+                icon.className = 'bi bi-lightbulb';
+                const clueCount = guess.cluesRevealed ? guess.cluesRevealed.length : 0;
+                const text = document.createTextNode(` ${clueCount} clue(s)`);
+                cluesEl.appendChild(icon);
+                cluesEl.appendChild(text);
             }
 
-            if (!guess.correct) {
+            // Display attributes for all guesses (correct or not)
+            {
                 const categories = GAME_CONFIG.clueCategories.map(c => c.key);
                 const revealedByCategory = new Map();
-                (guess.cluesRevealed || []).forEach(c => revealedByCategory.set(c.category, new Set(c.values)));
+                
+                // For winning guess, all attributes are hits
+                if (guess.correct) {
+                    // Mark all album attributes as hits
+                    categories.forEach(catKey => {
+                        const albumVal = guess.album[catKey];
+                        if (albumVal) {
+                            const values = Array.isArray(albumVal) ? albumVal : [albumVal];
+                            revealedByCategory.set(catKey, new Set(values));
+                        }
+                    });
+                    // Also add continents if countries are present
+                    if (guess.album.continents) {
+                        revealedByCategory.set('continents', new Set(guess.album.continents));
+                    }
+                } else {
+                    (guess.cluesRevealed || []).forEach(c => revealedByCategory.set(c.category, new Set(c.values)));
+                }
 
                 const detailsEl = itemEl.querySelector('.guess-details');
                 if (detailsEl) {
@@ -1699,7 +1588,9 @@ export class AlbumGuessrGame {
 
         // Update stats
         this.elements.finalGuesses.textContent = this.guessCount;
-        this.elements.finalClues.textContent = this.discoveredClues.size;
+        if (this.elements.finalClues) {
+            this.elements.finalClues.textContent = this.discoveredClues.size;
+        }
 
         // Hide show rankings button in random mode
         const isRandomAlbum = this.constructor.name === 'AlbumGuessrGame' && 
@@ -1710,6 +1601,20 @@ export class AlbumGuessrGame {
         }
 
         this.elements.victoryModal.classList.add('show');
+
+        // Ensure game status (guess counter) is visible
+        if (this.elements.gameStatus) {
+            this.elements.gameStatus.style.display = '';
+        }
+
+        // Ensure guesses history is visible
+        if (this.elements.guessesHistory) {
+            this.elements.guessesHistory.style.display = '';
+            this.elements.guessesHistory.style.visibility = 'visible';
+        }
+
+        // Update guesses history to show all searches including the winning one
+        this.updateGuessesHistory();
 
         // Persist win to user history if logged in
         this.saveWinToHistory();

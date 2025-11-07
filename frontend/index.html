@@ -59,6 +59,43 @@
                         <div class="clues-container" id="clues-container">
                         </div>
                     </div>
+                       
+                    
+
+                    <!-- Victory Modal POPUP VICTOIRE -->
+                    <div class="modal" id="victory-modal">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h2><i class="bi bi-trophy"></i> <span data-i18n="game.victory.title">Congratulations!</span></h2>
+                            </div>
+                            <div class="modal-body">
+                                <div class="victory-message">
+                                    <p data-i18n="game.victoryMessage">You found the album of the day!
+                                        Come back tomorrow for a new mystery album!
+                                    </p>
+                                </div>
+                                <div class="mystery-album" id="mystery-album-display">
+                                    <!-- Mystery album info will be displayed here -->
+                                </div>
+                                <div class="victory-stats">
+                                    <div class="stat">
+                                        <span class="stat-label" data-i18n="game.guessesNeeded">Guesses needed:</span>
+                                        <span class="stat-value" id="final-guesses"></span>
+                                    </div>
+                                </div>
+                                <div class="share-section">
+                                    <button class="share-button" id="show-rankings-button">
+                                        <i class="bi bi-trophy-fill"></i>
+                                        <span data-i18n="game.victory.showRankings">Show Rankings</span>
+                                    </button>
+                                    <button class="share-button" id="share-button">
+                                        <i class="bi bi-share"></i>
+                                        <span data-i18n="game.shareResult">Share your result</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
                     <!-- Game Status -->
                     <div class="game-status" id="game-status">
@@ -70,8 +107,6 @@
                             <hr class="guess-counter-hr">
                         </div>
                     </div>
-                       
-                    
 
                     <!-- Guesses History -->
                     <div class="guesses-history" id="guesses-history">
@@ -82,47 +117,6 @@
                 </div>
             </div>
 
-            <!-- Victory Modal POPUP VICTOIRE -->
-            <div class="modal" id="victory-modal">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h2><i class="bi bi-trophy"></i> <span data-i18n="game.victory.title">Congratulations!</span></h2>
-                        <button class="close-button" id="close-victory">
-                            <i class="bi bi-x"></i>
-                        </button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="victory-message">
-                            <p data-i18n="game.victoryMessage">You found the album of the day!
-                                Come back tomorrow for a new mystery album!
-                            </p>
-                        </div>
-                        <div class="mystery-album" id="mystery-album-display">
-                            <!-- Mystery album info will be displayed here -->
-                        </div>
-                        <div class="victory-stats">
-                            <div class="stat">
-                                <span class="stat-label" data-i18n="game.guessesNeeded">Guesses needed:</span>
-                                <span class="stat-value" id="final-guesses"></span>
-                            </div>
-                            <div class="stat">
-                                <span class="stat-label" data-i18n="game.cluesDiscovered">Clues discovered:</span>
-                                <span class="stat-value" id="final-clues"></span>
-                            </div>
-                        </div>
-                        <div class="share-section">
-                            <button class="share-button" id="show-rankings-button">
-                                <i class="bi bi-trophy-fill"></i>
-                                <span data-i18n="game.victory.showRankings">Show Rankings</span>
-                            </button>
-                            <button class="share-button" id="share-button">
-                                <i class="bi bi-share"></i>
-                                <span data-i18n="game.shareResult">Share your result</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </main>
 
         <!-- Instructions Modal -->

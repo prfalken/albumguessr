@@ -1183,6 +1183,24 @@ main {
     display: flex;
 }
 
+/* Victory modal displayed inline in the page flow */
+#victory-modal {
+    position: relative;
+    width: 100%;
+    height: auto;
+    background: transparent;
+    display: none;
+    align-items: flex-start;
+    justify-content: center;
+    z-index: auto;
+    padding: 0;
+    margin-bottom: 2rem;
+}
+
+#victory-modal.show {
+    display: block;
+}
+
 .modal-content {
     background: var(--surface);
     border-radius: var(--radius-lg);
@@ -1192,6 +1210,45 @@ main {
     max-height: 90vh;
     overflow-y: auto;
     animation: modalSlideIn 0.3s ease;
+}
+
+/* Victory modal content styled for inline display with yellow background */
+#victory-modal .modal-content {
+    background: #ffd41d;
+    max-width: 100%;
+    max-height: none;
+    margin: 0 auto;
+    border: none;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    animation: slideDown 0.3s ease;
+}
+
+#victory-modal .modal-header {
+    border-bottom: none;
+    background: transparent;
+    justify-content: center;
+    padding-bottom: 0.5rem;
+}
+
+#victory-modal .modal-header h2 {
+    color: #000;
+    margin: 0;
+}
+
+
+#victory-modal .modal-body {
+    background: transparent;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .modal-header {
@@ -1253,6 +1310,11 @@ main {
     color: var(--text-secondary);
 }
 
+#victory-modal .victory-message p {
+    color: #000;
+    font-weight: 500;
+}
+
 .mystery-album {
     text-align: center;
     padding: 1.5rem;
@@ -1262,6 +1324,12 @@ main {
     margin-bottom: 1.5rem;
 }
 
+#victory-modal .mystery-album {
+    background: transparent;
+    border: none;
+    padding: 1rem;
+}
+
 .mystery-album-title {
     font-size: 1.5rem;
     font-weight: 700;
@@ -1269,11 +1337,22 @@ main {
     color: var(--text-primary);
 }
 
+#victory-modal .mystery-album-title {
+    color: #fff;
+    font-size: 2rem;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
 .mystery-album-artist {
     font-size: 1.1rem;
     color: #000;
     margin-bottom: 1rem;
     margin-top: 0;
+}
+
+#victory-modal .mystery-album-artist {
+    color: #000;
+    font-size: 1.2rem;
 }
 
 .mystery-album-cover {
@@ -1287,6 +1366,10 @@ main {
     margin: 0.5rem auto 1rem;
 }
 
+#victory-modal .mystery-album-cover {
+    border: 3px solid rgba(0, 0, 0, 0.2);
+}
+
 .mystery-album-meta {
     display: flex;
     justify-content: center;
@@ -1295,10 +1378,18 @@ main {
     color: #000;
 }
 
+#victory-modal .mystery-album-meta {
+    display: none;
+}
+
 .victory-stats {
     display: flex;
     justify-content: space-around;
     margin-bottom: 1.5rem;
+}
+
+#victory-modal .victory-stats {
+    justify-content: center;
 }
 
 .stat {
@@ -1312,10 +1403,32 @@ main {
     margin-bottom: 0.25rem;
 }
 
+#victory-modal .stat {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+#victory-modal .stat-label {
+    color: #000;
+    font-size: 1rem;
+    font-weight: 400;
+    display: inline;
+    margin-bottom: 0;
+}
+
 .stat-value {
     font-size: 1.5rem;
     font-weight: 700;
     color: var(--primary-color);
+}
+
+#victory-modal .stat-value {
+    color: #000;
+    font-size: 1.5rem;
+    font-weight: 700;
+    display: inline;
 }
 
 .share-button {
@@ -1337,6 +1450,29 @@ main {
 
 .share-button:hover {
     background: var(--primary-dark);
+    transform: translateY(-1px);
+}
+
+#victory-modal .share-section {
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+#victory-modal .share-button {
+    background: #565349;
+    color: #fff;
+    padding: 0.875rem 1.5rem;
+    border-radius: var(--radius);
+    font-size: 1rem;
+    font-weight: 600;
+    flex: 1;
+    margin-bottom: 0;
+}
+
+#victory-modal .share-button:hover {
+    background: rgba(86, 83, 73, 0.85);
     transform: translateY(-1px);
 }
 

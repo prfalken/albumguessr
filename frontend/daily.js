@@ -178,6 +178,12 @@ class AlbumGuessrDailyGame extends AlbumGuessrGame {
             
             // Now update UI with correct game state
             this.updateUI();
+            
+            // If game is already won (restored from localStorage or API), show victory modal
+            if (this.gameWon) {
+                this.showVictoryModal();
+            }
+            
             // Ensure status subtitle is updated after everything is loaded
             this.updateStatusSubtitle();
             this.showLoading(false);
@@ -327,6 +333,10 @@ class AlbumGuessrDailyGame extends AlbumGuessrGame {
                 await this.checkAndRestorePreviousWin();
                 // Update UI to reflect the restored state
                 this.updateUI();
+                // Show victory modal if game was won
+                if (this.gameWon && !this.elements.victoryModal.classList.contains('show')) {
+                    this.showVictoryModal();
+                }
             }
         } catch (err) {
             console.warn('Failed to re-check previous win after login:', err);
@@ -359,15 +369,19 @@ class AlbumGuessrDailyGame extends AlbumGuessrGame {
             this.winSaved = true; // Prevent re-saving
             this.guessCount = previousWin.guesses || 1;
 
-            // Restore guesses array with the winning guess so the UI can display the result
-            // Create a guess entry showing the correct answer was found
-            const winningGuess = {
-                album: this.mysteryAlbum,
-                correct: true,
-                guessNumber: this.guessCount,
-                cluesRevealed: []
-            };
-            this.guesses = [winningGuess];
+            // Only create a minimal winning guess if we don't already have guesses from localStorage
+            // This preserves the full history if it was restored by restoreGameState()
+            if (this.guesses.length === 0) {
+                // Restore guesses array with the winning guess so the UI can display the result
+                // Create a guess entry showing the correct answer was found
+                const winningGuess = {
+                    album: this.mysteryAlbum,
+                    correct: true,
+                    guessNumber: this.guessCount,
+                    cluesRevealed: []
+                };
+                this.guesses = [winningGuess];
+            }
 
             // Note: UI update happens in initializeGame after this function returns
             // Don't show victory modal - user already won, just restoring state
@@ -518,11 +532,8 @@ class AlbumGuessrDailyGame extends AlbumGuessrGame {
                     this.winSaved = true;
                     this.renderUserHistory();
                     
-                    // Clear saved game state since game is over
-                    const storageKey = this.getStorageKey();
-                    if (storageKey) {
-                        localStorage.removeItem(storageKey);
-                    }
+                    // Keep game state in localStorage to preserve full history on refresh
+                    // Don't remove it so that all guesses can be restored when page is refreshed
                     
                     // Show toast suggesting username setup if user doesn't have a custom username
                     const hasCustomUsername = this.authManager.customUsername;
