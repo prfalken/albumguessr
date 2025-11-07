@@ -4,5 +4,8 @@
     "@neondatabase/serverless": "^0.9.5",
     "dotenv": "^17.2.3",
     "jose": "^5.10.0"
+  },
+  "devDependencies": {
+    "netlify-cli": "^23.10.0"
   }
 }

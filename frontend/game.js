@@ -371,7 +371,14 @@ export class AlbumGuessrGame {
             }
         });
 
-        
+        // Search submit button
+        if (this.elements.searchSubmit) {
+            this.elements.searchSubmit.addEventListener('click', () => {
+                if (!this.elements.searchSubmit.disabled) {
+                    this.submitGuess();
+                }
+            });
+        }
 
         // Modal events
         if (this.elements.closeVictory) {

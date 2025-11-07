@@ -600,7 +600,7 @@ main {
 
 }
 
-.search-box i {
+.search-box > i {
     position: absolute;
     left: 1rem;
     color: var(--text-secondary);
@@ -609,7 +609,7 @@ main {
 
 .search-box input {
     flex: 1;
-    padding: 1rem 1rem 1rem 3rem;
+    padding: 1rem 4rem 1rem 1rem;
     border: none;
     outline: none;
     font-size: 1rem;
@@ -617,35 +617,57 @@ main {
     background: transparent;
     border-radius: var(--radius-lg);
     color: white;
-    text-align: center;
+    text-align: left;
 }
 
 .search-box input::placeholder {
     color: var(--text-secondary);
+    opacity: 0.5;
+    font-size: 0.95rem;
 }
 
 .search-submit-btn {
-    background: var(--primary-color);
-    color: white;
+    background: var(--text-secondary);
+    color: #000000;
     border: none;
     padding: 0.75rem;
-    margin: 0.25rem;
-    border-radius: calc(var(--radius-lg) - 0.25rem);
+    margin: 0.25rem 0.25rem 0.25rem 0;
+    border-radius: 0 calc(var(--radius-lg) - 0.25rem) calc(var(--radius-lg) - 0.25rem) 0;
     cursor: pointer;
     transition: all 0.2s ease;
     display: flex;
     align-items: center;
     justify-content: center;
+    min-width: 2.5rem;
+    align-self: stretch;
+}
+
+.search-submit-btn i {
+    color: #000000 !important;
+    font-size: 1.1rem;
+    display: inline-block;
+    line-height: 1;
+    position: static !important;
+    left: auto !important;
 }
 
 .search-submit-btn:disabled {
-    background: var(--text-muted);
+    background: var(--text-secondary);
     cursor: not-allowed;
 }
 
+.search-submit-btn:disabled i {
+    color: #000000 !important;
+}
+
 .search-submit-btn:not(:disabled):hover {
-    background: var(--primary-dark);
+    background: var(--accent-color);
+    color: #000000;
     transform: translateX(2px);
+}
+
+.search-submit-btn:not(:disabled):hover i {
+    color: #000000;
 }
 
 /* Search Results */
@@ -3769,6 +3791,14 @@ footer .contenu {
 
 .cover-guess-wrapper .search-box {
     width: 100%;
+}
+
+.cover-guess-wrapper .search-box > i {
+    display: none;
+}
+
+.cover-guess-wrapper .search-submit-btn {
+    display: none;
 }
 
 .cover-guess-wrapper .search-results {
