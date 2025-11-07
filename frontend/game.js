@@ -1605,8 +1605,52 @@ export class AlbumGuessrGame {
         const isRandomAlbum = this.constructor.name === 'AlbumGuessrGame' && 
                              (window.location.pathname.includes('game.html') || 
                               (this.elements.gameDate && this.elements.gameDate.classList.contains('game-date-random')));
+        
+        // Check if we're playing a past daily (URL has date parameter)
+        const urlParams = new URLSearchParams(window.location.search);
+        const isPastDaily = urlParams.has('date');
+        
         if (this.elements.showRankingsButton) {
-            this.elements.showRankingsButton.style.display = isRandomAlbum ? 'none' : '';
+            this.elements.showRankingsButton.style.display = (isRandomAlbum || isPastDaily) ? 'none' : '';
+        }
+        
+        // Get share section container
+        const shareSection = document.querySelector('#victory-modal .share-section');
+        
+        if (isPastDaily) {
+            // Hide share button in past daily mode
+            const shareButton = document.getElementById('share-button');
+            if (shareButton) {
+                shareButton.style.display = 'none';
+            }
+            
+            // Create or show "Play more past dailies" button
+            let pastDailiesButton = document.getElementById('past-dailies-button');
+            if (!pastDailiesButton && shareSection) {
+                pastDailiesButton = document.createElement('button');
+                pastDailiesButton.id = 'past-dailies-button';
+                pastDailiesButton.className = 'share-button';
+                const buttonText = i18n.t('game.victory.playPastDailies');
+                pastDailiesButton.innerHTML = `<i class="bi bi-disc"></i><span data-i18n="game.victory.playPastDailies">${buttonText}</span>`;
+                pastDailiesButton.addEventListener('click', () => {
+                    window.location.href = 'past-dailies.html';
+                });
+                shareSection.appendChild(pastDailiesButton);
+            } else if (pastDailiesButton) {
+                pastDailiesButton.style.display = '';
+            }
+        } else {
+            // Show share button in current daily mode
+            const shareButton = document.getElementById('share-button');
+            if (shareButton) {
+                shareButton.style.display = '';
+            }
+            
+            // Hide past dailies button if it exists
+            const pastDailiesButton = document.getElementById('past-dailies-button');
+            if (pastDailiesButton) {
+                pastDailiesButton.style.display = 'none';
+            }
         }
 
         this.elements.victoryModal.classList.add('show');

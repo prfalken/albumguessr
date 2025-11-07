@@ -70,7 +70,8 @@ class I18nManager {
                         messageRandom: 'Refresh the page and find another one!',
                         showRankings: 'Show Rankings',
                         challengeFriend: 'Challenge a friend',
-                        playAgain: 'Play Again'
+                        playAgain: 'Play Again',
+                        playPastDailies: 'Play more past daily albums'
                     },
                     noClues: 'Make a first guess to reveal clues...',
                     loading: 'Loading the album of the day...',
@@ -418,7 +419,8 @@ class I18nManager {
                         messageRandom: 'Rafraîchissez la page et trouvez-en un autre !',
                         showRankings: 'Voir le classement',
                         challengeFriend: 'Défier un ami',
-                        playAgain: 'Rejouer'
+                        playAgain: 'Rejouer',
+                        playPastDailies: 'Rejouer aux anciens albums du jour'
                     },
                     noClues: 'Faites une première tentative pour révéler les indices...',
                     loading: 'Chargement de l\'album du jour...',
@@ -766,7 +768,8 @@ class I18nManager {
                         messageRandom: '¡Actualiza la página y encuentra otro!',
                         showRankings: 'Ver clasificación',
                         challengeFriend: 'Desafiar a un amigo',
-                        playAgain: 'Jugar de nuevo'
+                        playAgain: 'Jugar de nuevo',
+                        playPastDailies: 'Jugar más álbumes diarios pasados'
                     },
                     noClues: 'Haz una primera suposición para revelar pistas...',
                     loading: 'Cargando el álbum del día...',

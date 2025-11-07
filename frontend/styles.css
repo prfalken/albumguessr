@@ -310,6 +310,11 @@ header .contenu {
     flex-wrap: wrap;
 }
 
+/* Hide nav buttons when playing a past daily */
+body.past-daily-mode .nav-buttons-container {
+    display: none !important;
+}
+
 .nav-button {
     display: flex;
     flex-direction: column;

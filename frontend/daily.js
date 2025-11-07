@@ -132,6 +132,19 @@ class AlbumGuessrDailyGame extends AlbumGuessrGame {
                 this.updateStatusSubtitle();
             }
         }, 100);
+        
+        // Hide navigation buttons if playing a past daily
+        this.hideNavButtonsIfPastDaily();
+    }
+    
+    hideNavButtonsIfPastDaily() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const isPastDaily = urlParams.has('date');
+        
+        if (isPastDaily) {
+            // Add class to body to hide nav buttons via CSS
+            document.body.classList.add('past-daily-mode');
+        }
     }
 
     async initializeGame() {
