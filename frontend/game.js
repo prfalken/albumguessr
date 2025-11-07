@@ -613,11 +613,14 @@ export class AlbumGuessrGame {
         this.selectedResult = null;
         if (this.elements.searchSubmit) this.elements.searchSubmit.disabled = true;
 
-        if (this.gameOver) {
+        if (this.gameOver && this.gameWon) {
             // First, ensure UI is updated with clues and guesses visible
             this.updateUI();
             
-            // Victory modal is no longer shown - user can see victory in guesses history
+            // Show victory modal
+            setTimeout(() => {
+                this.showVictoryModal();
+            }, 200);
         }
     }
 
@@ -1584,6 +1587,12 @@ export class AlbumGuessrGame {
                 metaEl.appendChild(span);
             });
         }
+        
+        // Reorder elements: cover, title, artist, meta
+        if (coverEl && titleEl) {
+            coverEl.parentNode.insertBefore(coverEl, titleEl);
+        }
+        
         this.elements.mysteryAlbumDisplay.replaceChildren(block);
 
         // Update stats

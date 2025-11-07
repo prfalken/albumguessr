@@ -361,7 +361,7 @@ class AlbumGuessrDailyGame extends AlbumGuessrGame {
             if (!previousWin) return;
 
             // User has already completed this album - restore the win state
-            console.log('User has already completed this album today');
+            console.log('User has already completed this album');
             
             // Set game state to won
             this.gameWon = true;

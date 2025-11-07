@@ -982,7 +982,6 @@ main {
 
 .guess-item.victory .mystery-album-artist {
     margin-top: 0;
-    margin-bottom: 1rem;
     line-height: 1.2;
 }
 
@@ -1302,7 +1301,7 @@ main {
 /* Victory Modal */
 .victory-message {
     text-align: center;
-    margin-bottom: 1.5rem;
+
 }
 
 .victory-message p {
@@ -1321,7 +1320,6 @@ main {
     background: var(--clue-background);
     border: 2px solid var(--clue-border);
     border-radius: var(--radius);
-    margin-bottom: 1.5rem;
 }
 
 #victory-modal .mystery-album {
@@ -1346,7 +1344,6 @@ main {
 .mystery-album-artist {
     font-size: 1.1rem;
     color: #000;
-    margin-bottom: 1rem;
     margin-top: 0;
 }
 
