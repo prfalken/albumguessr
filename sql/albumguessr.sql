@@ -18,7 +18,8 @@ CREATE TABLE IF NOT EXISTS user_album_history (
 -- One row per calendar day with the selected album's Algolia objectID
 CREATE TABLE IF NOT EXISTS mystery_album_schedule (
   schedule_date DATE PRIMARY KEY,
-  object_id TEXT NOT NULL
+  object_id TEXT NOT NULL,
+  primary_genre TEXT
 );
 
 -- User profiles table to cache Auth0 user data
@@ -37,4 +38,13 @@ CREATE TABLE IF NOT EXISTS user_profiles (
 -- INSERT INTO user_profiles (user_id, admin, updated_at) 
 -- VALUES ('google-oauth2|110253643736011489857', 1, now())
 -- ON CONFLICT (user_id) DO UPDATE SET admin = 1;
+
+-- Mystery random album table
+-- Stores random albums for mystery cover guess game mode
+-- Albums can appear multiple times with different genres
+CREATE TABLE IF NOT EXISTS mystery_random_album (
+  object_id TEXT NOT NULL,
+  primary_genre TEXT NOT NULL,
+  PRIMARY KEY (object_id, primary_genre)
+);
 

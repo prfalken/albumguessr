@@ -17,6 +17,7 @@ from algolia import AlgoliaApp
 from algolia_indexer import AlgoliaIndexer
 from algolia_searcher import AlgoliaSearcher
 from data_processor import AlbumDataProcessor
+from populate_mystery_albums import populate_mystery_albums
 
 
 def main():
@@ -46,7 +47,18 @@ def main():
     )
     parser.add_argument("--configure", action="store_true", help="Configure Algolia index settings")
     parser.add_argument("--search", type=str, help="Search for a album in Algolia")
+    parser.add_argument("--get-by-id", type=str, help="Get an album by its objectID")
     parser.add_argument("--stats", action="store_true", help="Show Algolia index statistics")
+    parser.add_argument(
+        "--populate-mystery-albums",
+        action="store_true",
+        help="Populate mystery_random_album table with top albums per genre",
+    )
+    parser.add_argument(
+        "--clear-mystery-albums",
+        action="store_true",
+        help="Clear existing mystery albums before populating",
+    )
 
     # Build epilog dynamically from declared options
     def _build_examples_from_parser(p: argparse.ArgumentParser) -> str:
@@ -94,6 +106,11 @@ def main():
     )
     data_processor = AlbumDataProcessor(db)
 
+    # Neon DB connection (only if needed)
+    neon_db = None
+    if args.populate_mystery_albums and config.NEON_DATABASE_URL:
+        neon_db = psycopg2.connect(config.NEON_DATABASE_URL)
+
     algolia_client = SearchClientSync(config.ALGOLIA_APPLICATION_ID, config.ALGOLIA_API_KEY)
     algolia_app = AlgoliaApp(config, algolia_client)
     algolia_indexer = AlgoliaIndexer(config, algolia_client)
@@ -113,6 +130,14 @@ def main():
         algolia_app.clear_index()
     elif args.configure:
         algolia_app.configure_index_settings()
+    elif args.get_by_id:
+        result = algolia_searcher.get_album_by_id(args.get_by_id)
+        if result:
+            logger.info(f"Album found:")
+            logger.info(f"  Title: {result.get('title', 'N/A')}")
+            logger.info(f"  Artist: {result.get('main_artist', 'N/A')}")
+        else:
+            logger.warning(f"No album found with objectID: {args.get_by_id}")
     elif args.search:
         results = algolia_searcher.search_albums(args.search)
         logger.info("Search results:")
@@ -122,6 +147,22 @@ def main():
                 result.get("main_artist", "N/A"),
                 result.get("release_year", "N/A"),
             )
+    elif args.populate_mystery_albums:
+        if not config.NEON_DATABASE_URL:
+            logger.error("NEON_DATABASE_URL (NETLIFY_DATABASE_URL) not configured")
+            sys.exit(1)
+        if not neon_db:
+            logger.error("Failed to connect to Neon database")
+            sys.exit(1)
+        logger.info("Starting mystery album population using Algolia")
+        populate_mystery_albums(
+            db, 
+            neon_db, 
+            algolia_client, 
+            config.ALGOLIA_INDEX_NAME,
+            clear_existing=args.clear_mystery_albums
+        )
+        neon_db.close()
     else:
         logger.info("Starting DB-driven sync (MusicBrainz → Algolia)")
         total_indexed = 0

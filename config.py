@@ -29,6 +29,9 @@ class Config:
     DB_USER: str = os.getenv("DB_USER", "musicbrainz")
     DB_PASSWORD: str = os.getenv("DB_PASSWORD", "musicbrainz")
 
+    # Neon database configuration (serverless Postgres for app data)
+    NEON_DATABASE_URL: Optional[str] = os.getenv("NETLIFY_DATABASE_URL")
+
     @classmethod
     def validate(cls) -> None:
         """Validate that all required configuration is present."""
