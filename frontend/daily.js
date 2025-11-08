@@ -40,8 +40,8 @@ class AlbumGuessrDailyGame extends AlbumGuessrGame {
         }
         
         // Make sure we don't have the random game class
-        if (this.elements.gameDate.classList.contains('game-date-random')) {
-            this.elements.gameDate.classList.remove('game-date-random');
+        if (this.elements.gameDate.classList.contains('daily-instruction')) {
+            this.elements.gameDate.classList.remove('daily-instruction');
         }
         
         try {
@@ -122,7 +122,7 @@ class AlbumGuessrDailyGame extends AlbumGuessrGame {
         super.initializeDOM();
         // Remove the random game class that parent adds and set the date immediately
         if (this.elements.gameDate) {
-            this.elements.gameDate.classList.remove('game-date-random');
+            this.elements.gameDate.classList.remove('daily-instruction');
             // Set the date immediately, don't wait
             this.updateStatusSubtitle();
         }

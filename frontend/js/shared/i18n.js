@@ -25,16 +25,16 @@ class I18nManager {
                 },
                 game: {
                     searchPlaceholder: 'Search an album or an artist...',
-                    makeGuess: 'Make a first guess to reveal clues...',
+                    makeGuess: 'To find the album of the day, make a first guess in the search bar<br>to start revealing the first clues.',
                     guessCounter: 'guesses',
                     guessCounterSingle: 'guess',
                     cluesRevealed: 'clue(s)',
                     cluesDiscovered: 'Clues discovered:',
-                    newMystery: 'New mystery on each refresh',
+                    newMystery: 'To find the mystery album, make a first guess in the search bar<br>to start revealing the first clues.',
                     unknownArtist: 'Unknown artist',
                     guessesNeeded: 'Guesses needed:',
                     challengeLink: 'Challenge link copied to clipboard!',
-                    subtitle: 'Find the mystery album using the revealed clues.',
+                    subtitle: 'Mystery Album - New album on each refresh',
                     shareResult: 'Share your result',
                     victoryMessage: 'You found the album of the day! Come back tomorrow for a new mystery album!',
                     instructions: {
@@ -374,16 +374,16 @@ class I18nManager {
                 },
                 game: {
                     searchPlaceholder: 'Rechercher un album ou un artiste...',
-                    makeGuess: 'Faites une première tentative pour révéler les indices...',
+                    makeGuess: 'Pour trouver l\'album du jour, faites une première proposition dans la barre de recherche<br>pour commencer à révéler les premiers indices.',
                     guessCounter: 'tentatives',
                     guessCounterSingle: 'tentative',
                     cluesRevealed: 'indice(s)',
                     cluesDiscovered: 'Indices découverts :',
-                    newMystery: 'Nouvel album mystère à chaque actualisation',
+                    newMystery: 'Pour trouver l\'album mystère, faites une première proposition dans la barre de recherche<br>pour commencer à révéler les premiers indices.',
                     unknownArtist: 'Artiste inconnu',
                     guessesNeeded: 'Tentatives nécessaires :',
                     challengeLink: 'Lien de défi copié dans le presse-papiers !',
-                    subtitle: 'Trouvez l\'album mystère en utilisant les indices révélés.',
+                    subtitle: 'Album Mystère - Nouvel album à chaque actualisation',
                     shareResult: 'Partager votre résultat',
                     victoryMessage: 'Vous avez trouvé l\'album du jour ! Revenez demain pour un nouvel album mystère !',
                     instructions: {
@@ -723,16 +723,16 @@ class I18nManager {
                 },
                 game: {
                     searchPlaceholder: 'Buscar un álbum o un artista...',
-                    makeGuess: 'Haz una primera suposición para revelar pistas...',
+                    makeGuess: 'Para encontrar el álbum del día, haz una primera propuesta en la barra de búsqueda<br>para comenzar a revelar las primeras pistas.',
                     guessCounter: 'intentos',
                     guessCounterSingle: 'intento',
                     cluesRevealed: 'pista(s)',
                     cluesDiscovered: 'Pistas descubiertas:',
-                    newMystery: 'Nuevo misterio en cada actualización',
+                    newMystery: 'Para encontrar el álbum misterioso, haz una primera propuesta en la barra de búsqueda<br>para comenzar a revelar las primeras pistas.',
                     unknownArtist: 'Artista desconocido',
                     guessesNeeded: 'Intentos necesarios:',
                     challengeLink: '¡Enlace de desafío copiado al portapapeles!',
-                    subtitle: 'Encuentra el álbum misterioso usando las pistas reveladas.',
+                    subtitle: 'Álbum Misterioso - Nuevo álbum en cada actualización',
                     shareResult: 'Compartir tu resultado',
                     victoryMessage: '¡Encontraste el álbum del día! ¡Vuelve mañana para un nuevo álbum misterioso!',
                     instructions: {
@@ -1229,7 +1229,7 @@ class I18nManager {
         elements.forEach(element => {
             const key = element.getAttribute('data-i18n');
             if (key) {
-                element.textContent = this.t(key);
+                element.innerHTML = this.t(key);
             }
         });
         

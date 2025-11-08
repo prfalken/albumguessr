@@ -76,7 +76,7 @@ export class AlbumGuessrGame {
                 if (this.elements.albumSearch) {
                     this.elements.albumSearch.placeholder = i18n.t('game.searchPlaceholder');
                 }
-                if (this.elements.gameDate && !this.elements.gameDate.classList.contains('game-date-random')) {
+                if (this.elements.gameDate && !this.elements.gameDate.classList.contains('daily-instruction')) {
                     // For daily game, date is set by daily.js
                 } else if (this.elements.gameDate) {
                     this.updateGameDateText();
@@ -94,9 +94,9 @@ export class AlbumGuessrGame {
     }
 
     updateGameDateText() {
-        if (this.elements && this.elements.gameDate && this.elements.gameDate.classList.contains('game-date-random')) {
+        if (this.elements && this.elements.gameDate && this.elements.gameDate.classList.contains('daily-instruction')) {
             try {
-                this.elements.gameDate.textContent = i18n.t('game.newMystery');
+                this.elements.gameDate.innerHTML = i18n.t('game.newMystery');
             } catch (e) {
                 // i18n might not be ready yet, will be updated later
                 console.warn('i18n not ready for gameDate:', e);
@@ -187,7 +187,7 @@ export class AlbumGuessrGame {
         // Show refresh-based info
         // Use a function to update the text after i18n is initialized
         this.updateGameDateText();
-        this.elements.gameDate.classList.add('game-date-random');
+        this.elements.gameDate.classList.add('daily-instruction');
         
         // Set placeholder for search input
         if (this.elements.albumSearch) {
@@ -1611,7 +1611,7 @@ export class AlbumGuessrGame {
         // Hide show rankings button in random mode
         const isRandomAlbum = this.constructor.name === 'AlbumGuessrGame' && 
                              (window.location.pathname.includes('game.html') || 
-                              (this.elements.gameDate && this.elements.gameDate.classList.contains('game-date-random')));
+                              (this.elements.gameDate && this.elements.gameDate.classList.contains('daily-instruction')));
         
         // Check if we're playing a past daily (URL has date parameter)
         const urlParams = new URLSearchParams(window.location.search);
