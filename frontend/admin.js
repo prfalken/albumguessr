@@ -12,6 +12,8 @@ class AdminDashboard {
         this.scheduleData = [];
         this.currentPage = 1;
         this.itemsPerPage = 10;
+        this.genres = [];
+        this.editingGenre = null;
         
         this.init();
     }
@@ -34,6 +36,9 @@ class AdminDashboard {
         
         // Load schedule data
         await this.loadSchedule();
+        
+        // Load genres data
+        await this.loadGenres();
         
         // Set minimum date to today
         const today = new Date().toISOString().split('T')[0];
@@ -102,6 +107,19 @@ class AdminDashboard {
             selectedAlbumDisplay: document.getElementById('selected-album-display'),
             messageDiv: document.getElementById('schedule-message'),
             scheduleList: document.getElementById('admin-schedule-list'),
+            genresList: document.getElementById('admin-genres-list'),
+            btnAddGenre: document.getElementById('btn-add-genre'),
+            genreModal: document.getElementById('genre-edit-modal'),
+            genreForm: document.getElementById('genre-edit-form'),
+            closeGenreModal: document.getElementById('close-genre-modal'),
+            cancelGenreEdit: document.getElementById('cancel-genre-edit'),
+            genreId: document.getElementById('genre-id'),
+            genreName: document.getElementById('genre-name'),
+            genreDisplayName: document.getElementById('genre-display-name'),
+            genreDisplayOrder: document.getElementById('genre-display-order'),
+            genreEnabled: document.getElementById('genre-enabled'),
+            genreMessage: document.getElementById('genre-message'),
+            genreModalTitle: document.getElementById('genre-modal-title-text'),
             btnLogin: null,
             btnLogout: null,
             userProfile: null,
@@ -134,6 +152,28 @@ class AdminDashboard {
                 this.clearSearchResults();
             }
         });
+
+        // Genre management events
+        if (this.elements.btnAddGenre) {
+            this.elements.btnAddGenre.addEventListener('click', () => this.showGenreModal());
+        }
+        if (this.elements.genreForm) {
+            this.elements.genreForm.addEventListener('submit', (e) => this.handleGenreSubmit(e));
+        }
+        if (this.elements.closeGenreModal) {
+            this.elements.closeGenreModal.addEventListener('click', () => this.hideGenreModal());
+        }
+        if (this.elements.cancelGenreEdit) {
+            this.elements.cancelGenreEdit.addEventListener('click', () => this.hideGenreModal());
+        }
+        // Close modal on background click
+        if (this.elements.genreModal) {
+            this.elements.genreModal.addEventListener('click', (e) => {
+                if (e.target === this.elements.genreModal) {
+                    this.hideGenreModal();
+                }
+            });
+        }
     }
 
     async searchAlbums(query) {
@@ -513,6 +553,203 @@ class AdminDashboard {
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
+    }
+
+    // ============================================================================
+    // GENRE MANAGEMENT METHODS
+    // ============================================================================
+
+    async loadGenres() {
+        try {
+            const token = await this.authManager.auth0Client.getTokenSilently();
+            const response = await fetch('/.netlify/functions/manageGenres', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to load genres');
+            }
+            
+            const data = await response.json();
+            this.genres = data.genres || [];
+            this.renderGenres();
+        } catch (error) {
+            console.error('Failed to load genres:', error);
+            this.elements.genresList.innerHTML = `
+                <div class="no-clues">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <p>Failed to load genres</p>
+                </div>
+            `;
+        }
+    }
+
+    renderGenres() {
+        if (this.genres.length === 0) {
+            this.elements.genresList.innerHTML = `
+                <div class="no-clues">
+                    <i class="bi bi-music-note-list"></i>
+                    <p>No genres configured yet</p>
+                </div>
+            `;
+            return;
+        }
+
+        const html = `
+            <table class="admin-schedule-table">
+                <thead>
+                    <tr>
+                        <th>Display Name</th>
+                        <th>Internal Name</th>
+                        <th>Order</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${this.genres.map(genre => `
+                        <tr>
+                            <td><strong>${this.escapeHtml(genre.displayName)}</strong></td>
+                            <td><code>${this.escapeHtml(genre.name)}</code></td>
+                            <td>${genre.displayOrder}</td>
+                            <td>
+                                <span class="schedule-status ${genre.enabled ? 'status-today' : 'status-future'}">
+                                    ${genre.enabled ? 'Enabled' : 'Disabled'}
+                                </span>
+                            </td>
+                            <td>
+                                <button class="btn-edit-genre" data-genre-id="${genre.id}" title="Edit">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="btn-delete-genre" data-genre-id="${genre.id}" title="Delete">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        `;
+        
+        this.elements.genresList.innerHTML = html;
+        
+        // Bind action buttons
+        this.elements.genresList.querySelectorAll('.btn-edit-genre').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const genreId = parseInt(btn.getAttribute('data-genre-id'));
+                const genre = this.genres.find(g => g.id === genreId);
+                if (genre) {
+                    this.showGenreModal(genre);
+                }
+            });
+        });
+        
+        this.elements.genresList.querySelectorAll('.btn-delete-genre').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const genreId = parseInt(btn.getAttribute('data-genre-id'));
+                const genre = this.genres.find(g => g.id === genreId);
+                if (genre && confirm(`Delete genre "${genre.displayName}"?`)) {
+                    this.deleteGenre(genreId);
+                }
+            });
+        });
+    }
+
+    showGenreModal(genre = null) {
+        this.editingGenre = genre;
+        
+        if (genre) {
+            // Edit mode
+            this.elements.genreModalTitle.textContent = 'Edit Genre';
+            this.elements.genreId.value = genre.id;
+            this.elements.genreName.value = genre.name;
+            this.elements.genreDisplayName.value = genre.displayName;
+            this.elements.genreDisplayOrder.value = genre.displayOrder;
+            this.elements.genreEnabled.checked = genre.enabled;
+        } else {
+            // Add mode
+            this.elements.genreModalTitle.textContent = 'Add Genre';
+            this.elements.genreForm.reset();
+            this.elements.genreId.value = '';
+            this.elements.genreEnabled.checked = true;
+        }
+        
+        this.elements.genreMessage.textContent = '';
+        this.elements.genreMessage.style.display = 'none';
+        this.elements.genreModal.style.display = 'flex';
+    }
+
+    hideGenreModal() {
+        this.elements.genreModal.style.display = 'none';
+        this.editingGenre = null;
+        this.elements.genreForm.reset();
+    }
+
+    async handleGenreSubmit(e) {
+        e.preventDefault();
+        
+        const genreId = this.elements.genreId.value;
+        const genreData = {
+            name: this.elements.genreName.value.trim().toLowerCase(),
+            displayName: this.elements.genreDisplayName.value.trim(),
+            displayOrder: parseInt(this.elements.genreDisplayOrder.value),
+            enabled: this.elements.genreEnabled.checked
+        };
+        
+        try {
+            const token = await this.authManager.auth0Client.getTokenSilently();
+            const method = genreId ? 'PUT' : 'POST';
+            const body = genreId ? { ...genreData, id: parseInt(genreId) } : genreData;
+            
+            const response = await fetch('/.netlify/functions/manageGenres', {
+                method,
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(body)
+            });
+            
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Failed to save genre');
+            }
+            
+            // Success
+            this.hideGenreModal();
+            await this.loadGenres();
+        } catch (error) {
+            console.error('Failed to save genre:', error);
+            this.elements.genreMessage.textContent = error.message || 'Failed to save genre';
+            this.elements.genreMessage.className = 'form-message form-message-error';
+            this.elements.genreMessage.style.display = 'block';
+        }
+    }
+
+    async deleteGenre(genreId) {
+        try {
+            const token = await this.authManager.auth0Client.getTokenSilently();
+            const response = await fetch('/.netlify/functions/manageGenres', {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ id: genreId })
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to delete genre');
+            }
+            
+            // Success
+            await this.loadGenres();
+        } catch (error) {
+            console.error('Failed to delete genre:', error);
+            alert('Failed to delete genre: ' + error.message);
+        }
     }
 }
 

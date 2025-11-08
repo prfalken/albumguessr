@@ -1,6 +1,7 @@
 import { AuthManager } from './js/shared/auth-manager.js';
 import { ApiClient } from './js/shared/api-client.js';
 import { i18n } from './js/shared/i18n.js';
+import { GenreFilter } from './js/shared/genre-filter.js';
 // ALGOLIA_CONFIG is loaded globally via script tag in HTML
 
 class CoverGuessGame {
@@ -12,10 +13,12 @@ class CoverGuessGame {
         this.mysteryAlbum = null;
         this.revealedZones = new Set(); // Set of revealed zone indices (0-15)
         this.zoneOrder = []; // Random order of zones to reveal
+        this.genreFilter = null; // Will be initialized after DOM
         
         this.initializeAlgolia();
         this.authManager.initializeAuth0();
         this.initializeDOM();
+        this.initializeGenreFilter();
         this.postDomAuthSetup();
         this.bindEvents();
         this.initializeGame();
@@ -162,6 +165,29 @@ class CoverGuessGame {
         }
     }
 
+    initializeGenreFilter() {
+        // Initialize genre filter component
+        const container = document.querySelector('#genre-filter-container');
+        if (!container) {
+            return; // No container available
+        }
+        
+        this.genreFilter = new GenreFilter('#genre-filter-container');
+        
+        // Listen for genre changes
+        document.addEventListener('albumguessr:genre-changed', (event) => {
+            this.handleGenreChange(event.detail);
+        });
+    }
+
+    handleGenreChange(detail) {
+        const { genre, previousGenre } = detail;
+        console.log('Genre changed:', { from: previousGenre, to: genre });
+        
+        // Always reload immediately when genre changes
+        window.location.reload();
+    }
+
     async initializeGame() {
         this.showLoading(true);
         try {
@@ -176,7 +202,13 @@ class CoverGuessGame {
 
     async selectRandomAlbum() {
         try {
-            const res = await fetch('/.netlify/functions/randomAlbum', { cache: 'no-store' });
+            // Get selected genre filter (if any) - read directly from localStorage to ensure we have it
+            const selectedGenre = localStorage.getItem('selectedGenre') || null;
+            const genreParam = selectedGenre ? `?genre=${encodeURIComponent(selectedGenre)}` : '';
+            
+            console.log('Fetching random album with genre filter:', selectedGenre || 'none');
+            
+            const res = await fetch(`/.netlify/functions/randomAlbum${genreParam}`, { cache: 'no-store' });
             if (!res.ok) {
                 throw new Error('Failed to load album');
             }

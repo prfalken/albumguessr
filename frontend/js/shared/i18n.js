@@ -23,6 +23,11 @@ class I18nManager {
                     logout: 'Log out',
                     viewProfile: 'View Profile'
                 },
+                genreFilter: {
+                    title: 'Filter by Genre',
+                    allGenres: 'All Genres',
+                    confirmReset: 'Changing the genre filter will start a new game. Continue?'
+                },
                 game: {
                     searchPlaceholder: 'Search an album or an artist...',
                     makeGuess: 'To find the album of the day, make a first guess in the search bar<br>to start revealing the first clues.',
@@ -372,6 +377,11 @@ class I18nManager {
                     logout: 'Se déconnecter',
                     viewProfile: 'Voir le profil'
                 },
+                genreFilter: {
+                    title: 'Filtrer par genre',
+                    allGenres: 'Tous les genres',
+                    confirmReset: 'Changer le filtre de genre démarrera une nouvelle partie. Continuer ?'
+                },
                 game: {
                     searchPlaceholder: 'Rechercher un album ou un artiste...',
                     makeGuess: 'Pour trouver l\'album du jour, faites une première proposition dans la barre de recherche<br>pour commencer à révéler les premiers indices.',
@@ -720,6 +730,11 @@ class I18nManager {
                     login: 'Conexión / Registro',
                     logout: 'Cerrar sesión',
                     viewProfile: 'Ver perfil'
+                },
+                genreFilter: {
+                    title: 'Filtrar por género',
+                    allGenres: 'Todos los géneros',
+                    confirmReset: 'Cambiar el filtro de género iniciará un nuevo juego. ¿Continuar?'
                 },
                 game: {
                     searchPlaceholder: 'Buscar un álbum o un artista...',

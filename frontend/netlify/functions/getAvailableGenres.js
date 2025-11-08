@@ -32,50 +32,29 @@ export async function handler(event) {
       return { statusCode: 500, headers: baseHeaders, body: "db_not_initialized" };
     }
 
-    // Check if genre parameter is provided
-    const genre = event.queryStringParameters?.genre;
+    // Fetch enabled genres ordered by display_order
+    const rows = await sql`
+      SELECT id, name, display_name, display_order
+      FROM available_genres
+      WHERE enabled = true
+      ORDER BY display_order ASC, name ASC
+    `;
 
-    let rows;
-    if (genre) {
-      // When genre is specified, pick from mystery_random_album table filtered by genre
-      rows = await sql`
-        SELECT object_id, primary_genre
-        FROM mystery_random_album
-        WHERE primary_genre = ${genre}
-        ORDER BY random()
-        LIMIT 1
-      `;
-    } else {
-      // When no genre, pick from mystery_album_schedule table (original behavior)
-      rows = await sql`
-        SELECT schedule_date, object_id
-        FROM mystery_album_schedule
-        ORDER BY random()
-        LIMIT 1
-      `;
-    }
-
-    if (!rows || rows.length === 0) {
-      return { statusCode: 404, headers: baseHeaders, body: "not_found" };
-    }
-
-    const row = rows[0];
-    const payload = {
-      objectID: row.object_id,
-      date: row.schedule_date || null,
-      genre: row.primary_genre || null
-    };
+    const genres = rows.map(row => ({
+      id: row.id,
+      name: row.name,
+      displayName: row.display_name,
+      displayOrder: row.display_order
+    }));
 
     return {
       statusCode: 200,
       headers: { ...baseHeaders, "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
+      body: JSON.stringify({ genres })
     };
   } catch (err) {
-    console.error("Error in randomAlbum:", err);
+    console.error("Error fetching genres:", err);
     return { statusCode: 500, headers: baseHeaders, body: "error" };
   }
 }
-
-
 

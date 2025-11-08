@@ -2,6 +2,7 @@ import { AuthManager } from './js/shared/auth-manager.js';
 import { ApiClient } from './js/shared/api-client.js';
 import { HistoryRenderer } from './js/shared/history-renderer.js';
 import { i18n } from './js/shared/i18n.js';
+import { GenreFilter } from './js/shared/genre-filter.js';
 
 export class AlbumGuessrGame {
     constructor() {
@@ -21,10 +22,13 @@ export class AlbumGuessrGame {
         this.countryDisplayNames = null;
         this.countryDisplayNamesLocale = 'en';
         this.historyRenderer = null; // Will be initialized after DOM
+        this.genreFilter = null; // Will be initialized after DOM (only for random game)
         
         this.initializeAlgolia();
         this.authManager.initializeAuth0();
         this.initializeDOM();
+        // Initialize genre filter for random game only
+        this.initializeGenreFilter();
         // Kick off auth flow wiring after DOM is available
         this.postDomAuthSetup();
         // Ensure label is part of the clue categories
@@ -268,6 +272,42 @@ export class AlbumGuessrGame {
         }
     }
 
+    initializeGenreFilter() {
+        // Only initialize genre filter for game.html (random game), not for daily game
+        const container = document.querySelector('#genre-filter-container');
+        if (!container) {
+            return; // No container means this is daily game or another page
+        }
+        
+        this.genreFilter = new GenreFilter('#genre-filter-container');
+        
+        // Listen for genre changes
+        document.addEventListener('albumguessr:genre-changed', (event) => {
+            this.handleGenreChange(event.detail);
+        });
+    }
+
+    handleGenreChange(detail) {
+        const { genre, previousGenre } = detail;
+        console.log('Genre changed:', { from: previousGenre, to: genre });
+        
+        // If game is in progress, prompt user about resetting
+        if (this.guessCount > 0 && !this.gameOver) {
+            const confirmReset = confirm(i18n.t('genreFilter.confirmReset') || 'Changing the genre filter will start a new game. Continue?');
+            if (confirmReset) {
+                window.location.reload();
+            } else {
+                // Revert the selection
+                if (this.genreFilter) {
+                    this.genreFilter.selectGenre(previousGenre);
+                }
+            }
+        } else {
+            // Game hasn't started or is over, reload immediately to get new album
+            window.location.reload();
+        }
+    }
+
     async selectDailyAlbum() {
         // Check if there's a challenge parameter in the URL
         const urlParams = new URLSearchParams(window.location.search);
@@ -304,11 +344,17 @@ export class AlbumGuessrGame {
         }
         
         // Fetch a random scheduled album from the database via Netlify Function
+        // Get selected genre filter (if any) - read directly from localStorage to ensure we have it
+        const selectedGenre = localStorage.getItem('selectedGenre') || null;
+        const genreParam = selectedGenre ? `?genre=${encodeURIComponent(selectedGenre)}` : '';
+        
+        console.log('Fetching random album with genre filter:', selectedGenre || 'none');
+        
         const maxAttempts = 5;
         let lastError = null;
         for (let attempt = 1; attempt <= maxAttempts; attempt++) {
             try {
-                const res = await fetch('/.netlify/functions/randomAlbum', { cache: 'no-store' });
+                const res = await fetch(`/.netlify/functions/randomAlbum${genreParam}`, { cache: 'no-store' });
                 if (!res.ok) throw new Error('Failed to load random album');
                 const data = await res.json();
                 const objectID = data && data.objectID;

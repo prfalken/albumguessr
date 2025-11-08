@@ -75,8 +75,105 @@
                         </div>
                     </div>
                 </section>
+
+                <!-- Genre Management Section -->
+                <section class="user-history" aria-labelledby="genre-mgmt-title">
+                    <div class="user-history-header">
+                        <h3 id="genre-mgmt-title"><i class="bi bi-music-note-list"></i> Genre Management</h3>
+                        <div class="user-history-subtitle">Configure available genres for filtering</div>
+                    </div>
+                    <div class="admin-form-content">
+                        <button type="button" class="btn-primary" id="btn-add-genre" style="margin-bottom: 1rem;">
+                            <i class="bi bi-plus-circle"></i>
+                            Add New Genre
+                        </button>
+                        <div class="admin-schedule-list" id="admin-genres-list">
+                            <div class="no-clues">
+                                <i class="bi bi-hourglass-split"></i>
+                                <p>Loading genres...</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
             </div>
         </main>
+
+        <!-- Genre Edit Modal -->
+        <div class="modal" id="genre-edit-modal" style="display: none;">
+            <div class="modal-content" style="max-width: 500px;">
+                <div class="modal-header">
+                    <h2 id="genre-modal-title">
+                        <i class="bi bi-music-note"></i>
+                        <span id="genre-modal-title-text">Add Genre</span>
+                    </h2>
+                    <button class="close-button" id="close-genre-modal">
+                        <i class="bi bi-x"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="genre-edit-form">
+                        <input type="hidden" id="genre-id">
+                        
+                        <div class="form-group">
+                            <label for="genre-name">Internal Name (lowercase, matches Algolia)</label>
+                            <input 
+                                type="text" 
+                                id="genre-name" 
+                                class="form-input" 
+                                required
+                                placeholder="e.g., rock, pop, metal"
+                            >
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="genre-display-name">Display Name</label>
+                            <input 
+                                type="text" 
+                                id="genre-display-name" 
+                                class="form-input" 
+                                required
+                                placeholder="e.g., Rock, Pop, Metal"
+                            >
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="genre-display-order">Display Order</label>
+                            <input 
+                                type="number" 
+                                id="genre-display-order" 
+                                class="form-input" 
+                                required
+                                min="0"
+                                value="0"
+                            >
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>
+                                <input 
+                                    type="checkbox" 
+                                    id="genre-enabled"
+                                    checked
+                                >
+                                Enabled
+                            </label>
+                        </div>
+                        
+                        <div class="form-message" id="genre-message"></div>
+                        
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button type="submit" class="btn-primary">
+                                <i class="bi bi-check-circle"></i>
+                                Save
+                            </button>
+                            <button type="button" class="btn-secondary" id="cancel-genre-edit">
+                                Cancel
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
 
         <div id="site-footer"></div>
     </div>

@@ -3844,3 +3844,184 @@ footer .contenu {
 .cover-guess-wrapper .next-hint-btn-small i {
     font-size: 0.9rem;
 }
+/* ============================================================================
+   GENRE FILTER SIDEBAR
+   ========================================================================= */
+
+.genre-filter {
+    position: fixed;
+    left: 0;
+    top: 100px;
+    width: 250px;
+    max-height: calc(100vh - 120px);
+    background: rgba(0, 0, 0, 0.85);
+    border: 2px solid var(--border);
+    border-left: none;
+    border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
+    padding: 1rem;
+    z-index: 100;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+    overflow-y: auto;
+}
+
+.genre-filter.collapsed {
+    transform: translateX(-250px);
+    opacity: 0.3;
+}
+
+.genre-filter-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.genre-filter-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.genre-filter-title i {
+    font-size: 1.2rem;
+}
+
+.genre-filter-toggle {
+    background: transparent;
+    border: 1px solid var(--border-light);
+    color: var(--text-secondary);
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.genre-filter-toggle:hover {
+    background: rgba(255, 212, 29, 0.1);
+    border-color: var(--border);
+}
+
+.genre-filter.collapsed .genre-filter-toggle i {
+    transform: rotate(180deg);
+}
+
+.genre-filter-content {
+    display: flex;
+    flex-direction: column;
+}
+
+.genre-filter-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.genre-filter-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    background: transparent;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius);
+    color: var(--text-primary);
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: left;
+    width: 100%;
+}
+
+.genre-filter-item:hover {
+    background: rgba(255, 212, 29, 0.1);
+    border-color: var(--border);
+    transform: translateX(4px);
+}
+
+.genre-filter-item.active {
+    background: rgba(255, 212, 29, 0.2);
+    border-color: var(--border);
+    color: var(--text-secondary);
+}
+
+.genre-filter-item i {
+    font-size: 1.1rem;
+    opacity: 0.8;
+}
+
+.genre-filter-item.active i {
+    opacity: 1;
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+    .genre-filter {
+        width: 200px;
+        top: 80px;
+        padding: 0.75rem;
+    }
+    
+    .genre-filter.collapsed {
+        transform: translateX(-200px);
+    }
+    
+    .genre-filter-item {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.875rem;
+    }
+}
+
+/* Genre filter expand button (shown when collapsed) */
+.genre-filter-expand-btn {
+    position: fixed;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 48px;
+    height: 60px;
+    background: rgba(0, 0, 0, 0.85);
+    border: 2px solid var(--border);
+    border-left: none;
+    border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 99;
+    transition: all 0.2s ease;
+    font-size: 1.5rem;
+}
+
+.genre-filter-expand-btn:hover {
+    background: rgba(255, 212, 29, 0.2);
+    border-color: var(--border);
+    width: 56px;
+}
+
+.genre-filter-expand-btn i {
+    font-size: 1.5rem;
+}
+
+@media (max-width: 768px) {
+    .genre-filter-expand-btn {
+        width: 40px;
+        height: 50px;
+        font-size: 1.2rem;
+    }
+    
+    .genre-filter-expand-btn i {
+        font-size: 1.2rem;
+    }
+}
