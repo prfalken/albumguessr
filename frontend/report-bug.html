@@ -40,20 +40,20 @@
                         <div class="user-history-subtitle" id="bug-report-subtitle" data-i18n="bug.subtitleDetail">Fill in the details below and we'll investigate</div>
                     </div>
                     <div class="profile-settings-content">
-                        <form id="bug-report-form" class="username-form">
+                        <form id="bug-report-form" class="username-form" data-form-type="other">
                             <div class="form-group">
                                 <label for="bug-title" data-i18n="bug.formTitle">Title</label>
-                                <input type="text" id="bug-title" name="title" class="form-input" data-i18n-placeholder="bug.placeholderTitle" placeholder="Brief description of the bug" required minlength="5" maxlength="200">
+                                <input type="text" id="bug-title" name="title" class="form-input" data-i18n-placeholder="bug.placeholderTitle" placeholder="Brief description of the bug" required minlength="5" maxlength="200" autocomplete="off">
                             </div>
                             
                             <div class="form-group">
                                 <label for="bug-description" data-i18n="bug.formDescription">Description</label>
-                                <textarea id="bug-description" name="description" class="form-input" rows="6" data-i18n-placeholder="bug.placeholderDescription" placeholder="Please describe the bug in detail: what you were doing, what happened, and what you expected to happen" required minlength="20" maxlength="2000"></textarea>
+                                <textarea id="bug-description" name="description" class="form-input" rows="6" data-i18n-placeholder="bug.placeholderDescription" placeholder="Please describe the bug in detail: what you were doing, what happened, and what you expected to happen" required minlength="20" maxlength="2000" autocomplete="off"></textarea>
                             </div>
                             
                             <div class="form-group">
                                 <label for="bug-email" data-i18n="bug.formEmail">Your Email</label>
-                                <input type="email" id="bug-email" name="email" class="form-input" data-i18n-placeholder="bug.placeholderEmail" placeholder="your.email@example.com" required readonly>
+                                <input type="email" id="bug-email" name="email" class="form-input" data-i18n-placeholder="bug.placeholderEmail" placeholder="your.email@example.com" required readonly autocomplete="email">
                             </div>
                             
                             <div class="form-message" id="bug-report-message"></div>

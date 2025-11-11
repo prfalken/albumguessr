@@ -18,3 +18,16 @@
 package = "."
 extension = "netlify-build-extension-neon"
 
+# Force HTTPS redirect
+[[redirects]]
+  from = "http://albumguessr.com/*"
+  to = "https://albumguessr.com/:splat"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "http://www.albumguessr.com/*"
+  to = "https://albumguessr.com/:splat"
+  status = 301
+  force = true
+

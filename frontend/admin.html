@@ -33,7 +33,7 @@
                         <div class="user-history-subtitle" data-i18n="admin.subtitle">Schedule an album for the daily challenge</div>
                     </div>
                     <div class="admin-form-content">
-                        <form id="admin-schedule-form" class="admin-schedule-form">
+                        <form id="admin-schedule-form" class="admin-schedule-form" data-form-type="other">
                             <div class="form-group">
                                 <label for="schedule-date" data-i18n="admin.date">Date</label>
                                 <input 
@@ -41,6 +41,7 @@
                                     id="schedule-date" 
                                     class="form-input" 
                                     required
+                                    autocomplete="off"
                                 >
                             </div>
                             
@@ -120,7 +121,7 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <form id="genre-edit-form">
+                    <form id="genre-edit-form" data-form-type="other">
                         <input type="hidden" id="genre-id">
                         
                         <div class="form-group">
@@ -131,6 +132,7 @@
                                 class="form-input" 
                                 required
                                 placeholder="e.g., rock, pop, metal"
+                                autocomplete="off"
                             >
                         </div>
                         
@@ -142,6 +144,7 @@
                                 class="form-input" 
                                 required
                                 placeholder="e.g., Rock, Pop, Metal"
+                                autocomplete="off"
                             >
                         </div>
                         
@@ -154,6 +157,7 @@
                                 required
                                 min="0"
                                 value="0"
+                                autocomplete="off"
                             >
                         </div>
                         
