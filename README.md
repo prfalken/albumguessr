@@ -170,6 +170,9 @@ NETLIFY_DATABASE_URL=postgres://...
 AUTH0_DOMAIN=your-tenant.eu.auth0.com
 AUTH0_CLIENT_ID=abc123
 AUTH0_AUDIENCE=your-api-audience
+
+# Optional Google Analytics (for tracking and analytics)
+GA_MEASUREMENT_ID=G-XXXXXXXXXX
 ```
 
 **Auth0 Application Settings** (configure in your Auth0 dashboard):
@@ -205,6 +208,37 @@ Notes:
 - If `NETLIFY_DATABASE_URL` is missing, the function responds `500 missing_env:NETLIFY_DATABASE_URL`.
 - When using a plain static server, `/.netlify/functions/*` will return `404 File not found` — this is expected; switch to Netlify Dev.
 - Do not expose the admin `ALGOLIA_API_KEY` in code shipped to the browser. The generated `frontend/config.js` only includes the search-only key.
+
+## Google Analytics Integration
+
+The website includes optional Google Analytics integration for tracking page views and user interactions.
+
+### Setup
+
+1. Create a Google Analytics 4 property and obtain your Measurement ID (format: `G-XXXXXXXXXX`)
+2. Add the measurement ID to your `.env` file:
+
+```env
+GA_MEASUREMENT_ID=G-XXXXXXXXXX
+```
+
+3. When you run the build process (`node frontend/build-config.js` or deploy via Netlify), the measurement ID will be embedded in `frontend/config.js`
+4. The `analytics.js` script automatically initializes Google Analytics on all pages when a valid measurement ID is configured
+
+### Features
+
+- **Automatic initialization**: The analytics script loads only when `GA_CONFIG.measurementId` is present
+- **Privacy-focused**: IP anonymization is enabled by default (`anonymize_ip: true`)
+- **Cookie configuration**: Secure cookies with `SameSite=None;Secure` flags
+- **No tracking without consent**: If no measurement ID is configured, no analytics scripts are loaded
+
+### Testing locally
+
+When testing locally with Netlify Dev, ensure your `.env` includes `GA_MEASUREMENT_ID`. The generated config will include your measurement ID, and you'll see analytics events in your GA4 dashboard.
+
+### Deployment
+
+On Netlify, add `GA_MEASUREMENT_ID` to your environment variables via the Netlify dashboard (Site Settings → Environment Variables). The build process will automatically include it in the generated config.
 
 ## Daily Ranking
 
