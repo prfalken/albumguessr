@@ -34,14 +34,16 @@ class AlbumGuessrDailyGame extends AlbumGuessrGame {
     }
     
     updateStatusSubtitle() {
-        if (!this.elements || !this.elements.gameDate) {
+        // Re-query the element in case it was recreated
+        const gameDate = document.getElementById('game-date');
+        if (!gameDate) {
             console.warn('updateStatusSubtitle: gameDate element not found');
             return;
         }
         
         // Make sure we don't have the random game class
-        if (this.elements.gameDate.classList.contains('daily-instruction')) {
-            this.elements.gameDate.classList.remove('daily-instruction');
+        if (gameDate.classList.contains('daily-instruction')) {
+            gameDate.classList.remove('daily-instruction');
         }
         
         try {
@@ -80,9 +82,9 @@ class AlbumGuessrDailyGame extends AlbumGuessrGame {
             if (!i18n || typeof i18n.t !== 'function') {
                 console.warn('i18n not ready, using default text');
                 if (requestedDate) {
-                    this.elements.gameDate.textContent = `Album du ${label}`;
+                    gameDate.textContent = `Album du ${label}`;
                 } else {
-                    this.elements.gameDate.textContent = `Album of the day - ${label}`;
+                    gameDate.textContent = `Album of the day - ${label}`;
                 }
                 return;
             }
@@ -105,15 +107,15 @@ class AlbumGuessrDailyGame extends AlbumGuessrGame {
             }
             
             console.log('updateStatusSubtitle: Setting date to:', fullText);
-            this.elements.gameDate.textContent = fullText;
+            gameDate.textContent = fullText;
         } catch (e) {
             console.error('Error updating status subtitle:', e);
             try {
                 const albumLabel = i18n.t('game.albumOfDayLabel');
-                this.elements.gameDate.textContent = albumLabel;
+                gameDate.textContent = albumLabel;
             } catch (e2) {
                 console.error('Error in fallback:', e2);
-                this.elements.gameDate.textContent = 'Album of the day';
+                gameDate.textContent = 'Album of the day';
             }
         }
     }
@@ -135,6 +137,98 @@ class AlbumGuessrDailyGame extends AlbumGuessrGame {
         
         // Hide navigation buttons if playing a past daily
         this.hideNavButtonsIfPastDaily();
+    }
+    
+    setupSearchFieldClickHandler() {
+        const searchInput = document.getElementById('album-search');
+        
+        if (!searchInput) {
+            console.error('Search input not found');
+            return;
+        }
+        
+        // Check if we're playing a past daily
+        const urlParams = new URLSearchParams(window.location.search);
+        const isPastDaily = urlParams.has('date');
+        
+        // Check if game has already started (guesses were made)
+        const gameStarted = this.hasGameStarted();
+        
+        // If it's a past daily, only hide the instruction text, keep the date
+        if (isPastDaily) {
+            // If game has started, hide instruction permanently
+            if (gameStarted) {
+                this.hideInstructionText();
+            }
+            
+            const hideInstruction = () => {
+                this.hideInstructionText();
+            };
+            
+            searchInput.addEventListener('focus', hideInstruction);
+            searchInput.addEventListener('click', hideInstruction);
+            searchInput.addEventListener('input', hideInstruction);
+            
+            return;
+        }
+        
+        // Normal daily behavior: change the entire title
+        if (gameStarted) {
+            this.showGameQuestionTitle();
+        }
+        
+        const showQuestion = () => {
+            this.showGameQuestionTitle();
+        };
+        
+        searchInput.addEventListener('focus', showQuestion);
+        searchInput.addEventListener('click', showQuestion);
+        searchInput.addEventListener('input', showQuestion);
+    }
+    
+    hasGameStarted() {
+        // Game has started only if user has already made guesses
+        return this.guessCount > 0;
+    }
+    
+    showGameQuestionTitle() {
+        const subtitleContainer = document.querySelector('.subtitle');
+        if (subtitleContainer) {
+            // Clear the subtitle container and replace with new title
+            subtitleContainer.innerHTML = '';
+            
+            const titleElement = document.createElement('p');
+            titleElement.className = 'subtitle album-title-question';
+            titleElement.setAttribute('data-i18n', 'game.albumQuestion');
+            titleElement.textContent = i18n.t('game.albumQuestion');
+            
+            subtitleContainer.appendChild(titleElement);
+        }
+    }
+    
+    showOriginalTitle() {
+        const subtitleContainer = document.querySelector('.subtitle');
+        if (subtitleContainer) {
+            // Clear and restore original content
+            subtitleContainer.innerHTML = '';
+            
+            // Add game date
+            const dateElement = document.createElement('p');
+            dateElement.id = 'game-date';
+            dateElement.className = 'subtitle';
+            
+            // Add instruction text
+            const instructionElement = document.createElement('p');
+            instructionElement.className = 'daily-instruction';
+            instructionElement.setAttribute('data-i18n', 'game.makeGuess');
+            instructionElement.innerHTML = i18n.t('game.makeGuess');
+            
+            subtitleContainer.appendChild(dateElement);
+            subtitleContainer.appendChild(instructionElement);
+            
+            // Update the date text
+            this.updateStatusSubtitle();
+        }
     }
     
     hideNavButtonsIfPastDaily() {
@@ -199,6 +293,15 @@ class AlbumGuessrDailyGame extends AlbumGuessrGame {
             
             // Ensure status subtitle is updated after everything is loaded
             this.updateStatusSubtitle();
+            
+            // Setup search field click handler after game is initialized
+            this.setupSearchFieldClickHandler();
+            
+            // Hide instruction if game has already started (after page refresh)
+            if (this.hasGameStarted()) {
+                this.hideInstructionText();
+            }
+            
             this.showLoading(false);
         } catch (error) {
             console.error('Failed to initialize game:', error);
@@ -462,6 +565,9 @@ class AlbumGuessrDailyGame extends AlbumGuessrGame {
         // Call parent method
         super.submitGuess();
         
+        // Hide the instruction text permanently after first guess
+        this.hideInstructionText();
+        
         // Save game state after each guess
         this.saveGameState();
         
@@ -471,12 +577,26 @@ class AlbumGuessrDailyGame extends AlbumGuessrGame {
         }
     }
     
+    hideInstructionText() {
+        const dailyInstruction = document.querySelector('.daily-instruction');
+        console.log('hideInstructionText called, element found:', dailyInstruction);
+        if (dailyInstruction) {
+            dailyInstruction.style.setProperty('display', 'none', 'important');
+            console.log('Instruction hidden, current display:', dailyInstruction.style.display);
+        }
+    }
+    
     updateUI() {
         // Call parent method
         super.updateUI();
         
         // Update status subtitle to ensure it displays correctly
         this.updateStatusSubtitle();
+        
+        // Hide instruction text if game has started
+        if (this.hasGameStarted()) {
+            this.hideInstructionText();
+        }
         
         // Save game state after UI update (for clues updates)
         if (!this.gameOver) {

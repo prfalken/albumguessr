@@ -40,6 +40,7 @@ class I18nManager {
                     guessesNeeded: 'Guesses needed:',
                     challengeLink: 'Challenge link copied to clipboard!',
                     subtitle: 'Mystery Album - New album on each refresh',
+                    albumQuestion: 'What is the album of the day?',
                     shareResult: 'Share your result',
                     victoryMessage: 'You found the album of the day! Come back tomorrow for a new mystery album!',
                     instructions: {
@@ -394,6 +395,7 @@ class I18nManager {
                     guessesNeeded: 'Tentatives nécessaires :',
                     challengeLink: 'Lien de défi copié dans le presse-papiers !',
                     subtitle: 'Album Mystère - Nouvel album à chaque actualisation',
+                    albumQuestion: 'Quel est l\'album du jour ?',
                     shareResult: 'Partager votre résultat',
                     victoryMessage: 'Vous avez trouvé l\'album du jour ! Revenez demain pour un nouvel album mystère !',
                     instructions: {
@@ -748,6 +750,7 @@ class I18nManager {
                     guessesNeeded: 'Intentos necesarios:',
                     challengeLink: '¡Enlace de desafío copiado al portapapeles!',
                     subtitle: 'Álbum Misterioso - Nuevo álbum en cada actualización',
+                    albumQuestion: '¿Cuál es el álbum del día?',
                     shareResult: 'Compartir tu resultado',
                     victoryMessage: '¡Encontraste el álbum del día! ¡Vuelve mañana para un nuevo álbum misterioso!',
                     instructions: {

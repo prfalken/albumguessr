@@ -287,14 +287,14 @@ header .contenu {
 }
 
 .subtitle p {
-    color: white;
+    color: black;
     font-size: 1.1rem;
     margin-bottom: 0.5rem;
 }
 
 .subtitle {
     text-align: center;
-    color: white;
+    color: black;
     font-size: 1.1rem;
 }
 
@@ -364,6 +364,16 @@ body.past-daily-mode .nav-buttons-container {
     color: #ffd41d;
     font-size: 0.95rem;
     margin-top: 0;
+    padding-bottom: 1rem;
+}
+
+.subtitle .album-title-question {
+    text-align: center;
+    color: #ffd41d;
+    font-size: 1.8rem;
+    font-weight: 600;
+    padding-bottom: 10px;
+    margin: 0;
 }
 
 #game-date {
@@ -428,6 +438,75 @@ main {
 
 #main-content {
     flex: 1;
+}
+
+/* Game Box with gradient background */
+.game-box {
+    background-color: #ffd41d;
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+/* Invert colors for elements inside game-box */
+.game-box .subtitle p,
+.game-box .subtitle .daily-instruction,
+.game-box .subtitle .album-title-question {
+    color: #000000 !important;
+}
+
+.game-box .subtitle p.subtitle {
+    font-size: 1.1rem !important;
+    margin-bottom: 0.5rem !important;
+}
+
+.game-box #game-date {
+    color: #000000 !important;
+    font-weight: 700 !important;
+}
+
+/* Search box styling inside game-box */
+.game-box .search-box {
+    background: #ffffff;
+    border-color: #55534a;
+}
+
+.game-box .search-box input {
+    color: #000000;
+}
+
+.game-box .search-box input::placeholder {
+    color: #55534a;
+    opacity: 0.7;
+}
+
+.game-box .search-box:focus-within {
+    border-color: #55534a;
+}
+
+/* Clues styling inside game-box */
+.game-box .clue-values > i {
+    color: #55534a;
+}
+
+.game-box .clue-value {
+    background: #55534a;
+    color: #ffffff;
+}
+
+.game-box .no-clues {
+    display: none;
+}
+
+.game-box .clues-board:empty,
+.game-box .clues-board:has(.no-clues) {
+    padding: 0;
+    min-height: 0;
+}
+
+.game-box .clues-container:has(.no-clues:only-child) {
+    min-height: 0;
+    padding: 0;
 }
 
 /* Two-column layout with right sidebar */

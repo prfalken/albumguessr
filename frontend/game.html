@@ -11,10 +11,6 @@
 <body>
     <div class="container">
         <div id="site-header"></div>
-        <div class="subtitle">
-            <p data-i18n="game.subtitle">Find the mystery album using the revealed clues.</p>
-            <p class="daily-instruction" id="game-date"></p>
-        </div>
 
         <main id="main-content" class="game-container">
             <!-- Genre Filter Sidebar (for random game) -->
@@ -22,36 +18,43 @@
             
             <div class="content-grid">
                 <div class="main-column">
-                   
-                    <br>
-                    <!-- Search Input -->
-                    <div class="search-container">
-                        <div class="search-box">
-                            <input 
-                                type="text" 
-                                id="album-search" 
-                                data-i18n-placeholder="game.searchPlaceholder"
-                                placeholder="Search an album or an artist..."
-                                autocomplete="off"
-                            >
-                            <button 
-                                type="button" 
-                                id="search-submit" 
-                                class="search-submit-btn"
-                                disabled
-                                aria-label="Submit guess"
-                            >
-                                <i class="bi bi-search"></i>
-                            </button>
+                    
+                    <!-- Game Box with gradient -->
+                    <div class="game-box">
+                        <div class="subtitle">
+                            <p id="game-date" class="subtitle" data-i18n="game.subtitle">Album Mystère - Nouvel album à chaque actualisation</p>
+                            <p class="daily-instruction" data-i18n="game.newMystery">Pour trouver l'album mystère, faites une première proposition dans la barre de recherche<br>pour commencer à révéler les premiers indices.</p>
                         </div>
-                        <div class="search-results" id="search-results"></div>
-                    </div>
-
-                    <!-- Clues Board -->
-                    <div class="clues-board" id="clues-board">
                         
-                        <div class="clues-container" id="clues-container">
-                            <div class="no-clues">
+                        <!-- Search Input -->
+                        <div class="search-container">
+                            <div class="search-box">
+                                <input 
+                                    type="text" 
+                                    id="album-search" 
+                                    data-i18n-placeholder="game.searchPlaceholder"
+                                    placeholder="Search an album or an artist..."
+                                    autocomplete="off"
+                                >
+                                <button 
+                                    type="button" 
+                                    id="search-submit" 
+                                    class="search-submit-btn"
+                                    disabled
+                                    aria-label="Submit guess"
+                                >
+                                    <i class="bi bi-search"></i>
+                                </button>
+                            </div>
+                            <div class="search-results" id="search-results"></div>
+                        </div>
+
+                        <!-- Clues Board -->
+                        <div class="clues-board" id="clues-board">
+                            
+                            <div class="clues-container" id="clues-container">
+                                <div class="no-clues">
+                                </div>
                             </div>
                         </div>
                     </div>

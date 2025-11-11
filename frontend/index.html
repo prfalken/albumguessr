@@ -16,32 +16,42 @@
         <main id="main-content" class="game-container">
             <div class="content-grid">
                 <div class="main-column">
-                    <div class="subtitle">
-                        <p id="game-date" class="subtitle"></p>
-                        <p class="daily-instruction" data-i18n="game.makeGuess">Faites une première tentative pour révéler les indices...</p>
-                    </div>
-                    
-                    <!-- Search Input -->
-                    <div class="search-container">
-                        <div class="search-box">
-                            <input 
-                                type="text" 
-                                id="album-search" 
-                                data-i18n-placeholder="game.searchPlaceholder"
-                                placeholder="Search an album or an artist..."
-                                autocomplete="off"
-                            >
-                            <button 
-                                type="button" 
-                                id="search-submit" 
-                                class="search-submit-btn"
-                                disabled
-                                aria-label="Submit guess"
-                            >
-                                <i class="bi bi-search"></i>
-                            </button>
+                    <!-- Game Box with gradient -->
+                    <div class="game-box">
+                        <div class="subtitle">
+                            <p id="game-date" class="subtitle"></p>
+                            <p class="daily-instruction" data-i18n="game.makeGuess">Faites une première tentative pour révéler les indices...</p>
                         </div>
-                        <div class="search-results" id="search-results"></div>
+                        
+                        <!-- Search Input -->
+                        <div class="search-container">
+                            <div class="search-box">
+                                <input 
+                                    type="text" 
+                                    id="album-search" 
+                                    data-i18n-placeholder="game.searchPlaceholder"
+                                    placeholder="Search an album or an artist..."
+                                    autocomplete="off"
+                                >
+                                <button 
+                                    type="button" 
+                                    id="search-submit" 
+                                    class="search-submit-btn"
+                                    disabled
+                                    aria-label="Submit guess"
+                                >
+                                    <i class="bi bi-search"></i>
+                                </button>
+                            </div>
+                            <div class="search-results" id="search-results"></div>
+                        </div>
+                        
+                        <!-- Clues Board -->
+                        <div class="clues-board" id="clues-board">
+                            
+                            <div class="clues-container" id="clues-container">
+                            </div>
+                        </div>
                     </div>
                     
                     <!-- Navigation Buttons -->
@@ -58,14 +68,6 @@
                             <i class="bi bi-grid-3x3-gap"></i>
                             <span data-i18n="nav.coverGuess">Cover Guess</span>
                         </a>
-                    </div>
-                    
-                   
-                    <!-- Clues Board -->
-                    <div class="clues-board" id="clues-board">
-                        
-                        <div class="clues-container" id="clues-container">
-                        </div>
                     </div>
                        
                     
