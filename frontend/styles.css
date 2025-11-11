@@ -444,7 +444,6 @@ main {
     flex: 1;
 }
 
-/* Game Box with gradient background */
 .game-box {
     background-color: #ffd41d;
     border-radius: var(--radius-lg);

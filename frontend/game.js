@@ -243,6 +243,11 @@ export class AlbumGuessrGame {
                     this.hideInstructionText();
                 }
                 
+                // Hide game-box if game has already been won
+                if (this.gameWon) {
+                    this.hideGameBox();
+                }
+                
                 this.showLoading(false);
             })
             .catch(error => {
@@ -672,11 +677,14 @@ export class AlbumGuessrGame {
 
         this.updateUI();
         
-        // Trigger victory celebration after UI is updated so we can find the image
+        // Trigger victory celebration and hide game-box after UI is updated
         if (isCorrect) {
+            console.log('Game won! isCorrect:', isCorrect);
             // Wait for DOM to update
             setTimeout(() => {
+                console.log('Timeout executed - calling celebrateVictory and hideGameBox');
                 this.celebrateVictory();
+                this.hideGameBox();
             }, 100);
         }
         this.elements.albumSearch.value = '';
@@ -711,6 +719,17 @@ export class AlbumGuessrGame {
         if (dailyInstruction) {
             dailyInstruction.style.setProperty('display', 'none', 'important');
             console.log('hideInstructionText - Element hidden');
+        }
+    }
+    
+    hideGameBox() {
+        const gameBox = document.querySelector('.game-box');
+        console.log('hideGameBox - Element found:', gameBox);
+        if (gameBox) {
+            gameBox.style.setProperty('display', 'none', 'important');
+            console.log('hideGameBox - Game box hidden');
+        } else {
+            console.warn('hideGameBox - Game box not found in DOM');
         }
     }
 

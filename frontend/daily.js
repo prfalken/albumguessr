@@ -289,6 +289,10 @@ class AlbumGuessrDailyGame extends AlbumGuessrGame {
             // If game is already won (restored from localStorage or API), show victory modal
             if (this.gameWon) {
                 this.showVictoryModal();
+                // Hide game-box after a small delay to ensure DOM is ready
+                setTimeout(() => {
+                    this.hideGameBox();
+                }, 100);
             }
             
             // Ensure status subtitle is updated after everything is loaded
