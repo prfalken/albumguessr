@@ -292,6 +292,10 @@ header .contenu {
     margin-bottom: 0.5rem;
 }
 
+.subtitle p[data-i18n="archive.subtitle"] {
+    color: white;
+}
+
 .subtitle {
     text-align: center;
     color: black;
@@ -2551,6 +2555,7 @@ footer .contenu {
     
     /* Victory guess buttons stack on mobile */
     .guess-item.victory .victory-share-section {
+        display: flex !important;
         flex-direction: column;
         gap: 0.5rem;
         width: 100%;
@@ -2558,9 +2563,12 @@ footer .contenu {
     }
     
     .guess-item.victory .victory-share-section .share-button {
+        display: flex !important;
         width: 100%;
         justify-content: center;
         min-width: 0;
+        visibility: visible !important;
+        opacity: 1 !important;
     }
     
     /* Cover guess specific - ensure buttons are visible */

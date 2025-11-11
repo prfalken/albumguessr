@@ -237,6 +237,12 @@ export class AlbumGuessrGame {
         this.selectDailyAlbum()
             .then(() => {
                 this.updateUI();
+                
+                // Hide instruction if game has already started
+                if (this.guessCount > 0) {
+                    this.hideInstructionText();
+                }
+                
                 this.showLoading(false);
             })
             .catch(error => {
@@ -416,6 +422,15 @@ export class AlbumGuessrGame {
                 this.navigateSearchResults(e.key === 'ArrowDown' ? 1 : -1);
             }
         });
+        
+        // Hide instruction text when user starts interacting with search
+        const hideInstruction = () => {
+            this.hideInstructionText();
+        };
+        
+        this.elements.albumSearch.addEventListener('focus', hideInstruction);
+        this.elements.albumSearch.addEventListener('click', hideInstruction);
+        this.elements.albumSearch.addEventListener('input', hideInstruction);
 
         // Search submit button
         if (this.elements.searchSubmit) {
@@ -651,6 +666,9 @@ export class AlbumGuessrGame {
         this.updateYearHint();
         // Update length hint if we have any length information
         this.updateLengthHint();
+        
+        // Hide instruction text permanently after first guess
+        this.hideInstructionText();
 
         this.updateUI();
         
@@ -683,6 +701,17 @@ export class AlbumGuessrGame {
         
         // Create confetti animation
         this.createConfetti();
+    }
+    
+    hideInstructionText() {
+        // Target only the instruction paragraph, not the title
+        const dailyInstruction = document.querySelector('.subtitle .daily-instruction:not(#game-date)');
+        console.log('hideInstructionText - Element found:', dailyInstruction);
+        console.log('hideInstructionText - Element text:', dailyInstruction?.textContent);
+        if (dailyInstruction) {
+            dailyInstruction.style.setProperty('display', 'none', 'important');
+            console.log('hideInstructionText - Element hidden');
+        }
     }
 
     playVictorySound() {
