@@ -4065,6 +4065,12 @@ footer .contenu {
     left: 0;
     z-index: 0;
     display: block;
+    -webkit-user-drag: none;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    pointer-events: none;
 }
 
 .cover-zone {

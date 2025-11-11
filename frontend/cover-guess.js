@@ -128,6 +128,12 @@ class CoverGuessGame {
     }
 
     bindEvents() {
+        // Prevent dragging the cover image
+        if (this.elements.mysteryCover) {
+            this.elements.mysteryCover.addEventListener('dragstart', (e) => e.preventDefault());
+            this.elements.mysteryCover.addEventListener('mousedown', (e) => e.preventDefault());
+        }
+        
         // Listen for language changes to update victory/defeat messages
         document.addEventListener('albumguessr:language-changed', () => {
             // Re-render victory/defeat messages if game is over
