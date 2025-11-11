@@ -1,0 +1,23 @@
+# AlbumGuessr - Robots.txt
+# Allow all search engines to crawl
+
+User-agent: *
+Allow: /
+
+# Disallow admin and API endpoints
+Disallow: /admin.html
+Disallow: /.netlify/functions/
+
+# Allow the important pages
+Allow: /index.html
+Allow: /game.html
+Allow: /how-to-play.html
+Allow: /ranking.html
+Allow: /cover-guess.html
+Allow: /cover-guess-ranking.html
+Allow: /statistics.html
+Allow: /past-dailies.html
+
+# Sitemap location
+Sitemap: https://albumguessr.com/sitemap.xml
+

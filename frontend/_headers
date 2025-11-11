@@ -1,0 +1,62 @@
+# Netlify Headers Configuration for AlbumGuessr
+# Security and SEO optimization headers
+
+# Apply to all pages
+/*
+  # Security Headers
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  X-XSS-Protection: 1; mode=block
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: geolocation=(), microphone=(), camera=(), payment=(), usb=(), magnetometer=(), gyroscope=()
+  
+  # Content Security Policy (adjust as needed for your CDN resources)
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdn.auth0.com https://www.googletagmanager.com https://www.google-analytics.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data: https: http:; connect-src 'self' https://*.algolia.net https://*.algolianet.com https://*.auth0.com https://www.google-analytics.com https://analytics.google.com; frame-src https://*.auth0.com; object-src 'none'; base-uri 'self'; form-action 'self';
+  
+  # CORS for API endpoints (if needed)
+  Access-Control-Allow-Origin: *
+  Access-Control-Allow-Methods: GET, POST, OPTIONS
+  Access-Control-Allow-Headers: Content-Type, Authorization
+  
+  # Cache Control for static assets
+  Cache-Control: public, max-age=3600, must-revalidate
+
+# Specific headers for HTML pages
+/*.html
+  Cache-Control: public, max-age=0, must-revalidate
+  
+# Cache static assets more aggressively
+/styles.css
+  Cache-Control: public, max-age=31536000, immutable
+
+/favicon.png
+  Cache-Control: public, max-age=31536000, immutable
+  
+/favicon.ico
+  Cache-Control: public, max-age=31536000, immutable
+
+/img/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/sounds/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# JavaScript files
+/*.js
+  Cache-Control: public, max-age=31536000, immutable
+  
+# API endpoints - no cache
+/.netlify/functions/*
+  Cache-Control: no-cache, no-store, must-revalidate
+  Pragma: no-cache
+  Expires: 0
+
+# Sitemap and robots.txt
+/sitemap.xml
+  Content-Type: application/xml; charset=utf-8
+  Cache-Control: public, max-age=86400
+
+/robots.txt
+  Content-Type: text/plain; charset=utf-8
+  Cache-Control: public, max-age=86400
+

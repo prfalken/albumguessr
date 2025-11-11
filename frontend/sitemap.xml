@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+    
+    <!-- Homepage / Album of the Day -->
+    <url>
+        <loc>https://albumguessr.com/</loc>
+        <lastmod>2025-11-11</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>1.0</priority>
+    </url>
+    
+    <url>
+        <loc>https://albumguessr.com/index.html</loc>
+        <lastmod>2025-11-11</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>1.0</priority>
+    </url>
+    
+    <!-- Random Album Game -->
+    <url>
+        <loc>https://albumguessr.com/game.html</loc>
+        <lastmod>2025-11-11</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.9</priority>
+    </url>
+    
+    <!-- How to Play -->
+    <url>
+        <loc>https://albumguessr.com/how-to-play.html</loc>
+        <lastmod>2025-11-11</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    
+    <!-- Cover Guess Game -->
+    <url>
+        <loc>https://albumguessr.com/cover-guess.html</loc>
+        <lastmod>2025-11-11</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.9</priority>
+    </url>
+    
+    <!-- Rankings -->
+    <url>
+        <loc>https://albumguessr.com/ranking.html</loc>
+        <lastmod>2025-11-11</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.7</priority>
+    </url>
+    
+    <url>
+        <loc>https://albumguessr.com/cover-guess-ranking.html</loc>
+        <lastmod>2025-11-11</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.7</priority>
+    </url>
+    
+    <!-- Archives / Past Dailies -->
+    <url>
+        <loc>https://albumguessr.com/past-dailies.html</loc>
+        <lastmod>2025-11-11</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.6</priority>
+    </url>
+    
+    <!-- Statistics -->
+    <url>
+        <loc>https://albumguessr.com/statistics.html</loc>
+        <lastmod>2025-11-11</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.5</priority>
+    </url>
+    
+    <!-- Profile (requires auth, but include for completeness) -->
+    <url>
+        <loc>https://albumguessr.com/profile.html</loc>
+        <lastmod>2025-11-11</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.4</priority>
+    </url>
+    
+    <!-- Report Bug -->
+    <url>
+        <loc>https://albumguessr.com/report-bug.html</loc>
+        <lastmod>2025-11-11</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.3</priority>
+    </url>
+    
+</urlset>
+
