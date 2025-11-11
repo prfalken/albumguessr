@@ -296,6 +296,15 @@ header .contenu {
     color: white;
 }
 
+.ranking-title {
+    font-size: 1.1rem !important;
+}
+
+#ranking-subtitle {
+    color: #ffd41d;
+    font-size: 0.95rem;
+}
+
 .subtitle {
     text-align: center;
     color: black;
@@ -540,9 +549,11 @@ main {
     display: grid;
     grid-template-columns: 1fr;
     gap: 1.5rem;
-    padding: 0 1.5rem;
+    padding: 0 1rem;
     max-width: 900px;
     margin: 0 auto;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 /* Stats cards */
@@ -1949,7 +1960,11 @@ footer .contenu {
     color: #fff !important;
 }
 .user-history {
-    padding: 1rem;
+    padding: 0;
+}
+
+.user-history-header {
+    padding: 1rem 1rem 0.5rem;
 }
 
 .user-history-header h3 {
@@ -1959,6 +1974,11 @@ footer .contenu {
     margin-bottom: 0.25rem;
     color: var(--text-primary);
     font-size: 1.1rem;
+}
+
+#schedule-list-title {
+    justify-content: center;
+    text-align: center;
 }
 
 #profile-settings-title {
@@ -2124,6 +2144,36 @@ footer .contenu {
     .game-container {
         padding: 0 1rem;
         box-sizing: border-box;
+    }
+    
+    /* Admin schedule grid on mobile */
+    .admin-schedule-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.5rem;
+    }
+    
+    .admin-album-card .album-date {
+        font-size: 0.6rem;
+        padding: 0.15rem 0.35rem;
+        top: 4px;
+        left: 4px;
+    }
+    
+    .admin-album-card .album-info {
+        padding: 0.5rem 0.35rem 0.35rem;
+    }
+    
+    .admin-album-card .album-title {
+        font-size: 0.65rem;
+    }
+    
+    .admin-album-card .album-artist {
+        font-size: 0.55rem;
+    }
+    
+    .admin-album-card .album-status {
+        font-size: 0.5rem;
+        padding: 0.1rem 0.25rem;
     }
     
     /* Cover guess wrapper - ensure proper centering */
@@ -2649,7 +2699,7 @@ footer .contenu {
 }
 
 .profile-section {
-    padding: 1rem 0;
+    padding: 1rem;
 }
 
 .profile-section:not(:last-child) {
@@ -2820,6 +2870,31 @@ footer .contenu {
     transform: none;
 }
 
+.btn-secondary {
+    padding: 0.75rem 1.5rem;
+    background: transparent;
+    color: var(--text-primary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s ease;
+}
+
+.btn-secondary:hover {
+    background: var(--surface);
+    border-color: var(--text-primary);
+    transform: translateY(-1px);
+}
+
+.btn-secondary:active {
+    transform: translateY(0);
+}
+
 /* Profile page specific styles */
 .username-form .btn-primary {
     background: #ffd41d;
@@ -2908,21 +2983,38 @@ footer .contenu {
    ---------------------------------------------------------------------------- */
 
 .admin-form-content {
-    padding: 1.5rem;
+    padding: 1.5rem 1rem;
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+    margin: 0 1rem;
+}
+
+.admin-form-content h3 {
+    text-align: center;
+    color: var(--text-primary);
+    font-size: 1.1rem;
+    margin-bottom: 1.5rem;
 }
 
 .admin-schedule-form {
     display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
+    flex-direction: row;
+    gap: 1rem;
+    align-items: flex-start;
+}
+
+.admin-schedule-form .form-group {
+    flex: 1;
+}
+
+.admin-schedule-form .form-group:first-child {
+    flex: 0 0 200px;
 }
 
 .admin-schedule-form .form-group label {
-    display: block;
-    color: var(--text-primary);
-    font-size: 0.9rem;
-    font-weight: 500;
-    margin-bottom: 0.5rem;
+    display: none;
 }
 
 .admin-schedule-form .form-input {
@@ -2943,8 +3035,8 @@ footer .contenu {
 }
 
 .admin-schedule-form .btn-primary {
-    width: 100%;
-    padding: 0.875rem 1.5rem;
+    align-self: flex-end;
+    padding: 0.75rem 1.5rem;
     background: var(--accent-color);
     color: white;
     border: none;
@@ -2955,8 +3047,9 @@ footer .contenu {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 0.5rem;
     transition: all 0.2s ease;
+    white-space: nowrap;
+    height: 46px;
 }
 
 .admin-schedule-form .btn-primary:hover {
@@ -3109,7 +3202,94 @@ footer .contenu {
 }
 
 .admin-schedule-list {
-    padding: 1.5rem;
+    padding: 1.5rem 1rem;
+}
+
+.admin-schedule-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+    width: 100%;
+}
+
+.admin-album-card {
+    aspect-ratio: 1;
+    border-radius: 8px;
+    position: relative;
+    overflow: hidden;
+    background: var(--surface);
+    border: 2px solid var(--border);
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+.admin-album-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.admin-album-card .album-cover {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.admin-album-card .album-date {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: white;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+    z-index: 2;
+}
+
+.admin-album-card .album-info {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.95) 0%, rgba(0, 0, 0, 0.8) 70%, transparent 100%);
+    padding: 0.75rem 0.5rem 0.5rem;
+    z-index: 1;
+}
+
+.admin-album-card .album-title {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: white;
+    margin-bottom: 0.25rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.admin-album-card .album-artist {
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.9);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-bottom: 0.25rem;
+}
+
+.admin-album-card .album-status {
+    font-size: 0.65rem;
+    padding: 0.15rem 0.4rem;
+    border-radius: 4px;
+    display: inline-block;
+    font-weight: 600;
+    text-transform: uppercase;
 }
 
 .admin-schedule-table {
@@ -3118,6 +3298,7 @@ footer .contenu {
     background: var(--clue-bg);
     border-radius: 8px;
     overflow: hidden;
+    display: none;
 }
 
 .admin-schedule-table thead {
@@ -3359,6 +3540,29 @@ footer .contenu {
 }
 
 @media (max-width: 768px) {
+    .admin-schedule-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.75rem;
+    }
+    
+    .admin-album-card .album-date {
+        font-size: 0.65rem;
+        padding: 0.2rem 0.4rem;
+    }
+    
+    .admin-album-card .album-title {
+        font-size: 0.7rem;
+    }
+    
+    .admin-album-card .album-artist {
+        font-size: 0.6rem;
+    }
+    
+    .admin-album-card .album-status {
+        font-size: 0.55rem;
+        padding: 0.1rem 0.3rem;
+    }
+    
     .admin-schedule-table {
         font-size: 0.9rem;
     }
@@ -3400,8 +3604,19 @@ footer .contenu {
         font-size: 0.7rem;
     }
     
+    .admin-schedule-form {
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+    
+    .admin-schedule-form .form-group:first-child {
+        flex: 1;
+    }
+    
     .admin-schedule-form .btn-primary {
         padding: 0.75rem 1rem;
+        width: 100%;
+        margin-top: 0;
     }
     
     .pagination {

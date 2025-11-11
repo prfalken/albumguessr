@@ -120,6 +120,8 @@ class AdminDashboard {
             genreEnabled: document.getElementById('genre-enabled'),
             genreMessage: document.getElementById('genre-message'),
             genreModalTitle: document.getElementById('genre-modal-title-text'),
+            btnReorganize: document.getElementById('btn-reorganize-duplicates'),
+            reorganizeStatus: document.getElementById('reorganize-status'),
             btnLogin: null,
             btnLogout: null,
             userProfile: null,
@@ -152,6 +154,11 @@ class AdminDashboard {
                 this.clearSearchResults();
             }
         });
+
+        // Reorganize duplicates button
+        if (this.elements.btnReorganize) {
+            this.elements.btnReorganize.addEventListener('click', () => this.reorganizeDuplicates());
+        }
 
         // Genre management events
         if (this.elements.btnAddGenre) {
@@ -379,57 +386,47 @@ class AdminDashboard {
         await this.enrichScheduleWithAlbumData(paginatedData);
         
         const html = `
-            <table class="admin-schedule-table">
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Album</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${paginatedData.map(entry => {
-                        const entryDate = entry.schedule_date;
-                        let statusClass = 'status-future';
-                        let statusText = 'Scheduled';
-                        
-                        if (entryDate === today) {
-                            statusClass = 'status-today';
-                            statusText = 'Today';
-                        }
-                        
-                        // Render album info or fallback to object ID
-                        let albumCell = '';
-                        if (entry.albumData) {
-                            const album = entry.albumData;
-                            const artist = this.escapeHtml(album.main_artist || album.artists?.[0] || 'Unknown Artist');
-                            const title = this.escapeHtml(album.title || 'Unknown Title');
-                            const coverUrl = album.cover_art_url || '';
-                            
-                            albumCell = `
-                                <div class="schedule-album-info">
-                                    ${coverUrl ? `<img src="${coverUrl}" alt="${title}" class="schedule-album-cover" onerror="this.style.display='none'">` : ''}
-                                    <div class="schedule-album-details">
-                                        <div class="schedule-album-title">${title}</div>
-                                        <div class="schedule-album-artist">${artist}</div>
-                                        <div class="schedule-album-id">${this.escapeHtml(entry.object_id)}</div>
-                                    </div>
-                                </div>
-                            `;
-                        } else {
-                            albumCell = `<div class="object-id-cell">${this.escapeHtml(entry.object_id)}<br><small style="color: #94a3b8;">(Album not found)</small></div>`;
-                        }
+            <div class="admin-schedule-grid">
+                ${paginatedData.map(entry => {
+                    const entryDate = entry.schedule_date;
+                    let statusClass = 'status-future';
+                    let statusText = 'Scheduled';
+                    
+                    if (entryDate === today) {
+                        statusClass = 'status-today';
+                        statusText = 'Today';
+                    }
+                    
+                    // Render album card
+                    if (entry.albumData) {
+                        const album = entry.albumData;
+                        const artist = this.escapeHtml(album.main_artist || album.artists?.[0] || 'Unknown Artist');
+                        const title = this.escapeHtml(album.title || 'Unknown Title');
+                        const coverUrl = album.cover_art_url || '';
                         
                         return `
-                            <tr>
-                                <td class="schedule-date-cell">${this.formatDate(entryDate)}</td>
-                                <td>${albumCell}</td>
-                                <td><span class="schedule-status ${statusClass}">${statusText}</span></td>
-                            </tr>
+                            <div class="admin-album-card">
+                                ${coverUrl ? `<img src="${coverUrl}" alt="${title}" class="album-cover">` : ''}
+                                <div class="album-date">${this.formatDate(entryDate)}</div>
+                                <div class="album-info">
+                                    <div class="album-title">${title}</div>
+                                    <div class="album-artist">${artist}</div>
+                                </div>
+                            </div>
                         `;
-                    }).join('')}
-                </tbody>
-            </table>
+                    } else {
+                        return `
+                            <div class="admin-album-card">
+                                <div class="album-date">${this.formatDate(entryDate)}</div>
+                                <div class="album-info">
+                                    <div class="album-title">Album not found</div>
+                                    <div class="album-artist">${this.escapeHtml(entry.object_id)}</div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                }).join('')}
+            </div>
             ${this.renderPagination(totalPages)}
         `;
         
@@ -750,6 +747,274 @@ class AdminDashboard {
             console.error('Failed to delete genre:', error);
             alert('Failed to delete genre: ' + error.message);
         }
+    }
+
+    async reorganizeDuplicates() {
+        try {
+            this.elements.reorganizeStatus.innerHTML = '<i class="bi bi-hourglass-split"></i> Analyse en cours...';
+            this.elements.btnReorganize.disabled = true;
+            
+            // Charger tous les albums avec leurs données
+            await this.enrichScheduleWithAlbumData(this.scheduleData);
+            
+            // Analyser les doublons par mois
+            const conflicts = this.findArtistDuplicatesByMonth();
+            
+            if (conflicts.length === 0) {
+                this.elements.reorganizeStatus.innerHTML = '<span style="color: #10b981;">✓ Aucun doublon trouvé ! Tous les mois ont des artistes uniques.</span>';
+                this.elements.btnReorganize.disabled = false;
+                return;
+            }
+            
+            // Compter le nombre total d'albums à déplacer
+            const totalToMove = conflicts.reduce((sum, c) => sum + (c.dates.length - 1), 0);
+            
+            // Afficher un avertissement si le planning est très chargé
+            let warningMessage = '';
+            if (this.scheduleData.length > 365) {
+                warningMessage = `
+                    <div style="background: rgba(251, 191, 36, 0.1); padding: 0.75rem; border-radius: 6px; margin-bottom: 1rem; border-left: 4px solid #fbbf24;">
+                        <div style="color: #fbbf24; font-weight: 600; font-size: 0.9rem;">
+                            ⚠️ Planning très chargé (${this.scheduleData.length} albums)
+                        </div>
+                        <div style="color: #94a3b8; font-size: 0.8rem; margin-top: 0.25rem;">
+                            Certains artistes pourraient ne pas trouver de mois disponible dans les 36 prochains mois.
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Afficher les conflits trouvés
+            this.elements.reorganizeStatus.innerHTML = `
+                ${warningMessage}
+                <div style="color: #fbbf24; margin-bottom: 1rem;">
+                    <strong>⚠️ ${conflicts.length} conflit(s) détecté(s) - ${totalToMove} album(s) à déplacer</strong>
+                </div>
+                <div style="background: var(--surface); padding: 1rem; border-radius: 8px; max-height: 300px; overflow-y: auto; text-align: left;">
+                    ${conflicts.map(c => `
+                        <div style="margin-bottom: 0.75rem; padding: 0.5rem; border-left: 3px solid #fbbf24;">
+                            <strong>${c.month}</strong> : ${c.artist}<br>
+                            <small style="color: #94a3b8;">
+                                ${c.dates.map(d => d.date).join(', ')}
+                            </small>
+                        </div>
+                    `).join('')}
+                </div>
+                <button id="btn-confirm-reorganize" class="btn-primary" style="margin-top: 1rem; background: #ef4444;">
+                    <i class="bi bi-shuffle"></i> Confirmer la réorganisation
+                </button>
+                <button id="btn-cancel-reorganize" class="btn-secondary" style="margin-top: 1rem; margin-left: 0.5rem;">
+                    Annuler
+                </button>
+            `;
+            
+            // Bind confirmation buttons
+            document.getElementById('btn-confirm-reorganize').addEventListener('click', () => {
+                this.executeReorganization(conflicts);
+            });
+            document.getElementById('btn-cancel-reorganize').addEventListener('click', () => {
+                this.elements.reorganizeStatus.innerHTML = '';
+                this.elements.btnReorganize.disabled = false;
+            });
+            
+        } catch (error) {
+            console.error('Erreur lors de l\'analyse:', error);
+            this.elements.reorganizeStatus.innerHTML = `<span style="color: #ef4444;">Erreur: ${error.message}</span>`;
+            this.elements.btnReorganize.disabled = false;
+        }
+    }
+
+    findArtistDuplicatesByMonth() {
+        const conflicts = [];
+        const monthGroups = {};
+        
+        // Grouper les albums par mois
+        this.scheduleData.forEach(entry => {
+            if (!entry.albumData) return;
+            
+            const date = new Date(entry.schedule_date);
+            const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+            const monthName = date.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+            
+            if (!monthGroups[monthKey]) {
+                monthGroups[monthKey] = { name: monthName, albums: [] };
+            }
+            
+            const artist = entry.albumData.main_artist || entry.albumData.artists?.[0];
+            if (artist) {
+                monthGroups[monthKey].albums.push({
+                    date: entry.schedule_date,
+                    artist: artist,
+                    artistLower: artist.toLowerCase(),
+                    objectId: entry.object_id,
+                    albumData: entry.albumData
+                });
+            }
+        });
+        
+        // Détecter les doublons d'artistes par mois
+        Object.entries(monthGroups).forEach(([monthKey, group]) => {
+            const artistCounts = {};
+            
+            group.albums.forEach(album => {
+                if (!artistCounts[album.artistLower]) {
+                    artistCounts[album.artistLower] = [];
+                }
+                artistCounts[album.artistLower].push(album);
+            });
+            
+            // Si un artiste apparaît plus d'une fois dans le mois
+            Object.entries(artistCounts).forEach(([artistLower, albums]) => {
+                if (albums.length > 1) {
+                    conflicts.push({
+                        month: group.name,
+                        monthKey: monthKey,
+                        artist: albums[0].artist,
+                        dates: albums
+                    });
+                }
+            });
+        });
+        
+        return conflicts;
+    }
+
+    async executeReorganization(conflicts) {
+        try {
+            this.elements.reorganizeStatus.innerHTML = '<i class="bi bi-hourglass-split"></i> Réorganisation en cours...';
+            
+            let movedCount = 0;
+            const errors = [];
+            
+            // Pour chaque conflit, garder le premier album et déplacer les autres
+            for (const conflict of conflicts) {
+                // Garder le premier album (le plus tôt dans le mois)
+                const albumsToMove = conflict.dates.slice(1);
+                
+                for (const album of albumsToMove) {
+                    try {
+                        // Trouver le prochain mois disponible pour cet artiste
+                        const newDate = await this.findNextAvailableMonth(album.artistLower, album.date);
+                        
+                        if (newDate) {
+                            await this.apiClient.updateSchedule(newDate, album.objectId);
+                            movedCount++;
+                            console.log(`Déplacé ${album.artist} de ${album.date} vers ${newDate}`);
+                        } else {
+                            errors.push(`Impossible de trouver un mois disponible pour ${album.artist}`);
+                        }
+                    } catch (error) {
+                        errors.push(`Erreur pour ${album.artist}: ${error.message}`);
+                    }
+                }
+            }
+            
+            // Recharger le planning
+            await this.loadSchedule();
+            
+            // Afficher le résultat
+            let message = '';
+            
+            if (movedCount > 0) {
+                message += `<span style="color: #10b981;">✓ Réorganisation terminée : ${movedCount} album(s) déplacé(s)</span>`;
+            }
+            
+            if (errors.length > 0) {
+                const uniqueErrors = [...new Set(errors)];
+                const artistsNotMoved = uniqueErrors.length;
+                
+                message += `
+                    <div style="margin-top: 1rem; padding: 1rem; background: rgba(239, 68, 68, 0.1); border-radius: 8px; border-left: 4px solid #ef4444;">
+                        <div style="color: #ef4444; font-weight: 600; margin-bottom: 0.5rem;">
+                            ⚠️ ${artistsNotMoved} album(s) non déplacé(s)
+                        </div>
+                        <div style="color: #94a3b8; font-size: 0.85rem; margin-bottom: 0.5rem;">
+                            Ces artistes apparaissent déjà dans tous les mois disponibles sur les 36 prochains mois.
+                        </div>
+                        <details style="margin-top: 0.5rem;">
+                            <summary style="cursor: pointer; color: #fbbf24; font-size: 0.85rem;">
+                                Voir la liste complète (${uniqueErrors.length} artistes)
+                            </summary>
+                            <div style="margin-top: 0.5rem; max-height: 150px; overflow-y: auto; font-size: 0.8rem; color: #94a3b8;">
+                                ${uniqueErrors.join('<br>')}
+                            </div>
+                        </details>
+                        <div style="margin-top: 1rem; padding: 0.75rem; background: rgba(251, 191, 36, 0.1); border-radius: 6px; font-size: 0.85rem; color: #fbbf24;">
+                            💡 <strong>Solutions :</strong><br>
+                            • Supprimez manuellement certains doublons<br>
+                            • Ou relancez la réorganisation après le premier traitement
+                        </div>
+                    </div>
+                `;
+            }
+            
+            this.elements.reorganizeStatus.innerHTML = message;
+            this.elements.btnReorganize.disabled = false;
+            
+        } catch (error) {
+            console.error('Erreur lors de la réorganisation:', error);
+            this.elements.reorganizeStatus.innerHTML = `<span style="color: #ef4444;">Erreur: ${error.message}</span>`;
+            this.elements.btnReorganize.disabled = false;
+        }
+    }
+
+    async findNextAvailableMonth(artistLower, currentDate) {
+        const startDate = new Date(currentDate);
+        let testDate = new Date(startDate);
+        testDate.setMonth(testDate.getMonth() + 1);
+        testDate.setDate(15); // Mettre au 15 du mois suivant
+        
+        // Chercher jusqu'à 36 mois dans le futur
+        for (let i = 0; i < 36; i++) {
+            const monthKey = `${testDate.getFullYear()}-${String(testDate.getMonth() + 1).padStart(2, '0')}`;
+            
+            // Vérifier si l'artiste existe déjà dans ce mois
+            const artistExistsInMonth = this.scheduleData.some(entry => {
+                if (!entry.albumData) return false;
+                const entryDate = new Date(entry.schedule_date);
+                const entryMonthKey = `${entryDate.getFullYear()}-${String(entryDate.getMonth() + 1).padStart(2, '0')}`;
+                
+                if (entryMonthKey !== monthKey) return false;
+                
+                const entryArtist = entry.albumData.main_artist || entry.albumData.artists?.[0];
+                return entryArtist && entryArtist.toLowerCase() === artistLower;
+            });
+            
+            if (!artistExistsInMonth) {
+                // Trouver une date libre dans ce mois
+                const freeDate = this.findFreeDateInMonth(testDate);
+                return freeDate;
+            }
+            
+            // Passer au mois suivant
+            testDate.setMonth(testDate.getMonth() + 1);
+        }
+        
+        return null; // Aucun mois disponible trouvé
+    }
+
+    findFreeDateInMonth(monthDate) {
+        const year = monthDate.getFullYear();
+        const month = monthDate.getMonth();
+        
+        // Essayer chaque jour du mois
+        for (let day = 1; day <= 31; day++) {
+            const testDate = new Date(year, month, day);
+            
+            // Vérifier que c'est bien dans le bon mois (évite les débordements)
+            if (testDate.getMonth() !== month) break;
+            
+            const dateStr = testDate.toISOString().split('T')[0];
+            
+            // Vérifier si cette date est libre
+            const isOccupied = this.scheduleData.some(entry => entry.schedule_date === dateStr);
+            
+            if (!isOccupied) {
+                return dateStr;
+            }
+        }
+        
+        return null; // Aucune date libre dans ce mois
     }
 }
 

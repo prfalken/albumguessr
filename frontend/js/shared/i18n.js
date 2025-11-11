@@ -265,7 +265,7 @@ class I18nManager {
                     search: 'Search for an album',
                     placeholder: 'Type album or artist name...',
                     selectedAlbum: 'Selected Album',
-                    submit: 'Save Schedule',
+                    submit: 'Save',
                     loading: 'Loading schedule...',
                     success: 'Album scheduled successfully!',
                     error: 'Failed to schedule album'
@@ -620,7 +620,7 @@ class I18nManager {
                     search: 'Rechercher un album',
                     placeholder: 'Taper le nom de l\'album ou de l\'artiste...',
                     selectedAlbum: 'Album sélectionné',
-                    submit: 'Enregistrer le programme',
+                    submit: 'Enregistrer',
                     loading: 'Chargement du programme...',
                     success: 'Album programmé avec succès !',
                     error: 'Échec de la programmation de l\'album'
@@ -975,7 +975,7 @@ class I18nManager {
                     search: 'Buscar un álbum',
                     placeholder: 'Escribe el nombre del álbum o artista...',
                     selectedAlbum: 'Álbum seleccionado',
-                    submit: 'Guardar programa',
+                    submit: 'Guardar',
                     loading: 'Cargando programa...',
                     success: '¡Álbum programado con éxito!',
                     error: 'Error al programar álbum'
