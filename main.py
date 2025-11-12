@@ -17,7 +17,7 @@ from algolia import AlgoliaApp
 from algolia_indexer import AlgoliaIndexer
 from algolia_searcher import AlgoliaSearcher
 from data_processor import AlbumDataProcessor
-from populate_mystery_albums import populate_mystery_albums
+from populate_mystery_albums import list_top_albums, populate_mystery_albums
 
 
 def main():
@@ -53,6 +53,14 @@ def main():
         "--populate-mystery-albums",
         action="store_true",
         help="Populate mystery_random_album table with top albums per genre",
+    )
+    parser.add_argument("--list-top-albums", action="store_true", help="List top albums from Algolia")
+    parser.add_argument(
+        "--format",
+        type=str,
+        choices=["csv", "pretty"],
+        default="csv",
+        help="Output format for --list-top-albums (default: csv)",
     )
     parser.add_argument(
         "--clear-mystery-albums",
@@ -147,6 +155,8 @@ def main():
                 result.get("main_artist", "N/A"),
                 result.get("release_year", "N/A"),
             )
+    elif args.list_top_albums:
+        list_top_albums(algolia_client, config.ALGOLIA_INDEX_NAME, format=args.format)
     elif args.populate_mystery_albums:
         if not config.NEON_DATABASE_URL:
             logger.error("NEON_DATABASE_URL (NETLIFY_DATABASE_URL) not configured")
@@ -156,11 +166,7 @@ def main():
             sys.exit(1)
         logger.info("Starting mystery album population using Algolia")
         populate_mystery_albums(
-            db, 
-            neon_db, 
-            algolia_client, 
-            config.ALGOLIA_INDEX_NAME,
-            clear_existing=args.clear_mystery_albums
+            db, neon_db, algolia_client, config.ALGOLIA_INDEX_NAME, clear_existing=args.clear_mystery_albums
         )
         neon_db.close()
     else:

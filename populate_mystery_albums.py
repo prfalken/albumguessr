@@ -86,6 +86,108 @@ def match_genre_to_neon(mb_genre: str, neon_genres: List[str]) -> Optional[str]:
     return None
 
 
+def search_albums(algolia_client: SearchClientSync, index_name: str, limit: int = 1000) -> List[Dict[str, Any]]:
+    try:
+        response = algolia_client.search_single_index(
+            index_name=index_name,
+            search_params={
+                "query": "",  # Empty query to get all results
+                "hitsPerPage": limit,
+                "optionalFilters": ["rating_value > 4"],
+                "sort": ["rating_count:desc", "rating_score:desc"],
+                "attributesToRetrieve": [
+                    "objectID",
+                    "primary_genre",
+                    "rating_score",
+                    "title",
+                    "main_artist",
+                    "rating_count",
+                    "rating_value",
+                ],
+            },
+        )
+
+        albums = []
+        for hit in response.hits:
+            hit_dict = hit.to_dict()
+            albums.append(
+                {
+                    "object_id": hit_dict.get("objectID"),
+                    "primary_genre": hit_dict.get("primary_genre"),
+                    "rating_score": hit_dict.get("rating_score", 0),
+                    "title": hit_dict.get("title"),
+                    "main_artist": hit_dict.get("main_artist"),
+                    "rating_count": hit_dict.get("rating_count"),
+                    "rating_value": hit_dict.get("rating_value"),
+                }
+            )
+
+        return albums
+    except Exception as e:
+        logger.error(f"Error searching Algolia: {e}")
+        return []
+
+
+def list_top_albums(
+    algolia_client: SearchClientSync, index_name: str, limit: int = 1000, format: str = "csv"
+) -> List[Dict[str, Any]]:
+    """
+    List top albums from Algolia with optional formatting.
+
+    Args:
+        algolia_client: Algolia search client
+        index_name: Name of the Algolia index
+        limit: Maximum number of albums to retrieve
+        format: Output format - "csv" or "pretty" (default: "csv")
+    """
+    albums = search_albums(algolia_client, index_name, limit)
+
+    if not albums:
+        logger.info("No albums found")
+        return albums
+
+    # Sort by rating_score descending
+    albums.sort(key=lambda x: x.get("rating_score", 0), reverse=True)
+
+    if format == "csv":
+        # Print CSV header
+        print("\n#,Title,Artist,Genre,Score,Voters,Rating")
+
+        # Print each album as CSV
+        for idx, album in enumerate(albums, 1):
+            title = (album.get("title") or "N/A").replace('"', '""')  # Escape quotes
+            artist = (album.get("main_artist") or "N/A").replace('"', '""')  # Escape quotes
+            genre = (album.get("primary_genre") or "N/A").replace('"', '""')  # Escape quotes
+            score = album.get("rating_score", 0)
+            count = album.get("rating_count", 0)
+            value = album.get("rating_value", 0)
+            print(f'{idx},"{title}","{artist}","{genre}",{score:.2f},{count},{value:.2f}')
+    else:  # pretty format
+        # Print header
+        header = f"{'#':<5} {'Title':<40} {'Artist':<30} {'Genre':<20} {'Score':<8} {'Voters':<8} {'Rating':<8}"
+        separator = "=" * len(header)
+
+        print(f"\n{separator}")
+        print(header)
+        print(separator)
+
+        # Print each album
+        for idx, album in enumerate(albums, 1):
+            title = (album.get("title") or "N/A")[:38]  # Truncate long titles
+            artist = (album.get("main_artist") or "N/A")[:28]  # Truncate long artist names
+            genre = (album.get("primary_genre") or "N/A")[:18]  # Truncate long genres
+            score = album.get("rating_score", 0)
+            count = album.get("rating_count", 0)
+            value = album.get("rating_value", 0)
+            print(f"{idx:<5} {title:<40} {artist:<30} {genre:<20} {score:<8.2f} {count:<8} {value:<8.2f}")
+
+        print(separator)
+
+    print(f"\nTotal albums: {len(albums)}\n")
+
+    return albums
+
+
 def search_albums_by_genre(
     algolia_client: SearchClientSync, index_name: str, genre_name: str, limit: int = 1000
 ) -> List[Dict[str, Any]]:
