@@ -23,19 +23,19 @@ import math
 import time
 
 
-def calculate_composite_score(
+def calculate_quality_score(
     lastfm_playcount: int,
     lastfm_listeners: int,
 ) -> float:
     """
-    Calculate a composite score combining quality ratings and engagement metrics.
+    Calculate a quality score combining Last.fm playcount and listeners.
 
     Args:
         lastfm_playcount: Total plays on Last.fm
         lastfm_listeners: Total unique listeners on Last.fm
 
     Returns:
-        Composite score combining both metrics
+        Quality score combining both metrics
     """
     # Normalize using log scale to handle large differences
     normalized_listeners = math.log10(lastfm_listeners + 1)
@@ -44,6 +44,179 @@ def calculate_composite_score(
     # Combine with equal or custom weights
     combined_score = (0.5 * normalized_listeners) + (0.5 * normalized_playcount)
     return round(combined_score, 2)
+
+
+def update_quality_scores(
+    algolia_client: SearchClientSync,
+    index_name: str,
+    playcount_weight: float = 0.5,
+    listeners_weight: float = 0.5,
+    batch_size: int = 100,
+) -> None:
+    """
+    Update quality_score for all albums that already have Last.fm data.
+
+    This is a fast operation that doesn't make API calls - it only recalculates
+    scores for albums that already have lastfm_playcount and lastfm_listeners.
+
+    Args:
+        algolia_client: Algolia search client
+        index_name: Name of the Algolia index
+        playcount_weight: Weight for playcount component (default: 0.5)
+        listeners_weight: Weight for listeners component (default: 0.5)
+        batch_size: Number of records to update in each batch (default: 100)
+    """
+    logger.info(f"Starting quality_score update for index: {index_name}")
+    logger.info(f"Weights: playcount={playcount_weight}, listeners={listeners_weight}")
+
+    total_processed = 0
+    total_with_data = 0
+    total_without_data = 0
+    total_updated = 0
+
+    start_time = time.time()
+    last_milestone_time = start_time
+    last_milestone_count = 0
+
+    # Batch updates for efficiency
+    update_batch = []
+
+    try:
+        cursor = None
+
+        while True:
+            # Fetch albums from Algolia using browse for efficient iteration
+            if cursor:
+                response = algolia_client.browse(
+                    index_name=index_name,
+                    browse_params={
+                        "cursor": cursor,
+                        "attributesToRetrieve": [
+                            "objectID",
+                            "title",
+                            "main_artist",
+                            "lastfm_playcount",
+                            "lastfm_listeners",
+                        ],
+                    },
+                )
+            else:
+                response = algolia_client.browse(
+                    index_name=index_name,
+                    browse_params={
+                        "attributesToRetrieve": [
+                            "objectID",
+                            "title",
+                            "main_artist",
+                            "lastfm_playcount",
+                            "lastfm_listeners",
+                        ],
+                    },
+                )
+
+            hits = response.hits
+            if not hits:
+                break
+
+            # Process each album in the batch
+            for hit in hits:
+                total_processed += 1
+                hit_dict = hit.to_dict()
+
+                object_id = hit_dict.get("objectID")
+                playcount = hit_dict.get("lastfm_playcount", 0)
+                listeners = hit_dict.get("lastfm_listeners", 0)
+
+                # Skip if no Last.fm data
+                if not playcount and not listeners:
+                    total_without_data += 1
+                    continue
+
+                total_with_data += 1
+
+                # Calculate quality score using the normalized weighted average
+                quality_score = calculate_quality_score(
+                    lastfm_playcount=playcount or 0,
+                    lastfm_listeners=listeners or 0,
+                )
+
+                # Add to update batch
+                update_batch.append(
+                    {
+                        "objectID": object_id,
+                        "quality_score": quality_score,
+                    }
+                )
+
+                # Update in batches for efficiency
+                if len(update_batch) >= batch_size:
+                    algolia_client.partial_update_objects(
+                        index_name=index_name,
+                        objects=update_batch,
+                    )
+                    total_updated += len(update_batch)
+                    logger.debug(f"Updated batch of {len(update_batch)} records")
+                    update_batch = []
+
+                # Progress reporting every 1000 records
+                if total_processed % 1000 == 0:
+                    current_time = time.time()
+                    elapsed = current_time - last_milestone_time
+                    records_since_milestone = total_processed - last_milestone_count
+                    rate = records_since_milestone / elapsed if elapsed > 0 else 0
+
+                    logger.info(
+                        f"Processed: {total_processed:,} albums | "
+                        f"With data: {total_with_data:,} | "
+                        f"Updated: {total_updated:,} | "
+                        f"Rate: {rate:.1f} records/sec"
+                    )
+
+                    last_milestone_time = current_time
+                    last_milestone_count = total_processed
+
+            # Get next cursor
+            cursor = response.cursor if hasattr(response, "cursor") else None
+            if not cursor:
+                break
+
+        # Update remaining records in batch
+        if update_batch:
+            algolia_client.partial_update_objects(
+                index_name=index_name,
+                objects=update_batch,
+            )
+            total_updated += len(update_batch)
+            logger.debug(f"Updated final batch of {len(update_batch)} records")
+
+        # Final statistics
+        elapsed_total = time.time() - start_time
+        logger.info("=" * 80)
+        logger.info("Quality Score Update Complete!")
+        logger.info("=" * 80)
+        logger.info(f"Total processed:           {total_processed:,}")
+        logger.info(f"With Last.fm data:         {total_with_data:,}")
+        logger.info(f"Without Last.fm data:      {total_without_data:,}")
+        logger.info(f"Total updated:             {total_updated:,}")
+        logger.info(f"Time elapsed:              {elapsed_total:.2f} seconds")
+        if total_processed > 0:
+            logger.info(f"Average rate:              {total_processed/elapsed_total:.1f} records/sec")
+        logger.info("=" * 80)
+
+    except Exception as e:
+        logger.error(f"Error during quality score update: {e}")
+        # Try to update any remaining batch
+        if update_batch:
+            try:
+                algolia_client.partial_update_objects(
+                    index_name=index_name,
+                    objects=update_batch,
+                )
+                total_updated += len(update_batch)
+                logger.info(f"Updated final batch of {len(update_batch)} records before error")
+            except Exception as batch_error:
+                logger.error(f"Failed to update final batch: {batch_error}")
+        raise
 
 
 def enrich_albums_with_lastfm(
@@ -90,9 +263,6 @@ def enrich_albums_with_lastfm(
                             "objectID",
                             "title",
                             "main_artist",
-                            "rating_value",
-                            "rating_count",
-                            "rating_score",
                         ],
                     },
                 )
@@ -104,9 +274,6 @@ def enrich_albums_with_lastfm(
                             "objectID",
                             "title",
                             "main_artist",
-                            "rating_value",
-                            "rating_count",
-                            "rating_score",
                         ],
                     },
                 )
@@ -122,8 +289,6 @@ def enrich_albums_with_lastfm(
                 object_id = hit_dict.get("objectID")
                 title = hit_dict.get("title")
                 main_artist = hit_dict.get("main_artist")
-                rating_value = hit_dict.get("rating_value", 0)
-                rating_count = hit_dict.get("rating_count", 0)
 
                 total_processed += 1
 
@@ -140,14 +305,8 @@ def enrich_albums_with_lastfm(
                     playcount = lastfm_data.get("playcount", 0)
                     listeners = lastfm_data.get("listeners", 0)
 
-                    # Calculate engagement score
-                    engagement_score = 0
-                    if playcount > 0 and listeners > 0:
-                        plays_per_listener = playcount / listeners
-                        engagement_score = math.log10(playcount + 1) * math.log10(plays_per_listener + 1)
-
                     # Calculate quality score
-                    quality_score = calculate_composite_score(playcount, listeners)
+                    quality_score = calculate_quality_score(playcount, listeners)
 
                     # Prepare update
                     update_obj = {
@@ -272,6 +431,23 @@ def main():
         type=int,
         help="Limit number of albums to enrich (useful for testing)",
     )
+    parser.add_argument(
+        "--update-quality-scores",
+        action="store_true",
+        help="Update quality_score for albums with existing Last.fm data (fast, no API calls)",
+    )
+    parser.add_argument(
+        "--playcount-weight",
+        type=float,
+        default=0.5,
+        help="Weight for playcount in quality score calculation (default: 0.5)",
+    )
+    parser.add_argument(
+        "--listeners-weight",
+        type=float,
+        default=0.5,
+        help="Weight for listeners in quality score calculation (default: 0.5)",
+    )
 
     # Build epilog dynamically from declared options
     def _build_examples_from_parser(p: argparse.ArgumentParser) -> str:
@@ -367,6 +543,14 @@ def main():
             algolia_client,
             config.ALGOLIA_INDEX_NAME,
             sort_by=args.sort_by,
+        )
+    elif args.update_quality_scores:
+        logger.info("Updating quality scores for existing albums with Last.fm data")
+        update_quality_scores(
+            algolia_client,
+            config.ALGOLIA_INDEX_NAME,
+            playcount_weight=args.playcount_weight,
+            listeners_weight=args.listeners_weight,
         )
     elif args.enrich_lastfm:
         if not config.LASTFM_API_KEY:

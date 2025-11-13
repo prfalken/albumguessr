@@ -17,11 +17,11 @@ class LastFmClient:
     """Client for interacting with the Last.fm API with exponential backoff on rate limits."""
 
     BASE_URL = "https://ws.audioscrobbler.com/2.0/"
-    
+
     # Rate limiting parameters
     INITIAL_DELAY = 0.5  # Initial backoff delay when rate limited
     MAX_DELAY = 5.0  # Maximum delay (0.2 req/sec - very conservative)
-    
+
     # Exponential backoff parameters (on rate limit only)
     BACKOFF_MULTIPLIER = 2.0  # Double delay on rate limit
 
@@ -39,7 +39,7 @@ class LastFmClient:
         self.cache: Dict[str, Dict[str, Any]] = {}
         self.cache_ttl_days = cache_ttl_days
         self.last_request_time = 0.0
-        
+
         # Rate limiting state - no delay unless rate limited
         self.current_delay = 0.0
         self.total_requests = 0
@@ -53,9 +53,21 @@ class LastFmClient:
                 # Clean expired entries on load
                 self._clean_expired_cache()
                 logger.info(f"Loaded {len(self.cache)} cached Last.fm responses")
+            except json.JSONDecodeError as e:
+                logger.error(f"Cache file is corrupted (JSON error): {e}")
+                # Backup the corrupted cache file
+                backup_file = self.cache_file.with_suffix(".corrupted")
+                try:
+                    self.cache_file.rename(backup_file)
+                    logger.warning(f"Moved corrupted cache to: {backup_file}")
+                    logger.info("Starting with empty cache - it will be rebuilt as needed")
+                except Exception as backup_error:
+                    logger.warning(f"Failed to backup corrupted cache: {backup_error}")
+                self.cache = {}
             except Exception as e:
                 logger.warning(f"Failed to load Last.fm cache: {e}")
-        
+                self.cache = {}
+
         logger.info(f"Initialized Last.fm client with no throttling (exponential backoff on rate limits only)")
 
     def _rate_limit(self) -> None:
@@ -64,19 +76,19 @@ class LastFmClient:
         if elapsed < self.current_delay:
             time.sleep(self.current_delay - elapsed)
         self.last_request_time = time.time()
-    
+
     def _handle_rate_limit_error(self) -> None:
         """Adjust rate limiter after hitting rate limit with exponential backoff."""
         self.rate_limited_count += 1
         old_delay = self.current_delay
-        
+
         # If this is the first rate limit, start with initial delay
         if self.current_delay == 0.0:
             self.current_delay = self.INITIAL_DELAY
         else:
             # Otherwise apply exponential backoff
             self.current_delay = min(self.MAX_DELAY, self.current_delay * self.BACKOFF_MULTIPLIER)
-        
+
         if old_delay == 0.0:
             logger.warning(
                 f"Rate limited! Starting backoff at {self.current_delay:.1f}s delay "
@@ -87,7 +99,7 @@ class LastFmClient:
                 f"Rate limited! Exponential backoff: {old_delay:.1f}s → {self.current_delay:.1f}s delay "
                 f"(total rate limits: {self.rate_limited_count})"
             )
-        
+
         # Sleep extra time to let rate limit window pass
         time.sleep(self.current_delay)
 
@@ -114,18 +126,27 @@ class LastFmClient:
             logger.info(f"Removed {len(expired_keys)} expired cache entries")
 
     def _save_cache(self) -> None:
-        """Save cache to disk."""
+        """Save cache to disk using atomic write to prevent corruption."""
         if not self.cache_file:
             return
 
         try:
             self.cache_file.parent.mkdir(parents=True, exist_ok=True)
-            with open(self.cache_file, "w", encoding="utf-8") as f:
+
+            # Write to temporary file first (atomic write pattern)
+            temp_file = self.cache_file.with_suffix(".tmp")
+            with open(temp_file, "w", encoding="utf-8") as f:
                 json.dump(self.cache, f, indent=2)
+
+            # Rename temp file to actual cache file (atomic on most filesystems)
+            temp_file.replace(self.cache_file)
+
         except Exception as e:
             logger.warning(f"Failed to save Last.fm cache: {e}")
 
-    def _make_request(self, params: Dict[str, str], retry_count: int = 0, max_retries: int = 3) -> Optional[Dict[str, Any]]:
+    def _make_request(
+        self, params: Dict[str, str], retry_count: int = 0, max_retries: int = 3
+    ) -> Optional[Dict[str, Any]]:
         """
         Make a request to the Last.fm API with exponential backoff on rate limits.
 
@@ -168,11 +189,11 @@ class LastFmClient:
 
         try:
             response = requests.get(self.BASE_URL, params=params, timeout=10)
-            
+
             # Handle rate limiting specifically
             if response.status_code == 429:
                 self._handle_rate_limit_error()
-                
+
                 # Retry if we haven't exceeded max retries
                 if retry_count < max_retries:
                     logger.info(f"Retrying request (attempt {retry_count + 1}/{max_retries})...")
@@ -180,7 +201,7 @@ class LastFmClient:
                 else:
                     logger.error(f"Max retries ({max_retries}) exceeded for rate limiting")
                     return None
-            
+
             response.raise_for_status()
             data = response.json()
 
@@ -210,7 +231,7 @@ class LastFmClient:
                     )
 
             return data
-            
+
         except requests.exceptions.HTTPError as e:
             # Already handled 429 above, this catches other HTTP errors
             logger.error(f"Last.fm API HTTP error: {e}")
@@ -313,9 +334,7 @@ class LastFmClient:
             best_match = albums[0]
 
         # Get full info for the matched album
-        return self.get_album_info_by_name(
-            best_match.get("artist", ""), best_match.get("name", "")
-        )
+        return self.get_album_info_by_name(best_match.get("artist", ""), best_match.get("name", ""))
 
     def _extract_album_metrics(self, album_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """
@@ -344,9 +363,7 @@ class LastFmClient:
             logger.debug(f"Failed to extract metrics from Last.fm data: {e}")
             return None
 
-    def enrich_album(
-        self, object_id: str, artist: str, title: str
-    ) -> Optional[Dict[str, Any]]:
+    def enrich_album(self, object_id: str, artist: str, title: str) -> Optional[Dict[str, Any]]:
         """
         Enrich an album with Last.fm engagement data.
 
@@ -370,8 +387,7 @@ class LastFmClient:
 
         if result:
             logger.debug(
-                f"Found Last.fm data by name: {result['playcount']} plays, "
-                f"{result['listeners']} listeners"
+                f"Found Last.fm data by name: {result['playcount']} plays, " f"{result['listeners']} listeners"
             )
             return result
 
@@ -381,8 +397,7 @@ class LastFmClient:
 
         if result:
             logger.debug(
-                f"Found Last.fm data by search: {result['playcount']} plays, "
-                f"{result['listeners']} listeners"
+                f"Found Last.fm data by search: {result['playcount']} plays, " f"{result['listeners']} listeners"
             )
             return result
 
@@ -392,7 +407,7 @@ class LastFmClient:
     def close(self) -> None:
         """Save cache and cleanup, displaying final statistics."""
         self._save_cache()
-        
+
         # Log final statistics
         logger.info("=" * 60)
         logger.info("Last.fm Client Session Summary:")
@@ -406,4 +421,3 @@ class LastFmClient:
         if self.total_requests > 0:
             logger.info(f"  Rate limit percentage:     {self.rate_limited_count/self.total_requests*100:.2f}%")
         logger.info("=" * 60)
-
