@@ -24,43 +24,26 @@ import time
 
 
 def calculate_composite_score(
-    rating_value: float,
-    rating_count: int,
     lastfm_playcount: int,
     lastfm_listeners: int,
-    quality_weight: float = 0.7,
-    engagement_weight: float = 0.3,
 ) -> float:
     """
     Calculate a composite score combining quality ratings and engagement metrics.
 
     Args:
-        rating_value: Album rating (0-5 scale)
-        rating_count: Number of ratings
         lastfm_playcount: Total plays on Last.fm
         lastfm_listeners: Total unique listeners on Last.fm
-        quality_weight: Weight for quality component (default: 0.7)
-        engagement_weight: Weight for engagement component (default: 0.3)
 
     Returns:
         Composite score combining both metrics
     """
-    # Quality score: rating value * rating count
-    quality_score = rating_value * rating_count
+    # Normalize using log scale to handle large differences
+    normalized_listeners = math.log10(lastfm_listeners + 1)
+    normalized_playcount = math.log10(lastfm_playcount + 1)
 
-    # Engagement score: log scale of playcount weighted by listener ratio
-    # Use log10 to normalize large playcount values
-    if lastfm_playcount > 0 and lastfm_listeners > 0:
-        # Calculate plays per listener to favor albums with deeper engagement
-        plays_per_listener = lastfm_playcount / lastfm_listeners
-        engagement_score = math.log10(lastfm_playcount + 1) * math.log10(plays_per_listener + 1)
-    else:
-        engagement_score = 0
-
-    # Combine scores with weights
-    composite = (quality_score * quality_weight) + (engagement_score * engagement_weight)
-
-    return round(composite, 2)
+    # Combine with equal or custom weights
+    combined_score = (0.5 * normalized_listeners) + (0.5 * normalized_playcount)
+    return round(combined_score, 2)
 
 
 def enrich_albums_with_lastfm(
@@ -164,9 +147,7 @@ def enrich_albums_with_lastfm(
                         engagement_score = math.log10(playcount + 1) * math.log10(plays_per_listener + 1)
 
                     # Calculate composite score
-                    composite_score = calculate_composite_score(
-                        rating_value or 0, rating_count or 0, playcount, listeners
-                    )
+                    composite_score = calculate_composite_score(playcount, listeners)
 
                     # Prepare update
                     update_obj = {
