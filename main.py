@@ -18,6 +18,218 @@ from algolia_indexer import AlgoliaIndexer
 from algolia_searcher import AlgoliaSearcher
 from data_processor import AlbumDataProcessor
 from populate_mystery_albums import list_top_albums, populate_mystery_albums
+from lastfm_enricher import LastFmClient
+import math
+import time
+
+
+def calculate_composite_score(
+    rating_value: float,
+    rating_count: int,
+    lastfm_playcount: int,
+    lastfm_listeners: int,
+    quality_weight: float = 0.7,
+    engagement_weight: float = 0.3,
+) -> float:
+    """
+    Calculate a composite score combining quality ratings and engagement metrics.
+
+    Args:
+        rating_value: Album rating (0-5 scale)
+        rating_count: Number of ratings
+        lastfm_playcount: Total plays on Last.fm
+        lastfm_listeners: Total unique listeners on Last.fm
+        quality_weight: Weight for quality component (default: 0.7)
+        engagement_weight: Weight for engagement component (default: 0.3)
+
+    Returns:
+        Composite score combining both metrics
+    """
+    # Quality score: rating value * rating count
+    quality_score = rating_value * rating_count
+
+    # Engagement score: log scale of playcount weighted by listener ratio
+    # Use log10 to normalize large playcount values
+    if lastfm_playcount > 0 and lastfm_listeners > 0:
+        # Calculate plays per listener to favor albums with deeper engagement
+        plays_per_listener = lastfm_playcount / lastfm_listeners
+        engagement_score = math.log10(lastfm_playcount + 1) * math.log10(plays_per_listener + 1)
+    else:
+        engagement_score = 0
+
+    # Combine scores with weights
+    composite = (quality_score * quality_weight) + (engagement_score * engagement_weight)
+
+    return round(composite, 2)
+
+
+def enrich_albums_with_lastfm(
+    algolia_client: SearchClientSync,
+    index_name: str,
+    lastfm_client: LastFmClient,
+    limit: int = None,
+) -> None:
+    """
+    Enrich albums in Algolia with Last.fm engagement data.
+
+    Args:
+        algolia_client: Algolia search client
+        index_name: Name of the Algolia index
+        lastfm_client: Last.fm API client
+        limit: Optional limit on number of albums to process
+    """
+    logger.info("Starting Last.fm enrichment process")
+
+    total_processed = 0
+    total_enriched = 0
+    total_updated = 0
+
+    # Timing tracking
+    start_time = time.time()
+    last_milestone_time = start_time
+    last_milestone_count = 0
+
+    try:
+        cursor = None
+
+        while True:
+            if limit and total_processed >= limit:
+                logger.info(f"Reached limit of {limit} albums")
+                break
+
+            # Fetch albums from Algolia using browse for efficient iteration
+            if cursor:
+                response = algolia_client.browse(
+                    index_name=index_name,
+                    browse_params={
+                        "cursor": cursor,
+                        "attributesToRetrieve": [
+                            "objectID",
+                            "title",
+                            "main_artist",
+                            "rating_value",
+                            "rating_count",
+                            "rating_score",
+                        ],
+                    },
+                )
+            else:
+                response = algolia_client.browse(
+                    index_name=index_name,
+                    browse_params={
+                        "attributesToRetrieve": [
+                            "objectID",
+                            "title",
+                            "main_artist",
+                            "rating_value",
+                            "rating_count",
+                            "rating_score",
+                        ],
+                    },
+                )
+
+            hits = response.hits
+            if not hits:
+                break
+
+            batch_updates = []
+
+            for hit in hits:
+                hit_dict = hit.to_dict()
+                object_id = hit_dict.get("objectID")
+                title = hit_dict.get("title")
+                main_artist = hit_dict.get("main_artist")
+                rating_value = hit_dict.get("rating_value", 0)
+                rating_count = hit_dict.get("rating_count", 0)
+
+                total_processed += 1
+
+                if not object_id or not title or not main_artist:
+                    logger.debug(f"Skipping album with missing data: {object_id}")
+                    continue
+
+                # Enrich with Last.fm data
+                lastfm_data = lastfm_client.enrich_album(object_id, main_artist, title)
+
+                if lastfm_data:
+                    total_enriched += 1
+
+                    playcount = lastfm_data.get("playcount", 0)
+                    listeners = lastfm_data.get("listeners", 0)
+
+                    # Calculate engagement score
+                    engagement_score = 0
+                    if playcount > 0 and listeners > 0:
+                        plays_per_listener = playcount / listeners
+                        engagement_score = math.log10(playcount + 1) * math.log10(plays_per_listener + 1)
+
+                    # Calculate composite score
+                    composite_score = calculate_composite_score(
+                        rating_value or 0, rating_count or 0, playcount, listeners
+                    )
+
+                    # Prepare update
+                    update_obj = {
+                        "objectID": object_id,
+                        "lastfm_playcount": playcount,
+                        "lastfm_listeners": listeners,
+                        "engagement_score": round(engagement_score, 2),
+                        "composite_score": composite_score,
+                    }
+
+                    batch_updates.append(update_obj)
+
+                    logger.debug(
+                        f"Enriched: {main_artist} - {title} | "
+                        f"Plays: {playcount}, Listeners: {listeners}, "
+                        f"Composite: {composite_score}"
+                    )
+
+            # Update Algolia in batch
+            if batch_updates:
+                try:
+                    algolia_client.partial_update_objects(
+                        index_name=index_name,
+                        objects=batch_updates,
+                    )
+                    total_updated += len(batch_updates)
+                    logger.info(
+                        f"Updated batch of {len(batch_updates)} albums "
+                        f"(Total: {total_updated}/{total_processed})"
+                    )
+                except Exception as e:
+                    logger.error(f"Failed to update Algolia batch: {e}")
+
+            # Update cursor for next iteration
+            cursor = response.cursor if hasattr(response, "cursor") else None
+            if not cursor:
+                break
+
+            # Log progress with timing every 1000 albums
+            if total_processed % 1000 == 0:
+                current_time = time.time()
+                batch_elapsed = current_time - last_milestone_time
+                total_elapsed = current_time - start_time
+                albums_in_batch = total_processed - last_milestone_count
+
+                logger.info(
+                    f"Progress: {total_processed} processed, "
+                    f"{total_enriched} enriched, {total_updated} updated | "
+                    f"Last {albums_in_batch} albums: {batch_elapsed:.1f}s "
+                    f"({albums_in_batch/batch_elapsed:.1f} albums/sec) | "
+                    f"Total time: {total_elapsed:.1f}s"
+                )
+
+                last_milestone_time = current_time
+                last_milestone_count = total_processed
+
+    finally:
+        lastfm_client.close()
+
+    logger.info(
+        f"Enrichment complete. Processed: {total_processed}, "
+        f"Enriched: {total_enriched}, Updated: {total_updated}"
+    )
 
 
 def main():
@@ -50,6 +262,11 @@ def main():
     parser.add_argument("--get-by-id", type=str, help="Get an album by its objectID")
     parser.add_argument("--stats", action="store_true", help="Show Algolia index statistics")
     parser.add_argument(
+        "--count-composite",
+        action="store_true",
+        help="Count records with composite_score attribute (Last.fm enriched)",
+    )
+    parser.add_argument(
         "--populate-mystery-albums",
         action="store_true",
         help="Populate mystery_random_album table with top albums per genre",
@@ -63,9 +280,26 @@ def main():
         help="Output format for --list-top-albums (default: csv)",
     )
     parser.add_argument(
+        "--sort-by",
+        type=str,
+        choices=["playcount", "listeners", "both"],
+        default="both",
+        help="Sort albums by playcount, listeners, or show both rankings (default: both)",
+    )
+    parser.add_argument(
         "--clear-mystery-albums",
         action="store_true",
         help="Clear existing mystery albums before populating",
+    )
+    parser.add_argument(
+        "--enrich-lastfm",
+        action="store_true",
+        help="Enrich existing Algolia records with Last.fm engagement data",
+    )
+    parser.add_argument(
+        "--enrich-limit",
+        type=int,
+        help="Limit number of albums to enrich (useful for testing)",
     )
 
     # Build epilog dynamically from declared options
@@ -138,6 +372,8 @@ def main():
         algolia_app.clear_index()
     elif args.configure:
         algolia_app.configure_index_settings()
+    elif args.count_composite:
+        algolia_app.count_records_with_composite_score()
     elif args.get_by_id:
         result = algolia_searcher.get_album_by_id(args.get_by_id)
         if result:
@@ -156,7 +392,15 @@ def main():
                 result.get("release_year", "N/A"),
             )
     elif args.list_top_albums:
-        list_top_albums(algolia_client, config.ALGOLIA_INDEX_NAME, format=args.format)
+        list_top_albums(algolia_client, config.ALGOLIA_INDEX_NAME, format=args.format, sort_by=args.sort_by)
+    elif args.enrich_lastfm:
+        if not config.LASTFM_API_KEY:
+            logger.error("LASTFM_API_KEY not configured. Please set it in your environment.")
+            sys.exit(1)
+        lastfm_client = LastFmClient(config.LASTFM_API_KEY, config.LASTFM_CACHE_FILE, config.LASTFM_CACHE_TTL_DAYS)
+        enrich_albums_with_lastfm(
+            algolia_client, config.ALGOLIA_INDEX_NAME, lastfm_client, limit=args.enrich_limit
+        )
     elif args.populate_mystery_albums:
         if not config.NEON_DATABASE_URL:
             logger.error("NEON_DATABASE_URL (NETLIFY_DATABASE_URL) not configured")

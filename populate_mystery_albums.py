@@ -94,15 +94,18 @@ def search_albums(algolia_client: SearchClientSync, index_name: str, limit: int 
                 "query": "",  # Empty query to get all results
                 "hitsPerPage": limit,
                 "optionalFilters": ["rating_value > 4"],
-                "sort": ["rating_count:desc", "rating_score:desc"],
                 "attributesToRetrieve": [
                     "objectID",
                     "primary_genre",
                     "rating_score",
+                    "composite_score",
                     "title",
                     "main_artist",
                     "rating_count",
                     "rating_value",
+                    "lastfm_playcount",
+                    "lastfm_listeners",
+                    "engagement_score",
                 ],
             },
         )
@@ -115,10 +118,14 @@ def search_albums(algolia_client: SearchClientSync, index_name: str, limit: int 
                     "object_id": hit_dict.get("objectID"),
                     "primary_genre": hit_dict.get("primary_genre"),
                     "rating_score": hit_dict.get("rating_score", 0),
+                    "composite_score": hit_dict.get("composite_score", 0),
                     "title": hit_dict.get("title"),
                     "main_artist": hit_dict.get("main_artist"),
                     "rating_count": hit_dict.get("rating_count"),
                     "rating_value": hit_dict.get("rating_value"),
+                    "lastfm_playcount": hit_dict.get("lastfm_playcount"),
+                    "lastfm_listeners": hit_dict.get("lastfm_listeners"),
+                    "engagement_score": hit_dict.get("engagement_score"),
                 }
             )
 
@@ -129,16 +136,21 @@ def search_albums(algolia_client: SearchClientSync, index_name: str, limit: int 
 
 
 def list_top_albums(
-    algolia_client: SearchClientSync, index_name: str, limit: int = 1000, format: str = "csv"
+    algolia_client: SearchClientSync,
+    index_name: str,
+    limit: int = 1000,
+    format: str = "csv",
+    sort_by: str = "both",
 ) -> List[Dict[str, Any]]:
     """
-    List top albums from Algolia with optional formatting.
+    List top albums from Algolia by Last.fm plays and listeners with optional formatting.
 
     Args:
         algolia_client: Algolia search client
         index_name: Name of the Algolia index
         limit: Maximum number of albums to retrieve
         format: Output format - "csv" or "pretty" (default: "csv")
+        sort_by: Sort by "playcount", "listeners", or "both" (default: "both")
     """
     albums = search_albums(algolia_client, index_name, limit)
 
@@ -146,46 +158,102 @@ def list_top_albums(
         logger.info("No albums found")
         return albums
 
-    # Sort by rating_score descending
-    albums.sort(key=lambda x: x.get("rating_score", 0), reverse=True)
+    # Filter albums that have Last.fm data
+    albums_with_lastfm = [a for a in albums if a.get("lastfm_playcount") and a.get("lastfm_listeners")]
+
+    if not albums_with_lastfm:
+        logger.warning("No albums with Last.fm data found")
+        return []
+
+    # Sort based on requested metric
+    albums_by_plays = None
+    albums_by_listeners = None
+
+    if sort_by in ["playcount", "both"]:
+        albums_by_plays = sorted(albums_with_lastfm, key=lambda x: x.get("lastfm_playcount", 0), reverse=True)
+
+    if sort_by in ["listeners", "both"]:
+        albums_by_listeners = sorted(albums_with_lastfm, key=lambda x: x.get("lastfm_listeners", 0), reverse=True)
 
     if format == "csv":
-        # Print CSV header
-        print("\n#,Title,Artist,Genre,Score,Voters,Rating")
+        # Print TOP BY PLAYCOUNT
+        if albums_by_plays:
+            print("\n=== TOP ALBUMS BY LAST.FM PLAYCOUNT ===")
+            print("#,Title,Artist,Genre,Playcount,Listeners,Rating,Voters")
 
-        # Print each album as CSV
-        for idx, album in enumerate(albums, 1):
-            title = (album.get("title") or "N/A").replace('"', '""')  # Escape quotes
-            artist = (album.get("main_artist") or "N/A").replace('"', '""')  # Escape quotes
-            genre = (album.get("primary_genre") or "N/A").replace('"', '""')  # Escape quotes
-            score = album.get("rating_score", 0)
-            count = album.get("rating_count", 0)
-            value = album.get("rating_value", 0)
-            print(f'{idx},"{title}","{artist}","{genre}",{score:.2f},{count},{value:.2f}')
+            for idx, album in enumerate(albums_by_plays, 1):
+                title = (album.get("title") or "N/A").replace('"', '""')
+                artist = (album.get("main_artist") or "N/A").replace('"', '""')
+                genre = (album.get("primary_genre") or "N/A").replace('"', '""')
+                playcount = album.get("lastfm_playcount") or 0
+                listeners = album.get("lastfm_listeners") or 0
+                value = album.get("rating_value", 0)
+                count = album.get("rating_count", 0)
+                print(f'{idx},"{title}","{artist}","{genre}",' f"{playcount},{listeners},{value:.2f},{count}")
+
+            print(f"\nTotal albums: {len(albums_by_plays)}\n")
+
+        # Print TOP BY LISTENERS
+        if albums_by_listeners:
+            print("\n=== TOP ALBUMS BY LAST.FM LISTENERS ===")
+            print("#,Title,Artist,Genre,Listeners,Playcount,Rating,Voters")
+
+            for idx, album in enumerate(albums_by_listeners, 1):
+                title = (album.get("title") or "N/A").replace('"', '""')
+                artist = (album.get("main_artist") or "N/A").replace('"', '""')
+                genre = (album.get("primary_genre") or "N/A").replace('"', '""')
+                playcount = album.get("lastfm_playcount") or 0
+                listeners = album.get("lastfm_listeners") or 0
+                value = album.get("rating_value", 0)
+                count = album.get("rating_count", 0)
+                print(f'{idx},"{title}","{artist}","{genre}",' f"{listeners},{playcount},{value:.2f},{count}")
+
+            print(f"\nTotal albums: {len(albums_by_listeners)}\n")
+
     else:  # pretty format
-        # Print header
-        header = f"{'#':<5} {'Title':<40} {'Artist':<30} {'Genre':<20} {'Score':<8} {'Voters':<8} {'Rating':<8}"
-        separator = "=" * len(header)
+        # Print TOP BY PLAYCOUNT
+        if albums_by_plays:
+            print("\n" + "=" * 120)
+            print("TOP ALBUMS BY LAST.FM PLAYCOUNT")
+            print("=" * 120)
 
-        print(f"\n{separator}")
-        print(header)
-        print(separator)
+            header = f"{'#':<5} {'Title':<35} {'Artist':<25} {'Genre':<18} " f"{'Playcount':<12} {'Listeners':<12}"
+            print(header)
+            print("-" * 120)
 
-        # Print each album
-        for idx, album in enumerate(albums, 1):
-            title = (album.get("title") or "N/A")[:38]  # Truncate long titles
-            artist = (album.get("main_artist") or "N/A")[:28]  # Truncate long artist names
-            genre = (album.get("primary_genre") or "N/A")[:18]  # Truncate long genres
-            score = album.get("rating_score", 0)
-            count = album.get("rating_count", 0)
-            value = album.get("rating_value", 0)
-            print(f"{idx:<5} {title:<40} {artist:<30} {genre:<20} {score:<8.2f} {count:<8} {value:<8.2f}")
+            for idx, album in enumerate(albums_by_plays, 1):
+                title = (album.get("title") or "N/A")[:33]
+                artist = (album.get("main_artist") or "N/A")[:23]
+                genre = (album.get("primary_genre") or "N/A")[:16]
+                playcount = album.get("lastfm_playcount") or 0
+                listeners = album.get("lastfm_listeners") or 0
+                print(f"{idx:<5} {title:<35} {artist:<25} {genre:<18} " f"{playcount:<12,} {listeners:<12,}")
 
-        print(separator)
+            print("=" * 120)
+            print(f"Total albums: {len(albums_by_plays)}\n")
 
-    print(f"\nTotal albums: {len(albums)}\n")
+        # Print TOP BY LISTENERS
+        if albums_by_listeners:
+            print("\n" + "=" * 120)
+            print("TOP ALBUMS BY LAST.FM LISTENERS")
+            print("=" * 120)
 
-    return albums
+            header = f"{'#':<5} {'Title':<35} {'Artist':<25} {'Genre':<18} " f"{'Listeners':<12} {'Playcount':<12}"
+            print(header)
+            print("-" * 120)
+
+            for idx, album in enumerate(albums_by_listeners, 1):
+                title = (album.get("title") or "N/A")[:33]
+                artist = (album.get("main_artist") or "N/A")[:23]
+                genre = (album.get("primary_genre") or "N/A")[:16]
+                playcount = album.get("lastfm_playcount") or 0
+                listeners = album.get("lastfm_listeners") or 0
+                print(f"{idx:<5} {title:<35} {artist:<25} {genre:<18} " f"{listeners:<12,} {playcount:<12,}")
+
+            print("=" * 120)
+            print(f"Total albums: {len(albums_by_listeners)}\n")
+
+    return albums_with_lastfm
 
 
 def search_albums_by_genre(
@@ -201,7 +269,7 @@ def search_albums_by_genre(
         limit: Maximum number of results to return (default: 1000)
 
     Returns:
-        List of albums with objectID, primary_genre, and rating_score
+        List of albums with objectID, primary_genre, composite_score, and rating_score
     """
     try:
         response = algolia_client.search_single_index(
@@ -210,7 +278,13 @@ def search_albums_by_genre(
                 "query": "",  # Empty query to get all results
                 "filters": f'primary_genre:"{genre_name}"',
                 "hitsPerPage": limit,
-                "attributesToRetrieve": ["objectID", "primary_genre", "rating_score", "title"],
+                "attributesToRetrieve": [
+                    "objectID",
+                    "primary_genre",
+                    "rating_score",
+                    "composite_score",
+                    "title",
+                ],
             },
         )
 
@@ -222,6 +296,7 @@ def search_albums_by_genre(
                     "object_id": hit_dict.get("objectID"),
                     "primary_genre": hit_dict.get("primary_genre"),
                     "rating_score": hit_dict.get("rating_score", 0),
+                    "composite_score": hit_dict.get("composite_score", 0),
                     "title": hit_dict.get("title"),
                 }
             )
@@ -366,7 +441,7 @@ def populate_mystery_albums(
                 f"found {len(albums)} albums"
             )
 
-    # For each Neon genre, take top 1000 by rating_score and insert
+    # For each Neon genre, take top 1000 by composite_score (or rating_score) and insert
     total_inserted = 0
 
     for neon_genre in neon_genres:
@@ -376,8 +451,8 @@ def populate_mystery_albums(
             logger.warning(f"No albums found for Neon genre '{neon_genre}'")
             continue
 
-        # Sort by rating_score descending and take top 1000
-        albums.sort(key=lambda x: x.get("rating_score", 0), reverse=True)
+        # Sort by composite_score descending (fallback to rating_score) and take top 1000
+        albums.sort(key=lambda x: x.get("composite_score") or x.get("rating_score", 0), reverse=True)
         top_albums = albums[:1000]
 
         # Prepare albums for insertion with the Neon genre name

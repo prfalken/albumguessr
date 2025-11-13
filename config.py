@@ -32,6 +32,11 @@ class Config:
     # Neon database configuration (serverless Postgres for app data)
     NEON_DATABASE_URL: Optional[str] = os.getenv("NETLIFY_DATABASE_URL")
 
+    # Last.fm API configuration
+    LASTFM_API_KEY: Optional[str] = os.getenv("LASTFM_API_KEY")
+    LASTFM_CACHE_FILE: str = os.getenv("LASTFM_CACHE_FILE", ".lastfm_cache.json")
+    LASTFM_CACHE_TTL_DAYS: int = int(os.getenv("LASTFM_CACHE_TTL_DAYS", "30"))
+
     @classmethod
     def validate(cls) -> None:
         """Validate that all required configuration is present."""

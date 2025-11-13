@@ -31,7 +31,7 @@ class AlgoliaApp:
             return {}
 
     def configure_index_settings(self) -> None:
-        """Configure Algolia index settings for optimal album search with rating support."""
+        """Configure Algolia index settings for optimal album search with composite scoring."""
         logger.info("Configuring index settings for optimal album search...")
         try:
             self.client.set_settings(
@@ -44,11 +44,73 @@ class AlgoliaApp:
                         "filterOnly(countries)",
                     ],
                     "customRanking": [
-                        "desc(rating_score)",
-                        "desc(release_year)",
+                        "desc(composite_score)",  # Primary: composite score (quality + engagement)
+                        "desc(rating_score)",  # Secondary: MusicBrainz rating score
+                        "desc(lastfm_playcount)",  # Tertiary: Last.fm playcount
+                        "desc(release_year)",  # Quaternary: recency
                     ],
                 },
             )
-            logger.info("Algolia settings updated")
+            logger.info("Algolia settings updated with composite scoring")
         except Exception as e:
             logger.error(f"Failed to update Algolia settings: {e}")
+
+    def count_records_with_composite_score(self) -> None:
+        """Display the number of records that have the composite_score attribute set."""
+        try:
+            logger.info("Counting records with composite_score attribute...")
+
+            total_records = 0
+            records_with_composite = 0
+            cursor = None
+
+            # Use browse to iterate through all records efficiently
+            while True:
+                if cursor:
+                    response = self.client.browse(
+                        index_name=self.index_name,
+                        browse_params={
+                            "attributesToRetrieve": ["composite_score"],
+                            "cursor": cursor,
+                        },
+                    )
+                else:
+                    response = self.client.browse(
+                        index_name=self.index_name,
+                        browse_params={
+                            "attributesToRetrieve": ["composite_score"],
+                        },
+                    )
+
+                hits = response.hits if hasattr(response, "hits") else []
+
+                for hit in hits:
+                    total_records += 1
+                    # Convert hit object to dictionary
+                    hit_dict = hit.to_dict() if hasattr(hit, "to_dict") else hit
+
+                    if "composite_score" in hit_dict:
+                        records_with_composite += 1
+
+                # Log progress every 10,000 records
+                if total_records % 10000 == 0:
+                    logger.info(f"Processed {total_records:,} records...")
+
+                cursor = response.cursor if hasattr(response, "cursor") else None
+                if not cursor:
+                    break
+
+            percentage = (records_with_composite / total_records * 100) if total_records > 0 else 0
+
+            logger.info(f"Records with composite_score: {records_with_composite:,}")
+            logger.info(f"Total records in index: {total_records:,}")
+            logger.info(f"Percentage with composite_score: {percentage:.2f}%")
+
+            print(f"\n{'='*60}")
+            print(f"Records with composite_score: {records_with_composite:,}")
+            print(f"Total records in index:       {total_records:,}")
+            print(f"Coverage:                     {percentage:.2f}%")
+            print(f"{'='*60}\n")
+
+        except Exception as e:
+            logger.error(f"Error counting records with composite_score: {e}")
