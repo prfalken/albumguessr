@@ -101,9 +101,7 @@ def search_albums(algolia_client: SearchClientSync, index_name: str) -> List[Dic
                     "main_artist",
                     "lastfm_playcount",
                     "lastfm_listeners",
-                    "engagement_score",
-                    "rating_value",
-                    "rating_count",
+                    "quality_score",
                 ],
             },
         )
@@ -119,9 +117,7 @@ def search_albums(algolia_client: SearchClientSync, index_name: str) -> List[Dic
                     "main_artist": hit_dict.get("main_artist"),
                     "lastfm_playcount": hit_dict.get("lastfm_playcount"),
                     "lastfm_listeners": hit_dict.get("lastfm_listeners"),
-                    "engagement_score": hit_dict.get("engagement_score"),
-                    "rating_value": hit_dict.get("rating_value"),
-                    "rating_count": hit_dict.get("rating_count"),
+                    "quality_score": hit_dict.get("quality_score"),
                 }
             )
 
@@ -153,19 +149,19 @@ def list_top_albums(
         logger.info("No albums found")
         return albums
 
-    print("\n" + "=" * 120)
     print("=" * 120)
 
-    header = f"{'#':<5} {'Title':<20} {'Artist':<15}" f"{'Listeners':<10} {'Playcount':<15}"
+    header = f"{'#':<5} {'Title':<20} {'Artist':<25}" f"{'Listeners':<10} {'Playcount':<15} {'Quality':<10}"
     print(header)
     print("-" * 120)
 
     for idx, album in enumerate(albums, 1):
         title = (album.get("title") or "N/A")[:20]
-        artist = (album.get("main_artist") or "N/A")[:15]
+        artist = (album.get("main_artist") or "N/A")[:25]
         playcount = album.get("lastfm_playcount") or 0
         listeners = album.get("lastfm_listeners") or 0
-        print(f"{idx:<5} {title:<20} {artist:<15}" f"{listeners:<10,} {playcount:<15,}")
+        quality = album.get("quality_score") or 0
+        print(f"{idx:<5} {title:<20} {artist:<25}" f"{listeners:<10,} {playcount:<15,} {quality:<10,.2f}")
 
     print("=" * 120)
     print(f"Total albums: {len(albums)}\n")
