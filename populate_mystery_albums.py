@@ -86,26 +86,24 @@ def match_genre_to_neon(mb_genre: str, neon_genres: List[str]) -> Optional[str]:
     return None
 
 
-def search_albums(algolia_client: SearchClientSync, index_name: str, limit: int = 1000) -> List[Dict[str, Any]]:
+def search_albums(algolia_client: SearchClientSync, index_name: str) -> List[Dict[str, Any]]:
     try:
         response = algolia_client.search_single_index(
             index_name=index_name,
             search_params={
                 "query": "",  # Empty query to get all results
-                "hitsPerPage": limit,
+                "hitsPerPage": 20,
                 "optionalFilters": ["rating_value > 4"],
                 "attributesToRetrieve": [
                     "objectID",
                     "primary_genre",
-                    "rating_score",
-                    "composite_score",
                     "title",
                     "main_artist",
-                    "rating_count",
-                    "rating_value",
                     "lastfm_playcount",
                     "lastfm_listeners",
                     "engagement_score",
+                    "rating_value",
+                    "rating_count",
                 ],
             },
         )
@@ -117,15 +115,13 @@ def search_albums(algolia_client: SearchClientSync, index_name: str, limit: int 
                 {
                     "object_id": hit_dict.get("objectID"),
                     "primary_genre": hit_dict.get("primary_genre"),
-                    "rating_score": hit_dict.get("rating_score", 0),
-                    "composite_score": hit_dict.get("composite_score", 0),
                     "title": hit_dict.get("title"),
                     "main_artist": hit_dict.get("main_artist"),
-                    "rating_count": hit_dict.get("rating_count"),
-                    "rating_value": hit_dict.get("rating_value"),
                     "lastfm_playcount": hit_dict.get("lastfm_playcount"),
                     "lastfm_listeners": hit_dict.get("lastfm_listeners"),
                     "engagement_score": hit_dict.get("engagement_score"),
+                    "rating_value": hit_dict.get("rating_value"),
+                    "rating_count": hit_dict.get("rating_count"),
                 }
             )
 
@@ -138,9 +134,7 @@ def search_albums(algolia_client: SearchClientSync, index_name: str, limit: int 
 def list_top_albums(
     algolia_client: SearchClientSync,
     index_name: str,
-    limit: int = 1000,
-    format: str = "csv",
-    sort_by: str = "both",
+    sort_by: str,
 ) -> List[Dict[str, Any]]:
     """
     List top albums from Algolia by Last.fm plays and listeners with optional formatting.
@@ -150,110 +144,33 @@ def list_top_albums(
         index_name: Name of the Algolia index
         limit: Maximum number of albums to retrieve
         format: Output format - "csv" or "pretty" (default: "csv")
-        sort_by: Sort by "playcount", "listeners", or "both" (default: "both")
+        sort_by: Sort by "playcount", "listeners", "engagement_score", or "both" (default: "both")
     """
-    albums = search_albums(algolia_client, index_name, limit)
+
+    albums = search_albums(algolia_client, index_name + "_sort_" + sort_by)
 
     if not albums:
         logger.info("No albums found")
         return albums
 
-    # Filter albums that have Last.fm data
-    albums_with_lastfm = [a for a in albums if a.get("lastfm_playcount") and a.get("lastfm_listeners")]
+    print("\n" + "=" * 120)
+    print("=" * 120)
 
-    if not albums_with_lastfm:
-        logger.warning("No albums with Last.fm data found")
-        return []
+    header = f"{'#':<5} {'Title':<20} {'Artist':<15}" f"{'Listeners':<10} {'Playcount':<15}"
+    print(header)
+    print("-" * 120)
 
-    # Sort based on requested metric
-    albums_by_plays = None
-    albums_by_listeners = None
+    for idx, album in enumerate(albums, 1):
+        title = (album.get("title") or "N/A")[:20]
+        artist = (album.get("main_artist") or "N/A")[:15]
+        playcount = album.get("lastfm_playcount") or 0
+        listeners = album.get("lastfm_listeners") or 0
+        print(f"{idx:<5} {title:<20} {artist:<15}" f"{listeners:<10,} {playcount:<15,}")
 
-    if sort_by in ["playcount", "both"]:
-        albums_by_plays = sorted(albums_with_lastfm, key=lambda x: x.get("lastfm_playcount", 0), reverse=True)
+    print("=" * 120)
+    print(f"Total albums: {len(albums)}\n")
 
-    if sort_by in ["listeners", "both"]:
-        albums_by_listeners = sorted(albums_with_lastfm, key=lambda x: x.get("lastfm_listeners", 0), reverse=True)
-
-    if format == "csv":
-        # Print TOP BY PLAYCOUNT
-        if albums_by_plays:
-            print("\n=== TOP ALBUMS BY LAST.FM PLAYCOUNT ===")
-            print("#,Title,Artist,Genre,Playcount,Listeners,Rating,Voters")
-
-            for idx, album in enumerate(albums_by_plays, 1):
-                title = (album.get("title") or "N/A").replace('"', '""')
-                artist = (album.get("main_artist") or "N/A").replace('"', '""')
-                genre = (album.get("primary_genre") or "N/A").replace('"', '""')
-                playcount = album.get("lastfm_playcount") or 0
-                listeners = album.get("lastfm_listeners") or 0
-                value = album.get("rating_value", 0)
-                count = album.get("rating_count", 0)
-                print(f'{idx},"{title}","{artist}","{genre}",' f"{playcount},{listeners},{value:.2f},{count}")
-
-            print(f"\nTotal albums: {len(albums_by_plays)}\n")
-
-        # Print TOP BY LISTENERS
-        if albums_by_listeners:
-            print("\n=== TOP ALBUMS BY LAST.FM LISTENERS ===")
-            print("#,Title,Artist,Genre,Listeners,Playcount,Rating,Voters")
-
-            for idx, album in enumerate(albums_by_listeners, 1):
-                title = (album.get("title") or "N/A").replace('"', '""')
-                artist = (album.get("main_artist") or "N/A").replace('"', '""')
-                genre = (album.get("primary_genre") or "N/A").replace('"', '""')
-                playcount = album.get("lastfm_playcount") or 0
-                listeners = album.get("lastfm_listeners") or 0
-                value = album.get("rating_value", 0)
-                count = album.get("rating_count", 0)
-                print(f'{idx},"{title}","{artist}","{genre}",' f"{listeners},{playcount},{value:.2f},{count}")
-
-            print(f"\nTotal albums: {len(albums_by_listeners)}\n")
-
-    else:  # pretty format
-        # Print TOP BY PLAYCOUNT
-        if albums_by_plays:
-            print("\n" + "=" * 120)
-            print("TOP ALBUMS BY LAST.FM PLAYCOUNT")
-            print("=" * 120)
-
-            header = f"{'#':<5} {'Title':<35} {'Artist':<25} {'Genre':<18} " f"{'Playcount':<12} {'Listeners':<12}"
-            print(header)
-            print("-" * 120)
-
-            for idx, album in enumerate(albums_by_plays, 1):
-                title = (album.get("title") or "N/A")[:33]
-                artist = (album.get("main_artist") or "N/A")[:23]
-                genre = (album.get("primary_genre") or "N/A")[:16]
-                playcount = album.get("lastfm_playcount") or 0
-                listeners = album.get("lastfm_listeners") or 0
-                print(f"{idx:<5} {title:<35} {artist:<25} {genre:<18} " f"{playcount:<12,} {listeners:<12,}")
-
-            print("=" * 120)
-            print(f"Total albums: {len(albums_by_plays)}\n")
-
-        # Print TOP BY LISTENERS
-        if albums_by_listeners:
-            print("\n" + "=" * 120)
-            print("TOP ALBUMS BY LAST.FM LISTENERS")
-            print("=" * 120)
-
-            header = f"{'#':<5} {'Title':<35} {'Artist':<25} {'Genre':<18} " f"{'Listeners':<12} {'Playcount':<12}"
-            print(header)
-            print("-" * 120)
-
-            for idx, album in enumerate(albums_by_listeners, 1):
-                title = (album.get("title") or "N/A")[:33]
-                artist = (album.get("main_artist") or "N/A")[:23]
-                genre = (album.get("primary_genre") or "N/A")[:16]
-                playcount = album.get("lastfm_playcount") or 0
-                listeners = album.get("lastfm_listeners") or 0
-                print(f"{idx:<5} {title:<35} {artist:<25} {genre:<18} " f"{listeners:<12,} {playcount:<12,}")
-
-            print("=" * 120)
-            print(f"Total albums: {len(albums_by_listeners)}\n")
-
-    return albums_with_lastfm
+    return albums
 
 
 def search_albums_by_genre(

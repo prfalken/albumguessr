@@ -273,18 +273,9 @@ def main():
     )
     parser.add_argument("--list-top-albums", action="store_true", help="List top albums from Algolia")
     parser.add_argument(
-        "--format",
-        type=str,
-        choices=["csv", "pretty"],
-        default="csv",
-        help="Output format for --list-top-albums (default: csv)",
-    )
-    parser.add_argument(
         "--sort-by",
         type=str,
-        choices=["playcount", "listeners", "both"],
-        default="both",
-        help="Sort albums by playcount, listeners, or show both rankings (default: both)",
+        help="Sort albums by lastfm_listeners, engagement_score (default: lastfm_listeners)",
     )
     parser.add_argument(
         "--clear-mystery-albums",
@@ -392,7 +383,11 @@ def main():
                 result.get("release_year", "N/A"),
             )
     elif args.list_top_albums:
-        list_top_albums(algolia_client, config.ALGOLIA_INDEX_NAME, format=args.format, sort_by=args.sort_by)
+        list_top_albums(
+            algolia_client,
+            config.ALGOLIA_INDEX_NAME,
+            sort_by=args.sort_by,
+        )
     elif args.enrich_lastfm:
         if not config.LASTFM_API_KEY:
             logger.error("LASTFM_API_KEY not configured. Please set it in your environment.")
