@@ -146,16 +146,15 @@ def enrich_albums_with_lastfm(
                         plays_per_listener = playcount / listeners
                         engagement_score = math.log10(playcount + 1) * math.log10(plays_per_listener + 1)
 
-                    # Calculate composite score
-                    composite_score = calculate_composite_score(playcount, listeners)
+                    # Calculate quality score
+                    quality_score = calculate_composite_score(playcount, listeners)
 
                     # Prepare update
                     update_obj = {
                         "objectID": object_id,
                         "lastfm_playcount": playcount,
                         "lastfm_listeners": listeners,
-                        "engagement_score": round(engagement_score, 2),
-                        "composite_score": composite_score,
+                        "quality_score": round(quality_score, 2),
                     }
 
                     batch_updates.append(update_obj)
@@ -163,7 +162,7 @@ def enrich_albums_with_lastfm(
                     logger.debug(
                         f"Enriched: {main_artist} - {title} | "
                         f"Plays: {playcount}, Listeners: {listeners}, "
-                        f"Composite: {composite_score}"
+                        f"Quality: {quality_score}"
                     )
 
             # Update Algolia in batch
