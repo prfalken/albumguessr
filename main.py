@@ -282,7 +282,9 @@ def enrich_albums_with_lastfm(
             if not hits:
                 break
 
-            batch_updates = []
+            # Prepare batch of albums for parallel enrichment
+            albums_to_enrich = []
+            album_metadata = {}  # Store album info keyed by objectID
 
             for hit in hits:
                 hit_dict = hit.to_dict()
@@ -296,9 +298,18 @@ def enrich_albums_with_lastfm(
                     logger.debug(f"Skipping album with missing data: {object_id}")
                     continue
 
-                # Enrich with Last.fm data
-                lastfm_data = lastfm_client.enrich_album(object_id, main_artist, title)
+                albums_to_enrich.append((object_id, main_artist, title))
+                album_metadata[object_id] = {
+                    "title": title,
+                    "main_artist": main_artist,
+                }
 
+            # Enrich all albums in parallel
+            enrichment_results = lastfm_client.enrich_albums_batch(albums_to_enrich, max_workers=10)
+
+            # Process results and prepare Algolia updates
+            batch_updates = []
+            for object_id, lastfm_data in enrichment_results:
                 if lastfm_data:
                     total_enriched += 1
 
@@ -318,8 +329,9 @@ def enrich_albums_with_lastfm(
 
                     batch_updates.append(update_obj)
 
+                    metadata = album_metadata.get(object_id, {})
                     logger.debug(
-                        f"Enriched: {main_artist} - {title} | "
+                        f"Enriched: {metadata.get('main_artist')} - {metadata.get('title')} | "
                         f"Plays: {playcount}, Listeners: {listeners}, "
                         f"Quality: {quality_score}"
                     )
@@ -401,9 +413,9 @@ def main():
     parser.add_argument("--get-by-id", type=str, help="Get an album by its objectID")
     parser.add_argument("--stats", action="store_true", help="Show Algolia index statistics")
     parser.add_argument(
-        "--count-composite",
+        "--count-quality-score",
         action="store_true",
-        help="Count records with composite_score attribute (Last.fm enriched)",
+        help="Count records with quality_score attribute (Last.fm enriched)",
     )
     parser.add_argument(
         "--populate-mystery-albums",
@@ -414,7 +426,7 @@ def main():
     parser.add_argument(
         "--sort-by",
         type=str,
-        help="Sort albums by lastfm_listeners, engagement_score (default: lastfm_listeners)",
+        help="Sort albums by lastfm_listeners, quality_score",
     )
     parser.add_argument(
         "--clear-mystery-albums",
@@ -519,8 +531,8 @@ def main():
         algolia_app.clear_index()
     elif args.configure:
         algolia_app.configure_index_settings()
-    elif args.count_composite:
-        algolia_app.count_records_with_composite_score()
+    elif args.count_quality_score:
+        algolia_app.count_records_with_quality_score()
     elif args.get_by_id:
         result = algolia_searcher.get_album_by_id(args.get_by_id)
         if result:

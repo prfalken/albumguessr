@@ -6,9 +6,11 @@ to supplement MusicBrainz ratings with popularity metrics.
 """
 
 import json
+import threading
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional, Tuple
 import requests
 from loguru import logger
 
@@ -45,6 +47,11 @@ class LastFmClient:
         self.total_requests = 0
         self.rate_limited_count = 0
 
+        # Thread safety
+        self._rate_limit_lock = threading.Lock()
+        self._cache_lock = threading.Lock()
+        self._stats_lock = threading.Lock()
+
         # Load cache from file if it exists
         if self.cache_file and self.cache_file.exists():
             try:
@@ -71,72 +78,79 @@ class LastFmClient:
         logger.info(f"Initialized Last.fm client with no throttling (exponential backoff on rate limits only)")
 
     def _rate_limit(self) -> None:
-        """Enforce rate limiting between API requests."""
-        elapsed = time.time() - self.last_request_time
-        if elapsed < self.current_delay:
-            time.sleep(self.current_delay - elapsed)
-        self.last_request_time = time.time()
+        """Enforce rate limiting between API requests (thread-safe)."""
+        with self._rate_limit_lock:
+            elapsed = time.time() - self.last_request_time
+            if elapsed < self.current_delay:
+                time.sleep(self.current_delay - elapsed)
+            self.last_request_time = time.time()
 
     def _handle_rate_limit_error(self) -> None:
-        """Adjust rate limiter after hitting rate limit with exponential backoff."""
-        self.rate_limited_count += 1
-        old_delay = self.current_delay
+        """Adjust rate limiter after hitting rate limit with exponential backoff (thread-safe)."""
+        with self._rate_limit_lock:
+            self.rate_limited_count += 1
+            old_delay = self.current_delay
 
-        # If this is the first rate limit, start with initial delay
-        if self.current_delay == 0.0:
-            self.current_delay = self.INITIAL_DELAY
-        else:
-            # Otherwise apply exponential backoff
-            self.current_delay = min(self.MAX_DELAY, self.current_delay * self.BACKOFF_MULTIPLIER)
+            # If this is the first rate limit, start with initial delay
+            if self.current_delay == 0.0:
+                self.current_delay = self.INITIAL_DELAY
+            else:
+                # Otherwise apply exponential backoff
+                self.current_delay = min(self.MAX_DELAY, self.current_delay * self.BACKOFF_MULTIPLIER)
 
-        if old_delay == 0.0:
-            logger.warning(
-                f"Rate limited! Starting backoff at {self.current_delay:.1f}s delay "
-                f"(total rate limits: {self.rate_limited_count})"
-            )
-        else:
-            logger.warning(
-                f"Rate limited! Exponential backoff: {old_delay:.1f}s → {self.current_delay:.1f}s delay "
-                f"(total rate limits: {self.rate_limited_count})"
-            )
+            if old_delay == 0.0:
+                logger.warning(
+                    f"Rate limited! Starting backoff at {self.current_delay:.1f}s delay "
+                    f"(total rate limits: {self.rate_limited_count})"
+                )
+            else:
+                logger.warning(
+                    f"Rate limited! Exponential backoff: {old_delay:.1f}s → {self.current_delay:.1f}s delay "
+                    f"(total rate limits: {self.rate_limited_count})"
+                )
 
-        # Sleep extra time to let rate limit window pass
-        time.sleep(self.current_delay)
+            # Sleep extra time to let rate limit window pass
+            time.sleep(self.current_delay)
 
     def _clean_expired_cache(self) -> None:
-        """Remove expired entries from cache."""
+        """Remove expired entries from cache (thread-safe)."""
         current_time = time.time()
         ttl_seconds = self.cache_ttl_days * 24 * 60 * 60
 
-        expired_keys = []
-        for key, entry in self.cache.items():
-            # Handle old cache format (no timestamp)
-            if not isinstance(entry, dict) or "timestamp" not in entry:
-                expired_keys.append(key)
-                continue
+        with self._cache_lock:
+            expired_keys = []
+            for key, entry in self.cache.items():
+                # Handle old cache format (no timestamp)
+                if not isinstance(entry, dict) or "timestamp" not in entry:
+                    expired_keys.append(key)
+                    continue
 
-            # Check if expired
-            if current_time - entry["timestamp"] > ttl_seconds:
-                expired_keys.append(key)
+                # Check if expired
+                if current_time - entry["timestamp"] > ttl_seconds:
+                    expired_keys.append(key)
 
-        for key in expired_keys:
-            del self.cache[key]
+            for key in expired_keys:
+                del self.cache[key]
 
         if expired_keys:
             logger.info(f"Removed {len(expired_keys)} expired cache entries")
 
     def _save_cache(self) -> None:
-        """Save cache to disk using atomic write to prevent corruption."""
+        """Save cache to disk using atomic write to prevent corruption (thread-safe)."""
         if not self.cache_file:
             return
 
         try:
+            # Make a copy of cache while holding lock to avoid "dictionary changed size during iteration"
+            with self._cache_lock:
+                cache_snapshot = self.cache.copy()
+
             self.cache_file.parent.mkdir(parents=True, exist_ok=True)
 
             # Write to temporary file first (atomic write pattern)
             temp_file = self.cache_file.with_suffix(".tmp")
             with open(temp_file, "w", encoding="utf-8") as f:
-                json.dump(self.cache, f, indent=2)
+                json.dump(cache_snapshot, f, indent=2)
 
             # Rename temp file to actual cache file (atomic on most filesystems)
             temp_file.replace(self.cache_file)
@@ -165,30 +179,36 @@ class LastFmClient:
         # Create cache key
         cache_key = json.dumps(params, sort_keys=True)
 
-        # Check cache first
-        if cache_key in self.cache:
-            entry = self.cache[cache_key]
-            # Handle new cache format with TTL
-            if isinstance(entry, dict) and "data" in entry and "timestamp" in entry:
-                # Check if expired
-                ttl_seconds = self.cache_ttl_days * 24 * 60 * 60
-                if time.time() - entry["timestamp"] < ttl_seconds:
-                    logger.debug(f"Cache hit for Last.fm request")
-                    return entry["data"]
+        # Check cache first (thread-safe)
+        with self._cache_lock:
+            if cache_key in self.cache:
+                entry = self.cache[cache_key]
+                # Handle new cache format with TTL
+                if isinstance(entry, dict) and "data" in entry and "timestamp" in entry:
+                    # Check if expired
+                    ttl_seconds = self.cache_ttl_days * 24 * 60 * 60
+                    if time.time() - entry["timestamp"] < ttl_seconds:
+                        logger.debug(f"Cache hit for Last.fm request")
+                        return entry["data"]
+                    else:
+                        logger.debug(f"Cache expired for Last.fm request")
+                        del self.cache[cache_key]
+                # Handle old format - treat as expired
                 else:
-                    logger.debug(f"Cache expired for Last.fm request")
+                    logger.debug(f"Old cache format detected, refreshing")
                     del self.cache[cache_key]
-            # Handle old format - treat as expired
-            else:
-                logger.debug(f"Old cache format detected, refreshing")
-                del self.cache[cache_key]
 
         # Rate limit
         self._rate_limit()
-        self.total_requests += 1
+
+        # Update stats (thread-safe)
+        with self._stats_lock:
+            self.total_requests += 1
+            current_total = self.total_requests
 
         try:
             response = requests.get(self.BASE_URL, params=params, timeout=10)
+            logger.debug(f"Last.fm API response: {response.status_code}")
 
             # Handle rate limiting specifically
             if response.status_code == 429:
@@ -205,29 +225,36 @@ class LastFmClient:
             response.raise_for_status()
             data = response.json()
 
-            # Cache the response with timestamp
-            self.cache[cache_key] = {
-                "data": data,
-                "timestamp": time.time(),
-            }
+            # Cache the response with timestamp (thread-safe)
+            with self._cache_lock:
+                self.cache[cache_key] = {
+                    "data": data,
+                    "timestamp": time.time(),
+                }
+                cache_size = len(self.cache)
 
             # Periodically save cache (every 100 requests)
-            if len(self.cache) % 100 == 0:
+            if cache_size % 100 == 0:
                 self._save_cache()
 
             # Log progress periodically
-            if self.total_requests % 1000 == 0:
-                if self.current_delay > 0:
+            if current_total % 1000 == 0:
+                with self._rate_limit_lock:
+                    current_delay_snapshot = self.current_delay
+                with self._stats_lock:
+                    rate_limited_snapshot = self.rate_limited_count
+
+                if current_delay_snapshot > 0:
                     logger.info(
-                        f"API Stats: {self.total_requests} requests, "
-                        f"current delay: {self.current_delay:.2f}s, "
-                        f"rate limited: {self.rate_limited_count} times"
+                        f"API Stats: {current_total} requests, "
+                        f"current delay: {current_delay_snapshot:.2f}s, "
+                        f"rate limited: {rate_limited_snapshot} times"
                     )
                 else:
                     logger.info(
-                        f"API Stats: {self.total_requests} requests, "
+                        f"API Stats: {current_total} requests, "
                         f"no throttling, "
-                        f"rate limited: {self.rate_limited_count} times"
+                        f"rate limited: {rate_limited_snapshot} times"
                     )
 
             return data
@@ -403,6 +430,44 @@ class LastFmClient:
 
         logger.debug(f"No Last.fm data found for: {artist} - {title}")
         return None
+
+    def enrich_albums_batch(
+        self,
+        albums: List[Tuple[str, str, str]],
+        max_workers: int = 10,
+    ) -> List[Tuple[str, Optional[Dict[str, Any]]]]:
+        """
+        Enrich multiple albums in parallel using thread pool.
+
+        Args:
+            albums: List of tuples (object_id, artist, title)
+            max_workers: Maximum number of concurrent threads (default: 10)
+
+        Returns:
+            List of tuples (object_id, lastfm_data or None)
+        """
+        logger.info(f"Starting batch enrichment of {len(albums)} albums with {max_workers} workers")
+
+        results = []
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            # Submit all tasks
+            future_to_album = {
+                executor.submit(self.enrich_album, obj_id, artist, title): obj_id
+                for obj_id, artist, title in albums
+            }
+
+            # Collect results as they complete
+            for future in as_completed(future_to_album):
+                obj_id = future_to_album[future]
+                try:
+                    data = future.result()
+                    results.append((obj_id, data))
+                except Exception as e:
+                    logger.error(f"Error enriching album {obj_id}: {e}")
+                    results.append((obj_id, None))
+
+        logger.info(f"Completed batch enrichment of {len(albums)} albums")
+        return results
 
     def close(self) -> None:
         """Save cache and cleanup, displaying final statistics."""

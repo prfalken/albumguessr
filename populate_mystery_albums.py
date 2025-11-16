@@ -92,8 +92,7 @@ def search_albums(algolia_client: SearchClientSync, index_name: str) -> List[Dic
             index_name=index_name,
             search_params={
                 "query": "",  # Empty query to get all results
-                "hitsPerPage": 20,
-                "optionalFilters": ["rating_value > 4"],
+                "hitsPerPage": 1000,
                 "attributesToRetrieve": [
                     "objectID",
                     "primary_genre",

@@ -55,13 +55,13 @@ class AlgoliaApp:
         except Exception as e:
             logger.error(f"Failed to update Algolia settings: {e}")
 
-    def count_records_with_composite_score(self) -> None:
-        """Display the number of records that have the composite_score attribute set."""
+    def count_records_with_quality_score(self) -> None:
+        """Display the number of records that have the quality_score attribute set."""
         try:
-            logger.info("Counting records with composite_score attribute...")
+            logger.info("Counting records with quality_score attribute...")
 
             total_records = 0
-            records_with_composite = 0
+            records_with_quality = 0
             cursor = None
 
             # Use browse to iterate through all records efficiently
@@ -70,7 +70,7 @@ class AlgoliaApp:
                     response = self.client.browse(
                         index_name=self.index_name,
                         browse_params={
-                            "attributesToRetrieve": ["composite_score"],
+                            "attributesToRetrieve": ["quality_score"],
                             "cursor": cursor,
                         },
                     )
@@ -78,7 +78,7 @@ class AlgoliaApp:
                     response = self.client.browse(
                         index_name=self.index_name,
                         browse_params={
-                            "attributesToRetrieve": ["composite_score"],
+                            "attributesToRetrieve": ["quality_score"],
                         },
                     )
 
@@ -89,8 +89,8 @@ class AlgoliaApp:
                     # Convert hit object to dictionary
                     hit_dict = hit.to_dict() if hasattr(hit, "to_dict") else hit
 
-                    if "composite_score" in hit_dict:
-                        records_with_composite += 1
+                    if "quality_score" in hit_dict:
+                        records_with_quality += 1
 
                 # Log progress every 10,000 records
                 if total_records % 10000 == 0:
@@ -100,17 +100,17 @@ class AlgoliaApp:
                 if not cursor:
                     break
 
-            percentage = (records_with_composite / total_records * 100) if total_records > 0 else 0
+            percentage = (records_with_quality / total_records * 100) if total_records > 0 else 0
 
-            logger.info(f"Records with composite_score: {records_with_composite:,}")
+            logger.info(f"Records with quality_score: {records_with_quality:,}")
             logger.info(f"Total records in index: {total_records:,}")
-            logger.info(f"Percentage with composite_score: {percentage:.2f}%")
+            logger.info(f"Percentage with quality_score: {percentage:.2f}%")
 
             print(f"\n{'='*60}")
-            print(f"Records with composite_score: {records_with_composite:,}")
+            print(f"Records with quality_score: {records_with_quality:,}")
             print(f"Total records in index:       {total_records:,}")
             print(f"Coverage:                     {percentage:.2f}%")
             print(f"{'='*60}\n")
 
         except Exception as e:
-            logger.error(f"Error counting records with composite_score: {e}")
+            logger.error(f"Error counting records with quality_score: {e}")
