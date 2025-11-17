@@ -39,19 +39,19 @@ class AlgoliaApp:
                 index_settings={
                     "searchableAttributes": ["unordered(main_artist , title )", "primary_genre"],
                     "attributesForFaceting": [
+                        "filterOnly(main_artist)",
                         "filterOnly(release_year)",
                         "searchable(primary_genre)",
                         "filterOnly(countries)",
                     ],
                     "customRanking": [
-                        "desc(composite_score)",  # Primary: composite score (quality + engagement)
-                        "desc(rating_score)",  # Secondary: MusicBrainz rating score
-                        "desc(lastfm_playcount)",  # Tertiary: Last.fm playcount
-                        "desc(release_year)",  # Quaternary: recency
+                        "desc(quality_score)",
+                        "desc(lastfm_playcount)",
+                        "desc(release_year)",
                     ],
                 },
             )
-            logger.info("Algolia settings updated with composite scoring")
+            logger.info("Algolia settings updated.")
         except Exception as e:
             logger.error(f"Failed to update Algolia settings: {e}")
 

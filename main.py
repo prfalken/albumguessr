@@ -498,14 +498,6 @@ def main():
 
     # Create app instance
     config = Config()
-    db = psycopg2.connect(
-        host=Config.DB_HOST,
-        port=Config.DB_PORT,
-        dbname=Config.DB_NAME,
-        user=Config.DB_USER,
-        password=Config.DB_PASSWORD,
-    )
-    data_processor = AlbumDataProcessor(db)
 
     # Neon DB connection (only if needed)
     neon_db = None
@@ -586,6 +578,15 @@ def main():
         neon_db.close()
     else:
         logger.info("Starting DB-driven sync (MusicBrainz → Algolia)")
+        db = psycopg2.connect(
+            host=config.DB_HOST,
+            port=config.DB_PORT,
+            dbname=config.DB_NAME,
+            user=config.DB_USER,
+            password=config.DB_PASSWORD,
+        )
+        data_processor = AlbumDataProcessor(db)
+
         total_indexed = 0
         for batch in data_processor.stream_albums_from_db(
             batch_size=args.batch_size, max_records=args.max_records
