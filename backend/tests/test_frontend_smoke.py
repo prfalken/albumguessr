@@ -62,7 +62,7 @@ def stop_static_server(server: ThreadingHTTPServer) -> None:
 
 class FrontendSmokeTest(unittest.TestCase):
     def test_frontend_serves_index_and_assets(self):
-        project_root = Path(__file__).resolve().parents[1]
+        project_root = Path(__file__).resolve().parents[2]
         frontend_dir = project_root / "frontend"
         self.assertTrue(frontend_dir.is_dir(), "frontend directory is missing")
 
