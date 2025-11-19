@@ -22,6 +22,144 @@ from lastfm_enricher import LastFmClient
 from album_enricher import AlbumEnricher
 
 
+# Command handlers
+def handle_stats(args, algolia_app, **kwargs):
+    """Show Algolia index statistics."""
+    algolia_app.get_index_stats()
+
+
+def handle_clear_index(args, algolia_app, **kwargs):
+    """Clear existing Algolia index."""
+    algolia_app.clear_index()
+
+
+def handle_configure(args, algolia_app, **kwargs):
+    """Configure Algolia index settings."""
+    algolia_app.configure_index_settings()
+
+
+def handle_count_quality_score(args, algolia_app, **kwargs):
+    """Count records with quality_score attribute."""
+    algolia_app.count_records_with_quality_score()
+
+
+def handle_get_by_id(args, algolia_searcher, **kwargs):
+    """Get an album by its objectID."""
+    result = algolia_searcher.get_album_by_id(args.get_by_id)
+    if result:
+        logger.info(f"Album found:")
+        logger.info(f"  Title: {result.get('title', 'N/A')}")
+        logger.info(f"  Artist: {result.get('main_artist', 'N/A')}")
+    else:
+        logger.warning(f"No album found with objectID: {args.get_by_id}")
+
+
+def handle_search(args, algolia_searcher, **kwargs):
+    """Search for albums in Algolia."""
+    results = algolia_searcher.search_albums(args.search)
+    logger.info("Search results:")
+    for result in results:
+        logger.info(
+            result["title"],
+            result.get("main_artist", "N/A"),
+            result.get("release_year", "N/A"),
+        )
+
+
+def handle_list_top_albums(args, algolia_client, config, **kwargs):
+    """List top albums from Algolia."""
+    list_top_albums(
+        algolia_client,
+        config.ALGOLIA_INDEX_NAME,
+        sort_by=args.sort_by,
+    )
+
+
+def handle_update_quality_scores(args, algolia_client, config, **kwargs):
+    """Update quality scores for albums with existing Last.fm data."""
+    logger.info("Updating quality scores for existing albums with Last.fm data")
+    enricher = AlbumEnricher(algolia_client, config.ALGOLIA_INDEX_NAME)
+    enricher.update_quality_scores(
+        playcount_weight=args.playcount_weight,
+        listeners_weight=args.listeners_weight,
+    )
+
+
+def handle_enrich_lastfm(args, algolia_client, config, **kwargs):
+    """Enrich existing Algolia records with Last.fm engagement data."""
+    if not config.LASTFM_API_KEY:
+        logger.error("LASTFM_API_KEY not configured. Please set it in your environment.")
+        sys.exit(1)
+    lastfm_client = LastFmClient(
+        config.LASTFM_API_KEY, config.LASTFM_CACHE_FILE, config.LASTFM_CACHE_TTL_DAYS
+    )
+    enricher = AlbumEnricher(algolia_client, config.ALGOLIA_INDEX_NAME)
+    enricher.enrich_albums_with_lastfm(lastfm_client, limit=args.enrich_limit)
+
+
+def handle_populate_mystery_albums(args, algolia_client, config, neon_db, **kwargs):
+    """Populate mystery_random_album table with top albums per genre."""
+    if not config.NEON_DATABASE_URL:
+        logger.error("NEON_DATABASE_URL (NETLIFY_DATABASE_URL) not configured")
+        sys.exit(1)
+    if not neon_db:
+        logger.error("Failed to connect to Neon database")
+        sys.exit(1)
+    logger.info("Starting mystery album population using Algolia")
+    db = psycopg2.connect(
+        host=config.DB_HOST,
+        port=config.DB_PORT,
+        dbname=config.DB_NAME,
+        user=config.DB_USER,
+        password=config.DB_PASSWORD,
+    )
+    populate_mystery_albums(
+        db, neon_db, algolia_client, config.ALGOLIA_INDEX_NAME, clear_existing=args.clear_mystery_albums
+    )
+    neon_db.close()
+    db.close()
+
+
+def handle_default_sync(args, config, algolia_indexer, **kwargs):
+    """Run the default DB-driven sync from MusicBrainz to Algolia."""
+    logger.info("Starting DB-driven sync (MusicBrainz → Algolia)")
+    db = psycopg2.connect(
+        host=config.DB_HOST,
+        port=config.DB_PORT,
+        dbname=config.DB_NAME,
+        user=config.DB_USER,
+        password=config.DB_PASSWORD,
+    )
+    data_processor = AlbumDataProcessor(db)
+
+    total_indexed = 0
+    for batch in data_processor.stream_albums_from_db(
+        batch_size=args.batch_size, max_records=args.max_records
+    ):
+        if not batch:
+            continue
+        algolia_indexer.batch_index_records(batch)
+        total_indexed += len(batch)
+        logger.info(f"Indexed so far: {total_indexed}")
+    logger.info(f"Completed DB sync. Total indexed: {total_indexed}")
+    db.close()
+
+
+# Command routing table: (arg_name, handler_function)
+COMMANDS = [
+    ("stats", handle_stats),
+    ("clear_index", handle_clear_index),
+    ("configure", handle_configure),
+    ("count_quality_score", handle_count_quality_score),
+    ("get_by_id", handle_get_by_id),
+    ("search", handle_search),
+    ("list_top_albums", handle_list_top_albums),
+    ("update_quality_scores", handle_update_quality_scores),
+    ("enrich_lastfm", handle_enrich_lastfm),
+    ("populate_mystery_albums", handle_populate_mystery_albums),
+]
+
+
 def main():
     """Main entry point."""
     parser = argparse.ArgumentParser(
@@ -155,94 +293,24 @@ def main():
         logger.error(f"Environment validation failed: {e}")
         sys.exit(1)
 
-    # Handle different command modes
-    if args.stats:
-        algolia_app.get_index_stats()
-    elif args.clear_index:
-        algolia_app.clear_index()
-    elif args.configure:
-        algolia_app.configure_index_settings()
-    elif args.count_quality_score:
-        algolia_app.count_records_with_quality_score()
-    elif args.get_by_id:
-        result = algolia_searcher.get_album_by_id(args.get_by_id)
-        if result:
-            logger.info(f"Album found:")
-            logger.info(f"  Title: {result.get('title', 'N/A')}")
-            logger.info(f"  Artist: {result.get('main_artist', 'N/A')}")
-        else:
-            logger.warning(f"No album found with objectID: {args.get_by_id}")
-    elif args.search:
-        results = algolia_searcher.search_albums(args.search)
-        logger.info("Search results:")
-        for result in results:
-            logger.info(
-                result["title"],
-                result.get("main_artist", "N/A"),
-                result.get("release_year", "N/A"),
-            )
-    elif args.list_top_albums:
-        list_top_albums(
-            algolia_client,
-            config.ALGOLIA_INDEX_NAME,
-            sort_by=args.sort_by,
-        )
-    elif args.update_quality_scores:
-        logger.info("Updating quality scores for existing albums with Last.fm data")
-        enricher = AlbumEnricher(algolia_client, config.ALGOLIA_INDEX_NAME)
-        enricher.update_quality_scores(
-            playcount_weight=args.playcount_weight,
-            listeners_weight=args.listeners_weight,
-        )
-    elif args.enrich_lastfm:
-        if not config.LASTFM_API_KEY:
-            logger.error("LASTFM_API_KEY not configured. Please set it in your environment.")
-            sys.exit(1)
-        lastfm_client = LastFmClient(config.LASTFM_API_KEY, config.LASTFM_CACHE_FILE, config.LASTFM_CACHE_TTL_DAYS)
-        enricher = AlbumEnricher(algolia_client, config.ALGOLIA_INDEX_NAME)
-        enricher.enrich_albums_with_lastfm(lastfm_client, limit=args.enrich_limit)
-    elif args.populate_mystery_albums:
-        if not config.NEON_DATABASE_URL:
-            logger.error("NEON_DATABASE_URL (NETLIFY_DATABASE_URL) not configured")
-            sys.exit(1)
-        if not neon_db:
-            logger.error("Failed to connect to Neon database")
-            sys.exit(1)
-        logger.info("Starting mystery album population using Algolia")
-        db = psycopg2.connect(
-            host=config.DB_HOST,
-            port=config.DB_PORT,
-            dbname=config.DB_NAME,
-            user=config.DB_USER,
-            password=config.DB_PASSWORD,
-        )
-        populate_mystery_albums(
-            db, neon_db, algolia_client, config.ALGOLIA_INDEX_NAME, clear_existing=args.clear_mystery_albums
-        )
-        neon_db.close()
-        db.close()
-    else:
-        logger.info("Starting DB-driven sync (MusicBrainz → Algolia)")
-        db = psycopg2.connect(
-            host=config.DB_HOST,
-            port=config.DB_PORT,
-            dbname=config.DB_NAME,
-            user=config.DB_USER,
-            password=config.DB_PASSWORD,
-        )
-        data_processor = AlbumDataProcessor(db)
+    # Build context for command handlers
+    context = {
+        "config": config,
+        "algolia_app": algolia_app,
+        "algolia_indexer": algolia_indexer,
+        "algolia_searcher": algolia_searcher,
+        "algolia_client": algolia_client,
+        "neon_db": neon_db,
+    }
 
-        total_indexed = 0
-        for batch in data_processor.stream_albums_from_db(
-            batch_size=args.batch_size, max_records=args.max_records
-        ):
-            if not batch:
-                continue
-            algolia_indexer.batch_index_records(batch)
-            total_indexed += len(batch)
-            logger.info(f"Indexed so far: {total_indexed}")
-        logger.info(f"Completed DB sync. Total indexed: {total_indexed}")
-        db.close()
+    # Execute first matching command
+    for arg_name, handler in COMMANDS:
+        if getattr(args, arg_name, None):
+            handler(args, **context)
+            return
+
+    # No command matched, run default sync
+    handle_default_sync(args, **context)
 
 
 if __name__ == "__main__":
