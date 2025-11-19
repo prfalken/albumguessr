@@ -8,7 +8,7 @@ class AlgoliaApp:
     def __init__(self, config: Config, client: SearchClientSync):
         self.config = config
         self.client = client
-        self.index_name = config.ALGOLIA_INDEX_NAME
+        self.index_name = config.algolia_index_name
         self.batch_size = 1000  # Algolia recommended batch size
 
     def clear_index(self) -> None:

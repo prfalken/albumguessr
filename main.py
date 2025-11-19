@@ -70,7 +70,7 @@ def handle_list_top_albums(args, algolia_client, config, **kwargs):
     """List top albums from Algolia."""
     list_top_albums(
         algolia_client,
-        config.ALGOLIA_INDEX_NAME,
+        config.algolia_index_name,
         sort_by=args.sort_by,
     )
 
@@ -78,7 +78,7 @@ def handle_list_top_albums(args, algolia_client, config, **kwargs):
 def handle_update_quality_scores(args, algolia_client, config, **kwargs):
     """Update quality scores for albums with existing Last.fm data."""
     logger.info("Updating quality scores for existing albums with Last.fm data")
-    enricher = AlbumEnricher(algolia_client, config.ALGOLIA_INDEX_NAME)
+    enricher = AlbumEnricher(algolia_client, config.algolia_index_name)
     enricher.update_quality_scores(
         playcount_weight=args.playcount_weight,
         listeners_weight=args.listeners_weight,
@@ -87,19 +87,19 @@ def handle_update_quality_scores(args, algolia_client, config, **kwargs):
 
 def handle_enrich_lastfm(args, algolia_client, config, **kwargs):
     """Enrich existing Algolia records with Last.fm engagement data."""
-    if not config.LASTFM_API_KEY:
+    if not config.lastfm_api_key:
         logger.error("LASTFM_API_KEY not configured. Please set it in your environment.")
         sys.exit(1)
     lastfm_client = LastFmClient(
-        config.LASTFM_API_KEY, config.LASTFM_CACHE_FILE, config.LASTFM_CACHE_TTL_DAYS
+        config.lastfm_api_key, config.lastfm_cache_file, config.lastfm_cache_ttl_days
     )
-    enricher = AlbumEnricher(algolia_client, config.ALGOLIA_INDEX_NAME)
+    enricher = AlbumEnricher(algolia_client, config.algolia_index_name)
     enricher.enrich_albums_with_lastfm(lastfm_client, limit=args.enrich_limit)
 
 
 def handle_populate_mystery_albums(args, algolia_client, config, neon_db, **kwargs):
     """Populate mystery_random_album table with top albums per genre."""
-    if not config.NEON_DATABASE_URL:
+    if not config.neon_database_url:
         logger.error("NEON_DATABASE_URL (NETLIFY_DATABASE_URL) not configured")
         sys.exit(1)
     if not neon_db:
@@ -107,14 +107,14 @@ def handle_populate_mystery_albums(args, algolia_client, config, neon_db, **kwar
         sys.exit(1)
     logger.info("Starting mystery album population using Algolia")
     db = psycopg2.connect(
-        host=config.DB_HOST,
-        port=config.DB_PORT,
-        dbname=config.DB_NAME,
-        user=config.DB_USER,
-        password=config.DB_PASSWORD,
+        host=config.db_host,
+        port=config.db_port,
+        dbname=config.db_name,
+        user=config.db_user,
+        password=config.db_password,
     )
     populate_mystery_albums(
-        db, neon_db, algolia_client, config.ALGOLIA_INDEX_NAME, clear_existing=args.clear_mystery_albums
+        db, neon_db, algolia_client, config.algolia_index_name, clear_existing=args.clear_mystery_albums
     )
     neon_db.close()
     db.close()
@@ -124,11 +124,11 @@ def handle_default_sync(args, config, algolia_indexer, **kwargs):
     """Run the default DB-driven sync from MusicBrainz to Algolia."""
     logger.info("Starting DB-driven sync (MusicBrainz → Algolia)")
     db = psycopg2.connect(
-        host=config.DB_HOST,
-        port=config.DB_PORT,
-        dbname=config.DB_NAME,
-        user=config.DB_USER,
-        password=config.DB_PASSWORD,
+        host=config.db_host,
+        port=config.db_port,
+        dbname=config.db_name,
+        user=config.db_user,
+        password=config.db_password,
     )
     data_processor = AlbumDataProcessor(db)
 
@@ -278,10 +278,10 @@ def main():
 
     # Neon DB connection (only if needed)
     neon_db = None
-    if args.populate_mystery_albums and config.NEON_DATABASE_URL:
-        neon_db = psycopg2.connect(config.NEON_DATABASE_URL)
+    if args.populate_mystery_albums and config.neon_database_url:
+        neon_db = psycopg2.connect(config.neon_database_url)
 
-    algolia_client = SearchClientSync(config.ALGOLIA_APPLICATION_ID, config.ALGOLIA_API_KEY)
+    algolia_client = SearchClientSync(config.algolia_application_id, config.algolia_api_key)
     algolia_app = AlgoliaApp(config, algolia_client)
     algolia_indexer = AlgoliaIndexer(config, algolia_client)
     algolia_searcher = AlgoliaSearcher(config, algolia_client)
