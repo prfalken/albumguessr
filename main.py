@@ -239,6 +239,7 @@ def enrich_albums_with_lastfm(
     total_processed = 0
     total_enriched = 0
     total_updated = 0
+    total_skipped = 0
 
     # Timing tracking
     start_time = time.time()
@@ -263,6 +264,7 @@ def enrich_albums_with_lastfm(
                             "objectID",
                             "title",
                             "main_artist",
+                            "quality_score",
                         ],
                     },
                 )
@@ -274,6 +276,7 @@ def enrich_albums_with_lastfm(
                             "objectID",
                             "title",
                             "main_artist",
+                            "quality_score",
                         ],
                     },
                 )
@@ -291,11 +294,18 @@ def enrich_albums_with_lastfm(
                 object_id = hit_dict.get("objectID")
                 title = hit_dict.get("title")
                 main_artist = hit_dict.get("main_artist")
+                quality_score = hit_dict.get("quality_score")
 
                 total_processed += 1
 
                 if not object_id or not title or not main_artist:
                     logger.debug(f"Skipping album with missing data: {object_id}")
+                    continue
+
+                # Skip albums that already have a quality_score
+                if quality_score is not None:
+                    total_skipped += 1
+                    logger.debug(f"Skipping album with existing quality_score: {main_artist} - {title}")
                     continue
 
                 albums_to_enrich.append((object_id, main_artist, title))
@@ -365,6 +375,7 @@ def enrich_albums_with_lastfm(
 
                 logger.info(
                     f"Progress: {total_processed} processed, "
+                    f"{total_skipped} skipped (already enriched), "
                     f"{total_enriched} enriched, {total_updated} updated | "
                     f"Last {albums_in_batch} albums: {batch_elapsed:.1f}s "
                     f"({albums_in_batch/batch_elapsed:.1f} albums/sec) | "
@@ -379,6 +390,7 @@ def enrich_albums_with_lastfm(
 
     logger.info(
         f"Enrichment complete. Processed: {total_processed}, "
+        f"Skipped: {total_skipped}, "
         f"Enriched: {total_enriched}, Updated: {total_updated}"
     )
 
