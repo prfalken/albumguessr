@@ -64,29 +64,6 @@
         <priority>0.6</priority>
     </url>
     
-    <!-- Statistics -->
-    <url>
-        <loc>https://albumguessr.com/statistics.html</loc>
-        <lastmod>2025-11-11</lastmod>
-        <changefreq>weekly</changefreq>
-        <priority>0.5</priority>
-    </url>
-    
-    <!-- Profile (requires auth, but include for completeness) -->
-    <url>
-        <loc>https://albumguessr.com/profile.html</loc>
-        <lastmod>2025-11-11</lastmod>
-        <changefreq>monthly</changefreq>
-        <priority>0.4</priority>
-    </url>
-    
-    <!-- Report Bug -->
-    <url>
-        <loc>https://albumguessr.com/report-bug.html</loc>
-        <lastmod>2025-11-11</lastmod>
-        <changefreq>monthly</changefreq>
-        <priority>0.3</priority>
-    </url>
     
 </urlset>
 
