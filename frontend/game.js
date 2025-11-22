@@ -125,7 +125,6 @@ export class AlbumGuessrGame {
                 ALGOLIA_CONFIG.apiKey
             );
             this.algoliaIndex = this.algoliaClient.initIndex(ALGOLIA_CONFIG.indexName);
-            console.log('Algolia initialized successfully');
         } catch (error) {
             console.error('Failed to initialize Algolia:', error);
             this.showError('Failed to connect to the search index. Please refresh the page.');
@@ -300,7 +299,6 @@ export class AlbumGuessrGame {
 
     handleGenreChange(detail) {
         const { genre, previousGenre } = detail;
-        console.log('Genre changed:', { from: previousGenre, to: genre });
         
         // If game is in progress, prompt user about resetting
         if (this.guessCount > 0 && !this.gameOver) {
@@ -326,7 +324,6 @@ export class AlbumGuessrGame {
         
         if (challengeObjectID) {
             try {
-                console.log('Loading challenge album:', challengeObjectID);
                 
                 if (!this.algoliaIndex) throw new Error('Algolia index not initialized');
 
@@ -346,7 +343,6 @@ export class AlbumGuessrGame {
                 const cleanUrl = window.location.pathname;
                 window.history.replaceState({}, '', cleanUrl);
                 
-                console.log('Challenge album loaded:', this.mysteryAlbum);
                 return this.mysteryAlbum;
             } catch (error) {
                 console.warn('Failed to load challenge album, falling back to random:', error);
@@ -358,9 +354,7 @@ export class AlbumGuessrGame {
         // Get selected genre filter (if any) - read directly from localStorage to ensure we have it
         const selectedGenre = localStorage.getItem('selectedGenre') || null;
         const genreParam = selectedGenre ? `?genre=${encodeURIComponent(selectedGenre)}` : '';
-        
-        console.log('Fetching random album with genre filter:', selectedGenre || 'none');
-        
+                
         const maxAttempts = 5;
         let lastError = null;
         for (let attempt = 1; attempt <= maxAttempts; attempt++) {
@@ -384,7 +378,6 @@ export class AlbumGuessrGame {
                 if (Array.isArray(this.mysteryAlbum.countries)) {
                     this.mysteryAlbum.continents = this.getContinentsForCountryCodes(this.mysteryAlbum.countries);
                 }
-                console.log('Random mystery album:', this.mysteryAlbum);
                 return this.mysteryAlbum;
             } catch (error) {
                 lastError = error;
@@ -679,10 +672,8 @@ export class AlbumGuessrGame {
         
         // Trigger victory celebration and hide game-box after UI is updated
         if (isCorrect) {
-            console.log('Game won! isCorrect:', isCorrect);
             // Wait for DOM to update
             setTimeout(() => {
-                console.log('Timeout executed - calling celebrateVictory and hideGameBox');
                 this.celebrateVictory();
                 this.hideGameBox();
             }, 100);
@@ -714,20 +705,15 @@ export class AlbumGuessrGame {
     hideInstructionText() {
         // Target only the instruction paragraph, not the title
         const dailyInstruction = document.querySelector('.subtitle .daily-instruction:not(#game-date)');
-        console.log('hideInstructionText - Element found:', dailyInstruction);
-        console.log('hideInstructionText - Element text:', dailyInstruction?.textContent);
         if (dailyInstruction) {
             dailyInstruction.style.setProperty('display', 'none', 'important');
-            console.log('hideInstructionText - Element hidden');
         }
     }
     
     hideGameBox() {
         const gameBox = document.querySelector('.game-box');
-        console.log('hideGameBox - Element found:', gameBox);
         if (gameBox) {
             gameBox.style.setProperty('display', 'none', 'important');
-            console.log('hideGameBox - Game box hidden');
         } else {
             console.warn('hideGameBox - Game box not found in DOM');
         }
