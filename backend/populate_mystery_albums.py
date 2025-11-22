@@ -7,6 +7,8 @@ for each genre, avoiding slow MusicBrainz queries.
 
 import re
 import warnings
+import random
+from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 import psycopg2
 import psycopg2.extensions
@@ -387,3 +389,134 @@ def populate_mystery_albums(
         )
 
     logger.info(f"Completed mystery album population. Total inserted: {total_inserted}")
+
+
+def populate_album_of_the_day_schedule(
+    neon_conn: psycopg2.extensions.connection,
+    algolia_client: SearchClientSync,
+    index_name: str,
+) -> None:
+    """
+    Populate the mystery_album_schedule table with 365 albums for daily challenges.
+    
+    Fetches top albums by quality_score from Algolia, shuffles them, and inserts
+    them into the schedule starting from tomorrow. Uses smart shuffling to avoid
+    placing albums from the same artist in the same month.
+    
+    Args:
+        neon_conn: PostgreSQL connection to Neon database
+        algolia_client: Algolia search client
+        index_name: Name of the Algolia index
+    """
+    logger.info("Starting album of the day schedule population")
+    
+    # Fetch albums sorted by quality_score
+    albums = search_albums(algolia_client, index_name + "_sort_quality_score")
+    
+    if not albums:
+        logger.error("No albums found in Algolia")
+        return
+    
+    logger.info(f"Found {len(albums)} albums total")
+    
+    # Take first 365 albums (best quality scores)
+    albums_to_schedule = albums[:365]
+    
+    # Smart shuffle: group by artist and distribute across months
+    # to avoid same artist appearing in the same month
+    from collections import defaultdict
+    
+    # Group albums by artist
+    artist_albums = defaultdict(list)
+    for album in albums_to_schedule:
+        artist = album.get("main_artist", "Unknown")
+        artist_albums[artist].append(album)
+    
+    logger.info(f"Found {len(artist_albums)} unique artists in top 365 albums")
+    
+    # Shuffle albums within each artist group
+    for artist in artist_albums:
+        random.shuffle(artist_albums[artist])
+    
+    # Create a list of artist keys and shuffle them
+    artists = list(artist_albums.keys())
+    random.shuffle(artists)
+    
+    # Distribute albums across months (roughly 30-31 albums per month)
+    # by round-robin through artists
+    shuffled_albums = []
+    while len(shuffled_albums) < 365:
+        for artist in artists:
+            if artist_albums[artist]:
+                shuffled_albums.append(artist_albums[artist].pop(0))
+                if len(shuffled_albums) >= 365:
+                    break
+    
+    albums_to_schedule = shuffled_albums
+    
+    logger.info(f"Intelligently shuffled {len(albums_to_schedule)} albums to avoid same artist in same month")
+    
+    # Calculate start date (tomorrow)
+    start_date = datetime.now().date() + timedelta(days=1)
+    
+    # Validate artist distribution per month
+    from collections import defaultdict
+    month_artists = defaultdict(set)
+    month_albums = defaultdict(list)
+    
+    for idx, album in enumerate(albums_to_schedule):
+        schedule_date = start_date + timedelta(days=idx)
+        month_key = schedule_date.strftime("%Y-%m")
+        artist = album.get("main_artist", "Unknown")
+        month_artists[month_key].add(artist)
+        month_albums[month_key].append(album)
+    
+    # Log validation results
+    logger.info("Artist distribution validation:")
+    for month_key in sorted(month_artists.keys())[:3]:  # Show first 3 months
+        albums_count = len(month_albums[month_key])
+        artists_count = len(month_artists[month_key])
+        logger.info(f"  {month_key}: {albums_count} albums, {artists_count} unique artists (no duplicates: {albums_count == artists_count})")
+    
+    # Insert albums into schedule
+    inserted_count = 0
+    with neon_conn.cursor() as cursor:
+        for idx, album in enumerate(albums_to_schedule):
+            schedule_date = start_date + timedelta(days=idx)
+            object_id = album.get("object_id")
+            primary_genre = album.get("primary_genre")
+            
+            if not object_id:
+                logger.warning(f"Skipping album at index {idx}: missing object_id")
+                continue
+            
+            try:
+                cursor.execute(
+                    """
+                    INSERT INTO mystery_album_schedule (schedule_date, object_id, primary_genre)
+                    VALUES (%s, %s, %s)
+                    ON CONFLICT (schedule_date) DO UPDATE 
+                    SET object_id = EXCLUDED.object_id,
+                        primary_genre = EXCLUDED.primary_genre
+                    """,
+                    (schedule_date, object_id, primary_genre),
+                )
+                
+                if cursor.rowcount > 0:
+                    inserted_count += 1
+                    if inserted_count <= 5 or inserted_count % 50 == 0:
+                        logger.info(
+                            f"Scheduled for {schedule_date}: {album.get('title', 'N/A')} "
+                            f"by {album.get('main_artist', 'N/A')} (quality: {album.get('quality_score', 0):.2f})"
+                        )
+                
+                neon_conn.commit()
+            except Exception as e:
+                neon_conn.rollback()
+                logger.error(f"Error inserting schedule for date {schedule_date}: {e}")
+                continue
+    
+    logger.info(
+        f"Completed album of the day schedule population. "
+        f"Inserted/updated {inserted_count} dates from {start_date} to {start_date + timedelta(days=inserted_count-1)}"
+    )

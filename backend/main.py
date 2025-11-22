@@ -17,7 +17,7 @@ from algolia import AlgoliaApp
 from algolia_indexer import AlgoliaIndexer
 from algolia_searcher import AlgoliaSearcher
 from data_processor import AlbumDataProcessor
-from populate_mystery_albums import list_top_albums, populate_mystery_albums
+from populate_mystery_albums import list_top_albums, populate_mystery_albums, populate_album_of_the_day_schedule
 from lastfm_enricher import LastFmClient
 from album_enricher import AlbumEnricher
 
@@ -120,6 +120,19 @@ def handle_populate_mystery_albums(args, algolia_client, config, neon_db, **kwar
     db.close()
 
 
+def handle_populate_album_of_the_day(args, algolia_client, config, neon_db, **kwargs):
+    """Populate mystery_album_schedule table with 365 shuffled top albums by quality_score."""
+    if not config.neon_database_url:
+        logger.error("NEON_DATABASE_URL (NETLIFY_DATABASE_URL) not configured")
+        sys.exit(1)
+    if not neon_db:
+        logger.error("Failed to connect to Neon database")
+        sys.exit(1)
+    logger.info("Starting album of the day schedule population")
+    populate_album_of_the_day_schedule(neon_db, algolia_client, config.algolia_index_name)
+    neon_db.close()
+
+
 def handle_default_sync(args, config, algolia_indexer, **kwargs):
     """Run the default DB-driven sync from MusicBrainz to Algolia."""
     logger.info("Starting DB-driven sync (MusicBrainz → Algolia)")
@@ -157,6 +170,7 @@ COMMANDS = [
     ("update_quality_scores", handle_update_quality_scores),
     ("enrich_lastfm", handle_enrich_lastfm),
     ("populate_mystery_albums", handle_populate_mystery_albums),
+    ("populate_album_of_the_day", handle_populate_album_of_the_day),
 ]
 
 
@@ -198,6 +212,11 @@ def main():
         "--populate-mystery-albums",
         action="store_true",
         help="Populate mystery_random_album table with top albums per genre",
+    )
+    parser.add_argument(
+        "--populate-album-of-the-day",
+        action="store_true",
+        help="Populate mystery_album_schedule table with 365 shuffled top albums by quality_score",
     )
     parser.add_argument("--list-top-albums", action="store_true", help="List top albums from Algolia")
     parser.add_argument(
@@ -278,7 +297,7 @@ def main():
 
     # Neon DB connection (only if needed)
     neon_db = None
-    if args.populate_mystery_albums and config.neon_database_url:
+    if (args.populate_mystery_albums or args.populate_album_of_the_day) and config.neon_database_url:
         neon_db = psycopg2.connect(config.neon_database_url)
 
     algolia_client = SearchClientSync(config.algolia_application_id, config.algolia_api_key)
