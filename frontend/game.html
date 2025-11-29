@@ -83,27 +83,47 @@
                             <p class="daily-instruction" data-i18n="game.newMystery">Pour trouver l'album mystère, faites une première proposition dans la barre de recherche<br>pour commencer à révéler les premiers indices.</p>
                         </div>
                         
-                        <!-- Search Input -->
-                        <div class="search-container">
-                            <div class="search-box">
-                                <input 
-                                    type="text" 
-                                    id="album-search" 
-                                    data-i18n-placeholder="game.searchPlaceholder"
-                                    placeholder="Search an album or an artist..."
-                                    autocomplete="off"
-                                >
-                                <button 
-                                    type="button" 
-                                    id="search-submit" 
-                                    class="search-submit-btn"
-                                    disabled
-                                    aria-label="Submit guess"
-                                >
-                                    <i class="bi bi-search"></i>
-                                </button>
+                        <!-- Search and Inspiration Row -->
+                        <div class="search-inspiration-row">
+                            <!-- Search Input -->
+                            <div class="search-container">
+                                <div class="search-box">
+                                    <input 
+                                        type="text" 
+                                        id="album-search" 
+                                        data-i18n-placeholder="game.searchPlaceholder"
+                                        placeholder="Search an album or an artist..."
+                                        autocomplete="off"
+                                    >
+                                    <button 
+                                        type="button" 
+                                        id="search-submit" 
+                                        class="search-submit-btn"
+                                        disabled
+                                        aria-label="Submit guess"
+                                    >
+                                        <i class="bi bi-search"></i>
+                                    </button>
+                                </div>
+                                <div class="search-results" id="search-results"></div>
                             </div>
-                            <div class="search-results" id="search-results"></div>
+                            
+                            <!-- Inspiration Box -->
+                            <div class="inspiration-box" id="inspiration-box">
+                                <div class="inspiration-header" id="inspiration-toggle">
+                                    <h3>
+                                        <i class="bi bi-lightbulb"></i>
+                                        <span data-i18n="game.inspiration.title">Need inspiration?</span>
+                                    </h3>
+                                    <i class="bi bi-chevron-down" id="inspiration-chevron"></i>
+                                </div>
+                                <div class="inspiration-content" id="inspiration-content">
+                                    <div class="inspiration-message" id="inspiration-message">
+                                        <p data-i18n="game.inspiration.noClues">Make some guesses to reveal clues first!</p>
+                                    </div>
+                                    <div class="inspiration-results" id="inspiration-results"></div>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Clues Board -->
@@ -168,8 +188,6 @@
                         </div>
                     </div>
                 </div>
-
-                
             </div>
 
 
@@ -327,6 +345,18 @@
                 <div class="no-clues" style="padding: 1rem;">
                     <i class="bi bi-exclamation-triangle"></i>
                     <p data-i18n="profile.historyError">Unable to load history. Try again later.</p>
+                </div>
+            </template>
+            
+            <!-- Inspiration Result Item -->
+            <template id="tpl-inspiration-item">
+                <div class="inspiration-item">
+                    <img class="inspiration-cover" alt="Cover">
+                    <div class="inspiration-text">
+                        <div class="inspiration-title"></div>
+                        <div class="inspiration-artist"></div>
+                        <div class="inspiration-meta"></div>
+                    </div>
                 </div>
             </template>
         </section>

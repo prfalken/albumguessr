@@ -169,7 +169,13 @@ export class AlbumGuessrGame {
             navReportBug: document.getElementById('nav-report-bug'),
             // User history (right panel)
             userHistorySubtitle: document.getElementById('user-history-subtitle'),
-            userHistoryList: document.getElementById('user-history-list')
+            userHistoryList: document.getElementById('user-history-list'),
+            // Inspiration box
+            inspirationBox: document.getElementById('inspiration-box'),
+            inspirationToggle: document.getElementById('inspiration-toggle'),
+            inspirationContent: document.getElementById('inspiration-content'),
+            inspirationMessage: document.getElementById('inspiration-message'),
+            inspirationResults: document.getElementById('inspiration-results')
         };
 
         // HTML templates: UI structure is defined in HTML, JS only clones and fills
@@ -184,7 +190,8 @@ export class AlbumGuessrGame {
             historyItem: document.getElementById('tpl-history-item'),
             noClues: document.getElementById('tpl-no-clues'),
             historyEmpty: document.getElementById('tpl-history-empty'),
-            historyError: document.getElementById('tpl-history-error')
+            historyError: document.getElementById('tpl-history-error'),
+            inspirationItem: document.getElementById('tpl-inspiration-item')
         };
 
         // Show refresh-based info
@@ -478,6 +485,13 @@ export class AlbumGuessrGame {
 
         // Auth buttons
         this.authManager.bindAuthButtons(this.elements);
+        
+        // Inspiration box toggle
+        if (this.elements.inspirationToggle) {
+            this.elements.inspirationToggle.addEventListener('click', () => {
+                this.toggleInspirationBox();
+            });
+        }
     }
 
     async handleSearchInput(event) {
@@ -1096,6 +1110,11 @@ export class AlbumGuessrGame {
         const navButtonsContainer = document.getElementById('nav-buttons-container');
         if (navButtonsContainer) {
             navButtonsContainer.style.display = this.guesses.length === 0 ? '' : 'none';
+        }
+        
+        // Refresh inspiration box if it's expanded
+        if (this.elements.inspirationBox && this.elements.inspirationBox.classList.contains('expanded')) {
+            this.loadInspirationResults();
         }
         
         // Update guess counter
@@ -2234,5 +2253,278 @@ export class AlbumGuessrGame {
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
+    }
+
+    // Inspiration box functionality
+    toggleInspirationBox() {
+        if (!this.elements.inspirationBox) return;
+        
+        const isExpanded = this.elements.inspirationBox.classList.contains('expanded');
+        
+        if (isExpanded) {
+            this.elements.inspirationBox.classList.remove('expanded');
+        } else {
+            this.elements.inspirationBox.classList.add('expanded');
+            // Load inspiration results when expanding
+            this.loadInspirationResults();
+        }
+    }
+
+    async loadInspirationResults() {
+        if (!this.elements.inspirationResults || !this.elements.inspirationMessage) return;
+        
+        // Check if there are any discovered clues
+        if (this.discoveredClues.size === 0 || this.gameOver) {
+            this.elements.inspirationMessage.style.display = 'block';
+            this.elements.inspirationResults.style.display = 'none';
+            return;
+        }
+        
+        try {
+            // Build Algolia search query based on discovered clues
+            const { numericFilters, requiredFilters, optionalFilterGroups } = this.buildInspirationFilters();
+            
+            if (requiredFilters.length === 0 && numericFilters.length === 0) {
+                this.elements.inspirationMessage.style.display = 'block';
+                this.elements.inspirationResults.style.display = 'none';
+                return;
+            }
+            
+            // Build filter to exclude already guessed albums
+            const guessedObjectIDs = this.guesses.map(guess => guess.album.objectID);
+            const excludeGuessedFilter = guessedObjectIDs.length > 0 
+                ? guessedObjectIDs.map(id => `NOT objectID:"${id}"`).join(' AND ')
+                : '';
+            
+            // Search with required filters + optional filters for better ranking
+            // Required: genres, artists, countries (must match)
+            // Optional: instruments, label, contributors (boost score if match)
+            let searchResponse = await this.algoliaIndex.search('', {
+                filters: excludeGuessedFilter,
+                facetFilters: requiredFilters, // Must match genres/artists/countries
+                optionalFilters: optionalFilterGroups, // Boost score for matching instruments/label
+                numericFilters: numericFilters,
+                sumOrFiltersScores: true, // Score based on optional filter matches
+                hitsPerPage: 5,
+                attributesToRetrieve: [
+                    'objectID', 'title', 'artists', 'release_year', 
+                    'cover_art_url', 'rating_score', 'rating_count', 'genres'
+                ]
+                // customRanking is already configured in the index
+            });
+            
+            // If no results with required filters, make everything optional
+            if (searchResponse.hits.length === 0 && requiredFilters.length > 0) {
+                
+                const allFilters = [...requiredFilters, ...optionalFilterGroups];
+                searchResponse = await this.algoliaIndex.search('', {
+                    filters: excludeGuessedFilter,
+                    optionalFilters: allFilters, // All filters optional - rank by best matches
+                    numericFilters: numericFilters,
+                    sumOrFiltersScores: true,
+                    hitsPerPage: 5,
+                    attributesToRetrieve: [
+                        'objectID', 'title', 'artists', 'release_year', 
+                        'cover_art_url', 'rating_score', 'rating_count', 'genres'
+                    ]
+                });
+            }
+            
+            // If still no results, try with only numeric filters (year only)
+            if (searchResponse.hits.length === 0 && numericFilters.length > 0) {
+                searchResponse = await this.algoliaIndex.search('', {
+                    filters: excludeGuessedFilter,
+                    numericFilters: numericFilters,
+                    hitsPerPage: 5,
+                    attributesToRetrieve: [
+                        'objectID', 'title', 'artists', 'release_year', 
+                        'cover_art_url', 'rating_score', 'rating_count'
+                    ]
+                });
+            }
+            
+            if (searchResponse.hits.length === 0) {
+                this.elements.inspirationMessage.innerHTML = '<p>No albums found matching your clues. Try making more guesses!</p>';
+                this.elements.inspirationMessage.style.display = 'block';
+                this.elements.inspirationResults.style.display = 'none';
+                return;
+            }
+            
+            // Hide message and show results
+            this.elements.inspirationMessage.style.display = 'none';
+            this.elements.inspirationResults.style.display = 'block';
+            
+            // Render results
+            this.renderInspirationResults(searchResponse.hits);
+            
+        } catch (error) {
+            console.error('Failed to load inspiration results:', error);
+            this.elements.inspirationMessage.innerHTML = '<p>Error loading suggestions. Please try again.</p>';
+            this.elements.inspirationMessage.style.display = 'block';
+            this.elements.inspirationResults.style.display = 'none';
+        }
+    }
+
+    buildInspirationFilters() {
+        const numericFilters = [];
+        const requiredFilters = [];  // Critical filters (must match)
+        const optionalFilterGroups = [];  // Less critical filters (nice to have)
+        
+        // Add filters for each discovered clue type
+        this.discoveredClues.forEach((values, category) => {
+            // Skip certain categories that need special handling
+            if (category === 'continents' || category === 'artist_type') return;
+            
+            const valuesArray = Array.from(values);
+            if (valuesArray.length === 0) return;
+            
+            // Handle year ranges with numeric filters
+            if (category === 'release_year') {
+                const yearHint = valuesArray[0]; // e.g., "between 1995 and 2000" or "2000"
+                
+                // Check if it's a plain year number
+                const yearNum = parseInt(yearHint);
+                if (!isNaN(yearNum) && yearHint.trim() === yearNum.toString()) {
+                    // Exact year
+                    numericFilters.push(`release_year=${yearNum}`);
+                } else {
+                    // Extract all 4-digit years from the hint
+                    const yearMatches = yearHint.match(/\d{4}/g);
+                    
+                    if (yearMatches && yearMatches.length === 2) {
+                        // Two years found: it's a "between X and Y" range
+                        const year1 = parseInt(yearMatches[0]);
+                        const year2 = parseInt(yearMatches[1]);
+                        numericFilters.push(`release_year>=${Math.min(year1, year2)}`);
+                        numericFilters.push(`release_year<=${Math.max(year1, year2)}`);
+                    } else if (yearMatches && yearMatches.length === 1) {
+                        // One year found: check if it's "after" or "before"
+                        const year = parseInt(yearMatches[0]);
+                        const lowerHint = yearHint.toLowerCase();
+                        
+                        // Check for "after" keywords in all languages (after, après, después)
+                        if (lowerHint.includes('after') || lowerHint.includes('après') || lowerHint.includes('después')) {
+                            numericFilters.push(`release_year>=${year}`);
+                        }
+                        // Check for "before" keywords in all languages (before, avant, antes)
+                        else if (lowerHint.includes('before') || lowerHint.includes('avant') || lowerHint.includes('antes')) {
+                            numericFilters.push(`release_year<=${year}`);
+                        }
+                    }
+                }
+                return;
+            }
+            
+            // Skip length hints for now (would need to parse formatted strings)
+            if (category === 'total_length_seconds') return;
+            
+            // Build facet filters for this category
+            // Each value in the array becomes an OR within the category
+            // Note: Algolia facet values are case-sensitive and must match exactly
+            const categoryFacets = valuesArray.map(value => {
+                // Ensure proper escaping for facet filter format
+                const escapedValue = String(value).replace(/"/g, '\\"');
+                return `${category}:"${escapedValue}"`;
+            });
+            
+            if (categoryFacets.length === 0) return;
+            
+            // Prioritize filters: genres, artists, countries are REQUIRED
+            // instruments, contributors, label are OPTIONAL (nice to have but not critical)
+            if (category === 'genres' || category === 'artists' || category === 'countries') {
+                requiredFilters.push(categoryFacets);
+            } else {
+                // Instruments, label, contributors are optional
+                optionalFilterGroups.push(categoryFacets);
+            }
+        });
+        
+        return { numericFilters, requiredFilters, optionalFilterGroups };
+    }
+
+    renderInspirationResults(hits) {
+        if (!this.elements.inspirationResults || !this.templates.inspirationItem) return;
+        
+        this.elements.inspirationResults.replaceChildren();
+        
+        hits.forEach(album => {
+            const item = this.templates.inspirationItem.content.firstElementChild.cloneNode(true);
+            
+            // Set cover image
+            const cover = item.querySelector('.inspiration-cover');
+            if (cover) {
+                const coverUrl = this.getCoverUrl(album, 120);
+                if (coverUrl) {
+                    cover.src = coverUrl;
+                    cover.alt = `${album.title} cover`;
+                } else {
+                    cover.style.display = 'none';
+                }
+            }
+            
+            // Set title
+            const title = item.querySelector('.inspiration-title');
+            if (title) {
+                title.textContent = album.title || 'Unknown Album';
+            }
+            
+            // Set artist
+            const artist = item.querySelector('.inspiration-artist');
+            if (artist) {
+                const artistText = Array.isArray(album.artists) ? album.artists.join(', ') : 'Unknown Artist';
+                artist.textContent = artistText;
+            }
+            
+            // Set meta (year)
+            const meta = item.querySelector('.inspiration-meta');
+            if (meta) {
+                const yearText = album.release_year ? album.release_year : '';
+                meta.textContent = yearText;
+            }
+            
+            // Add click handler to select this album
+            item.addEventListener('click', () => {
+                this.selectInspirationAlbum(album);
+            });
+            
+            this.elements.inspirationResults.appendChild(item);
+        });
+    }
+
+    async selectInspirationAlbum(album) {
+        // Fetch full album data from Algolia
+        try {
+            const fullAlbum = await this.algoliaIndex.getObject(album.objectID, {
+                attributesToRetrieve: [
+                    'objectID', 'title', 'artists', 'genres', 'release_year', 'countries', 'contributors',
+                    'cover_art_url', 'label', 'total_length_seconds', 'is_solo_artist', 'is_group'
+                ]
+            });
+            
+            // Normalize album data
+            this.normalizeAlbumContributors(fullAlbum);
+            if (Array.isArray(fullAlbum.countries)) {
+                fullAlbum.continents = this.getContinentsForCountryCodes(fullAlbum.countries);
+            }
+            
+            // Set as selected result
+            this.selectedResult = fullAlbum;
+            
+            // Collapse the inspiration box
+            if (this.elements.inspirationBox) {
+                this.elements.inspirationBox.classList.remove('expanded');
+            }
+            
+            // Automatically submit the guess
+            this.submitGuess();
+            
+        } catch (error) {
+            console.error('Failed to select inspiration album:', error);
+            this.showToast({
+                title: 'Error',
+                message: 'Failed to select album. Please try again.',
+                type: 'error'
+            });
+        }
     }
 }

@@ -89,6 +89,10 @@ class I18nManager {
                     gameModeDailyTitle: 'Album of the day',
                     gameModeRandomTitle: 'Random album',
                     gameModeCoverGuessTitle: 'Cover Guess',
+                    inspiration: {
+                        title: 'Need inspiration?',
+                        noClues: 'Make some guesses to reveal clues first!'
+                    },
                     coverGuess: {
                         nextHint: 'Reveal next square',
                         loading: 'Loading the mystery album...',
@@ -444,6 +448,10 @@ class I18nManager {
                     gameModeDailyTitle: 'Album du jour',
                     gameModeRandomTitle: 'Album aléatoire',
                     gameModeCoverGuessTitle: 'Cover Guess',
+                    inspiration: {
+                        title: 'Besoin d\'inspiration ?',
+                        noClues: 'Faites quelques tentatives pour révéler des indices d\'abord !'
+                    },
                     coverGuess: {
                         nextHint: 'Révéler le carré suivant',
                         loading: 'Chargement de l\'album mystère...',
@@ -799,6 +807,10 @@ class I18nManager {
                     gameModeDailyTitle: 'Álbum del día',
                     gameModeRandomTitle: 'Álbum aleatorio',
                     gameModeCoverGuessTitle: 'Cover Guess',
+                    inspiration: {
+                        title: '¿Necesitas inspiración?',
+                        noClues: '¡Haz algunos intentos para revelar pistas primero!'
+                    },
                     coverGuess: {
                         nextHint: 'Revelar el siguiente cuadrado',
                         loading: 'Cargando el álbum misterioso...',

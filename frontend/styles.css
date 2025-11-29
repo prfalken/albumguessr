@@ -544,6 +544,167 @@ main {
     padding-bottom: 2rem;
 }
 
+/* Search and Inspiration Row */
+.search-inspiration-row {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    width: 100%;
+}
+
+@media (min-width: 768px) {
+    .search-inspiration-row {
+        flex-direction: row;
+        align-items: flex-start;
+        gap: 1.5rem;
+    }
+    
+    .search-inspiration-row .search-container {
+        flex: 1;
+        min-width: 0;
+    }
+    
+    .search-inspiration-row .inspiration-box {
+        flex: 0 0 320px;
+        width: 320px;
+    }
+}
+
+.inspiration-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    width: 100%;
+}
+
+.inspiration-header {
+    padding: 1rem 1.25rem;
+    background: rgba(255, 212, 29, 0.15);
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    user-select: none;
+    transition: background 0.2s ease;
+}
+
+.inspiration-header:hover {
+    background: rgba(255, 212, 29, 0.25);
+}
+
+.inspiration-header h3 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.inspiration-header i.bi-lightbulb {
+    font-size: 1.1rem;
+}
+
+#inspiration-chevron {
+    transition: transform 0.3s ease;
+    color: var(--text-secondary);
+    font-size: 1rem;
+}
+
+.inspiration-box.expanded #inspiration-chevron {
+    transform: rotate(180deg);
+}
+
+.inspiration-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+}
+
+.inspiration-box.expanded .inspiration-content {
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.inspiration-message {
+    padding: 1.5rem 1.25rem;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.inspiration-message p {
+    margin: 0;
+}
+
+.inspiration-results {
+    padding: 0;
+}
+
+.inspiration-item {
+    display: flex;
+    gap: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid var(--border-light);
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    align-items: center;
+}
+
+.inspiration-item:last-child {
+    border-bottom: none;
+}
+
+.inspiration-item:hover {
+    background: #c9a920;
+}
+
+.inspiration-cover {
+    width: 60px;
+    height: 60px;
+    border-radius: 6px;
+    object-fit: cover;
+    flex-shrink: 0;
+    background: var(--border-light);
+}
+
+.inspiration-text {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.inspiration-title {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: black;
+    margin-bottom: 0.25rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.inspiration-artist {
+    font-size: 0.9rem;
+    color: black;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.inspiration-meta {
+    font-size: 0.8rem;
+    color: black;
+    margin-top: 0.25rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+
 /* Statistics Page Grid */
 .stats-grid {
     display: grid;

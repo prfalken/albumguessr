@@ -43,6 +43,10 @@ class AlgoliaApp:
                         "filterOnly(release_year)",
                         "searchable(primary_genre)",
                         "filterOnly(countries)",
+                        "filterOnly(artists)",
+                        "filterOnly(genres)",
+                        "filterOnly(contributors)",
+                        "filterOnly(label)",
                     ],
                     "customRanking": [
                         "desc(quality_score)",
