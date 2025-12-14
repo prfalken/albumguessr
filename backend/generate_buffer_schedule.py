@@ -54,7 +54,7 @@ def fetch_mystery_schedule(
             SELECT schedule_date, object_id, primary_genre
             FROM mystery_album_schedule
             WHERE schedule_date BETWEEN CURRENT_DATE 
-                                    AND CURRENT_DATE + INTERVAL '4 days'
+                                    AND CURRENT_DATE + INTERVAL '9 days'
             ORDER BY schedule_date ASC
             """
         )
@@ -154,27 +154,6 @@ def generate_buffer_csv(
                 morning_time,
             ]
         )
-
-        # Generate afternoon post teasing the NEXT album
-        if i < len(filtered_schedule) - 1:
-
-            # Random afternoon time between 16:00 and 17:00
-            afternoon_hour = 18
-            afternoon_minute = random.randint(0, 59)
-            afternoon_time = f"{planned_post_date} {afternoon_hour:02d}:{afternoon_minute:02d}"
-
-            template = random.choice(TODAY_TEMPLATES)
-            message = template + f" {SITE_URL}"
-
-            # Write afternoon post
-            writer.writerow(
-                [
-                    message,
-                    "",
-                    "",
-                    afternoon_time,
-                ]
-            )
 
     return output.getvalue()
 
