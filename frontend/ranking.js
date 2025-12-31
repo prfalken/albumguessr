@@ -65,21 +65,9 @@ class AlbumGuessrRanking {
         
         // Wait a bit for translations to be applied
         setTimeout(() => {
-            if (window.innerWidth <= 640) {
-                // On mobile, replace "Classement du jour" with "Classement\ndu jour"
-                const text = titleEl.textContent || '';
-                if (text.includes('Classement du jour')) {
-                    titleEl.textContent = 'Classement\ndu jour';
-                } else if (text.includes('Daily Ranking')) {
-                    titleEl.textContent = 'Daily\nRanking';
-                } else if (text.includes('Clasificación diaria')) {
-                    titleEl.textContent = 'Clasificación\ndiaria';
-                }
-            } else {
-                // On desktop, ensure normal text (in case window was resized)
-                const originalText = i18n.t('ranking.title');
-                titleEl.textContent = originalText.replace('\n', ' ');
-            }
+            // On desktop, ensure normal text (in case window was resized)
+            const originalText = i18n.t('ranking.title');
+            titleEl.textContent = originalText.replace('\n', ' ');
         }, 100);
     }
 
@@ -203,20 +191,20 @@ class AlbumGuessrRanking {
             userContainer.appendChild(username);
             tdUser.appendChild(userContainer);
 
-            // Attempts column
-            const tdAttempts = document.createElement('td');
-            tdAttempts.className = 'ranking-attempts';
-            tdAttempts.textContent = entry.guesses || '-';
+            // Albums Found column
+            const tdAlbumsFound = document.createElement('td');
+            tdAlbumsFound.className = 'ranking-albums-found';
+            tdAlbumsFound.textContent = entry.albums_found || '-';
 
-            // Time Valid column (timestamp)
-            const tdTimeValid = document.createElement('td');
-            tdTimeValid.className = 'ranking-time-valid';
-            tdTimeValid.textContent = this.formatTime(entry.timestamp);
+            // Average Guesses column
+            const tdAvgGuesses = document.createElement('td');
+            tdAvgGuesses.className = 'ranking-avg-guesses';
+            tdAvgGuesses.textContent = entry.avg_guesses != null ? entry.avg_guesses : '-';
 
             tr.appendChild(tdRank);
             tr.appendChild(tdUser);
-            tr.appendChild(tdAttempts);
-            tr.appendChild(tdTimeValid);
+            tr.appendChild(tdAlbumsFound);
+            tr.appendChild(tdAvgGuesses);
 
             tbody.appendChild(tr);
         });

@@ -33,42 +33,20 @@ export async function handler(event) {
       return { statusCode: 500, headers: baseHeaders, body: "db_not_initialized" };
     }
 
-    // First, get today's album from the schedule
-    const scheduleRows = await sql`
-      SELECT object_id
-      FROM mystery_album_schedule
-      WHERE schedule_date = CURRENT_DATE
-      LIMIT 1
-    `;
-
-    if (!scheduleRows || scheduleRows.length === 0) {
-      // No album scheduled for today, return empty ranking
-      return {
-        statusCode: 200,
-        headers: { ...baseHeaders, "Content-Type": "application/json" },
-        body: JSON.stringify({ ranking: [] })
-      };
-    }
-
-    const todayAlbumId = scheduleRows[0].object_id;
-
-    // Query to get ranking for today's album
-    // Join with user_profiles to get custom usernames and avatars
-    // Only include wins from the daily game mode, not random games
+    // Query to get all-time ranking for daily mode
+    // Aggregate total albums found and average guesses per user
     const rankingRows = await sql`
       SELECT 
         h.user_id,
         p.custom_username,
         p.picture,
-        h.guesses,
-        EXTRACT(EPOCH FROM h.ts)*1000 AS timestamp,
-        EXTRACT(EPOCH FROM (h.ts - (DATE(CURRENT_DATE)))) AS duration_seconds
+        COUNT(DISTINCT h.object_id)::INTEGER AS albums_found,
+        ROUND(AVG(h.guesses), 1) AS avg_guesses
       FROM user_album_history h
       LEFT JOIN user_profiles p ON h.user_id = p.user_id
-      WHERE h.object_id = ${todayAlbumId}
-        AND h.game_mode = 'daily'
-        AND DATE(h.ts) = CURRENT_DATE
-      ORDER BY h.guesses ASC, h.ts ASC
+      WHERE h.game_mode = 'daily'
+      GROUP BY h.user_id, p.custom_username, p.picture
+      ORDER BY albums_found DESC, avg_guesses ASC
       LIMIT 100
     `;
 
@@ -76,9 +54,8 @@ export async function handler(event) {
       user_id: r.user_id,
       username: r.custom_username || generateFunAnonymousUsername(r.user_id),
       picture: r.picture || null,
-      guesses: r.guesses,
-      timestamp: Number(r.timestamp),
-      duration_seconds: Math.max(0, Number(r.duration_seconds) || 0)
+      albums_found: r.albums_found,
+      avg_guesses: Number(r.avg_guesses) || 0
     }));
 
     return {
