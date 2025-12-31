@@ -33,7 +33,7 @@ export async function handler(event) {
       return { statusCode: 500, headers: baseHeaders, body: "db_not_initialized" };
     }
 
-    // Query to get all-time ranking for daily mode
+    // Query to get ranking for daily mode (past 30 days)
     // Aggregate total albums found and average guesses per user
     const rankingRows = await sql`
       SELECT 
@@ -45,6 +45,7 @@ export async function handler(event) {
       FROM user_album_history h
       LEFT JOIN user_profiles p ON h.user_id = p.user_id
       WHERE h.game_mode = 'daily'
+        AND h.ts >= CURRENT_DATE - INTERVAL '30 days'
       GROUP BY h.user_id, p.custom_username, p.picture
       ORDER BY albums_found DESC, avg_guesses ASC
       LIMIT 100

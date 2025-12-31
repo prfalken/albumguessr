@@ -232,8 +232,8 @@ class I18nManager {
                 },
                 ranking: {
                     title: 'Leaderboard',
-                    subtitle: 'All-time top players',
-                    subtitleDetail: 'Top players ranked by total daily albums found.',
+                    subtitle: 'Top players (last 30 days)',
+                    subtitleDetail: 'Top players ranked by daily albums found in the last 30 days.',
                     rank: 'Rank',
                     username: 'Username',
                     albumsFound: 'Albums Found',
@@ -593,8 +593,8 @@ class I18nManager {
                 },
                 ranking: {
                     title: 'Classement',
-                    subtitle: 'Meilleurs joueurs de tous les temps',
-                    subtitleDetail: 'Classement des joueurs par nombre d\'albums du jour trouvés.',
+                    subtitle: 'Meilleurs joueurs (30 derniers jours)',
+                    subtitleDetail: 'Classement des joueurs par albums du jour trouvés sur les 30 derniers jours.',
                     rank: 'Rang',
                     username: 'Utilisateur',
                     albumsFound: 'Albums trouvés',
@@ -954,8 +954,8 @@ class I18nManager {
                 },
                 ranking: {
                     title: 'Clasificación',
-                    subtitle: 'Mejores jugadores de todos los tiempos',
-                    subtitleDetail: 'Clasificación de jugadores por número de álbumes del día encontrados.',
+                    subtitle: 'Mejores jugadores (últimos 30 días)',
+                    subtitleDetail: 'Clasificación de jugadores por álbumes del día encontrados en los últimos 30 días.',
                     rank: 'Rango',
                     username: 'Nombre de usuario',
                     albumsFound: 'Álbumes encontrados',
