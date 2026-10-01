@@ -301,7 +301,8 @@ class I18nManager {
                 },
                 footer: {
                     howToPlay: 'How to play',
-                    tagline: 'A musical deduction game • Inspired by'
+                    tagline: 'A musical deduction game • Inspired by',
+                    privacyPolicy: 'Privacy Policy'
                 },
                 howToPlay: {
                     title: 'How to Play',
@@ -662,7 +663,8 @@ class I18nManager {
                 },
                 footer: {
                     howToPlay: 'Comment jouer',
-                    tagline: 'Un jeu musical de déduction • Inspiré de'
+                    tagline: 'Un jeu musical de déduction • Inspiré de',
+                    privacyPolicy: 'Politique de confidentialité'
                 },
                 howToPlay: {
                     title: 'Comment jouer',
@@ -1023,7 +1025,8 @@ class I18nManager {
                 },
                 footer: {
                     howToPlay: 'Cómo jugar',
-                    tagline: 'Un juego musical de deducción • Inspirado en'
+                    tagline: 'Un juego musical de deducción • Inspirado en',
+                    privacyPolicy: 'Política de privacidad'
                 },
                 howToPlay: {
                     title: 'Cómo jugar',

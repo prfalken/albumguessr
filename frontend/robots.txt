@@ -17,6 +17,7 @@ Allow: /cover-guess.html
 Allow: /cover-guess-ranking.html
 Allow: /statistics.html
 Allow: /past-dailies.html
+Allow: /privacy-policy.html
 
 # Sitemap location
 Sitemap: https://albumguessr.com/sitemap.xml
