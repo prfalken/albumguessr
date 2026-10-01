@@ -173,6 +173,9 @@ AUTH0_AUDIENCE=your-api-audience
 
 # Optional Google Analytics (for tracking and analytics)
 GA_MEASUREMENT_ID=G-XXXXXXXXXX
+
+# Optional Google AdSense (for ad monetization)
+ADSENSE_CLIENT_ID=ca-pub-XXXXXXXXXXXXXXXX
 ```
 
 **Auth0 Application Settings** (configure in your Auth0 dashboard):
@@ -239,6 +242,39 @@ When testing locally with Netlify Dev, ensure your `.env` includes `GA_MEASUREME
 ### Deployment
 
 On Netlify, add `GA_MEASUREMENT_ID` to your environment variables via the Netlify dashboard (Site Settings → Environment Variables). The build process will automatically include it in the generated config.
+
+## Google AdSense Integration
+
+The website includes optional Google AdSense integration to display ads on the game pages and in the shared footer.
+
+### Setup
+
+1. Create/sign in to a Google AdSense account for `albumguessr.com` and get it approved (Google reviews the site's content and policy compliance before it will serve ads).
+2. In AdSense, under **Sites**, add `albumguessr.com` and copy the publisher ID (format `ca-pub-XXXXXXXXXXXXXXXX`) and the exact `ads.txt` line it gives you.
+3. Add the publisher ID to your `.env` file:
+
+```env
+ADSENSE_CLIENT_ID=ca-pub-XXXXXXXXXXXXXXXX
+```
+
+4. Replace the placeholder line in `frontend/ads.txt` with the exact snippet AdSense gave you in step 2.
+5. In AdSense, create one **Display ad unit** per placement (Daily game, Random album, Cover Guess, Footer) and copy each unit's slot ID into the matching `data-ad-slot="REPLACE_WITH_..."` placeholder in `index.html`, `game.html`, `cover-guess.html`, and `partials/footer.html`.
+6. In AdSense, under **Privacy & messaging**, turn on the GDPR consent message for EEA/UK/Switzerland traffic. This is required before serving personalized ads to those users and needs no code changes — AdSense injects the consent banner itself once enabled.
+7. When you run the build process (`node frontend/build-config.js` or deploy via Netlify), the publisher ID is embedded in `frontend/config.js` as `ADS_CONFIG`.
+
+### Features
+
+- **Automatic initialization**: `ads.js` only loads the AdSense script when `ADS_CONFIG.clientId` is present — no env var, no ads, same pattern as `GA_CONFIG`.
+- **Placements**: an in-content ad below the guesses history on the three game pages (Daily game, Random album, Cover Guess), plus one footer ad shown on every page via the shared `partials/footer.html`. `admin.html` never loads `ads.js`, so it stays ad-free.
+- **Responsive units**: all ad slots use `data-ad-format="auto"` with `data-full-width-responsive="true"`, so they adapt to desktop, mobile and tablet without separate markup.
+
+### Testing locally
+
+When testing locally with Netlify Dev, ensure your `.env` includes `ADSENSE_CLIENT_ID`. Ad Manager networks like AdSense typically only serve real ads on approved, publicly reachable domains — expect blank slots on `localhost`.
+
+### Deployment
+
+On Netlify, add `ADSENSE_CLIENT_ID` to your environment variables via the Netlify dashboard (Site Settings → Environment Variables). The build process will automatically include it in the generated config.
 
 ## Daily Ranking
 

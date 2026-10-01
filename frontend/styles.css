@@ -1847,6 +1847,41 @@ main {
 }
 
 /* ----------------------------------------------------------------------------
+   4.7 Ad Slots
+   ---------------------------------------------------------------------------- */
+
+.ad-slot {
+    width: 100%;
+    max-width: 728px;
+    margin: 1.5rem auto;
+    text-align: center;
+    overflow: hidden;
+}
+
+.ad-slot-label {
+    display: block;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted, #999);
+    margin-bottom: 0.35rem;
+}
+
+/* Reserve space so the layout doesn't jump once the ad loads (avoids CLS) */
+.ad-slot ins.adsbygoogle {
+    display: block;
+    min-height: 100px;
+}
+
+.ad-slot-incontent {
+    margin-top: 2rem;
+}
+
+.ad-slot-footer {
+    max-width: 970px;
+}
+
+/* ----------------------------------------------------------------------------
    4.6 Footer
    ---------------------------------------------------------------------------- */
 

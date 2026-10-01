@@ -26,6 +26,7 @@ function main() {
   const emailjsServiceId = getEnv('EMAILJS_SERVICE_ID', { required: false });
   const emailjsTemplateId = getEnv('EMAILJS_TEMPLATE_ID', { required: false });
   const gaMeasurementId = getEnv('GA_MEASUREMENT_ID', { required: false });
+  const adsenseClientId = getEnv('ADSENSE_CLIENT_ID', { required: false });
 
   const output = `// Configuration for Algolia Search (generated at build time)\n` +
     `const ALGOLIA_CONFIG = {\n` +
@@ -52,6 +53,10 @@ function main() {
     `const GA_CONFIG = ${gaMeasurementId ? `{\n` +
     `    measurementId: '${gaMeasurementId}'\n` +
     `}` : `null`};\n\n` +
+    `// Google AdSense configuration (generated at build time)\n` +
+    `const ADS_CONFIG = ${adsenseClientId ? `{\n` +
+    `    clientId: '${adsenseClientId}'\n` +
+    `}` : `null`};\n\n` +
     `const GAME_CONFIG = {\n` +
     `    clueCategories: [\n` +
     `        { key: 'artists', label: 'Artists', icon: 'bi-person-fill', description: 'Shared artists' },\n` +
@@ -66,7 +71,7 @@ function main() {
     `    ]\n` +
     `};\n\n` +
     `if (typeof module !== 'undefined' && module.exports) {\n` +
-    `    module.exports = { ALGOLIA_CONFIG, AUTH0_CONFIG, EMAILJS_CONFIG, GA_CONFIG, GAME_CONFIG };\n` +
+    `    module.exports = { ALGOLIA_CONFIG, AUTH0_CONFIG, EMAILJS_CONFIG, GA_CONFIG, ADS_CONFIG, GAME_CONFIG };\n` +
     `}\n`;
 
   const destination = path.join(__dirname, 'config.js');
