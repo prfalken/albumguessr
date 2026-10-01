@@ -1847,6 +1847,37 @@ main {
 }
 
 /* ----------------------------------------------------------------------------
+   4.6b Legal / Static Content Pages
+   ---------------------------------------------------------------------------- */
+
+.legal-content p,
+.legal-content li {
+    color: var(--text-muted);
+    line-height: 1.6;
+}
+
+.legal-content li {
+    margin-bottom: 0.5rem;
+}
+
+.legal-content strong {
+    color: var(--text-primary);
+}
+
+.legal-content em {
+    color: var(--text-muted);
+}
+
+.legal-content a {
+    color: var(--text-secondary);
+    text-decoration: underline;
+}
+
+.legal-content a:hover {
+    color: var(--text-primary);
+}
+
+/* ----------------------------------------------------------------------------
    4.7 Ad Slots
    ---------------------------------------------------------------------------- */
 
