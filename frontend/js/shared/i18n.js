@@ -16,7 +16,8 @@ class I18nManager {
                     archives: 'All albums',
                     profile: 'Profile',
                     myStatistics: 'My statistics',
-                    reportBug: 'Report a Bug'
+                    reportBug: 'Report a Bug',
+                    about: 'About'
                 },
                 auth: {
                     login: 'Connection / Sign up',
@@ -378,7 +379,8 @@ class I18nManager {
                     archives: 'Les anciens albums du jour',
                     profile: 'Profil',
                     myStatistics: 'Mes statistiques',
-                    reportBug: 'Signaler un bug'
+                    reportBug: 'Signaler un bug',
+                    about: 'À propos'
                 },
                 auth: {
                     login: 'Connexion / Inscription',
@@ -740,7 +742,8 @@ class I18nManager {
                     archives: 'Todos los álbumes',
                     profile: 'Perfil',
                     myStatistics: 'Mis estadísticas',
-                    reportBug: 'Reportar un error'
+                    reportBug: 'Reportar un error',
+                    about: 'Acerca de'
                 },
                 auth: {
                     login: 'Conexión / Registro',

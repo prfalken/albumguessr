@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Primary Meta Tags -->
+    <title>About AlbumGuessr</title>
+    <meta name="title" content="About AlbumGuessr">
+    <meta name="description" content="How AlbumGuessr started on a Twitch stream, why it's built on MusicBrainz's open music database, and why the project is open source.">
+    <meta name="robots" content="index, follow">
+    <meta name="language" content="English">
+    <meta name="theme-color" content="#6a4c93">
+
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://albumguessr.com/about.html">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/favicon.png">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="apple-touch-icon" href="/favicon.png">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://albumguessr.com/about.html">
+    <meta property="og:title" content="About AlbumGuessr">
+    <meta property="og:description" content="How AlbumGuessr started on a Twitch stream, why it's built on MusicBrainz's open music database, and why the project is open source.">
+    <meta property="og:image" content="https://albumguessr.com/img/logo.png">
+    <meta property="og:site_name" content="AlbumGuessr">
+    <meta property="og:locale" content="en_US">
+
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+</head>
+<body>
+    <div class="container">
+        <div id="site-header"></div>
+
+        <main id="main-content" class="game-container">
+            <div class="content-grid">
+                <div class="main-column legal-content">
+                    <h1>About AlbumGuessr</h1>
+
+                    <section class="how-to-play-section">
+                        <h2>How it started</h2>
+                        <p>AlbumGuessr came out of a Twitch stream. A few of us were playing <a href="https://1jour1film.fr" target="_blank" rel="noopener">1jour1film</a>, the daily movie-guessing game, and someone said the obvious thing: we're music people, why isn't there one of these for albums? This was right as AI coding tools were starting to get genuinely useful, so instead of just talking about it, we used that moment to actually build it. A few late nights later, AlbumGuessr existed.</p>
+                    </section>
+
+                    <section class="how-to-play-section">
+                        <h2>What you're actually searching through</h2>
+                        <p>The album database isn't something we typed in by hand. It's built on <a href="https://musicbrainz.org" target="_blank" rel="noopener">MusicBrainz</a>, the open, community-maintained music encyclopedia that also powers things like Picard and a good chunk of the metadata you see on other music apps. We pull release groups tagged as albums, normalize the artist, genre, country, and contributor data, and index all of it in Algolia so the search bar can keep up as you type.</p>
+                        <p>Right now that's just over 1.46 million albums, from huge global releases down to the kind of regional pressing only a MusicBrainz contributor would have bothered to catalog. That range is what makes a lot of the daily puzzles tricky; the mystery album some days is something half the internet owns, and other days it's something you've genuinely never heard of.</p>
+                    </section>
+
+                    <section class="how-to-play-section">
+                        <h2>Why the clues work the way they do</h2>
+                        <p>We didn't want a straight copy of 1jour1film's mechanics, so the clue system here is built around what actually distinguishes one album from another in a music database: shared artists, genres, release year, country, runtime, even shared musicians and instruments on the record. Guesses only ever show you what matches, never what doesn't, which is a deliberate choice: it keeps the deduction focused on narrowing in rather than just reading a list of "wrong" results.</p>
+                        <p>Random Album and Cover Guess exist for the same reason the daily mode does: we kept wanting to play more than once a day. Random Album resets whenever you want; Cover Guess hides the artwork behind a grid you reveal piece by piece and ranks you against other players.</p>
+                    </section>
+
+                    <section class="how-to-play-section">
+                        <h2>Who's behind it</h2>
+                        <p>AlbumGuessr is a small, independently run side project, not a company. Ads help cover the hosting and database costs; they don't fund anything beyond that. If something's broken or you've spotted a wrong clue, the <a href="report-bug.html">Report a Bug</a> page reaches us directly, and we read every one.</p>
+                        <p>The whole thing is open source. If you want to see how the MusicBrainz indexing or the clue logic actually works, or you're studying it for a class project, the code is on <a href="https://github.com/prfalken/albumguessr" target="_blank" rel="noopener">GitHub</a>.</p>
+                    </section>
+                </div>
+            </div>
+        </main>
+
+        <div id="site-footer"></div>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="analytics.js"></script>
+    <script src="ads.js"></script>
+    <script src="includes.js"></script>
+    <script src="nav.js"></script>
+</body>
+</html>
