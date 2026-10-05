@@ -355,6 +355,33 @@ class I18nManager {
                         rule3: 'Points are calculated based on the number of guesses and revealed squares',
                         rule4: 'A new mystery on each refresh',
                         rule5: 'You must be logged in to participate in the ranking'
+                    },
+                    faq: {
+                        title: 'Frequently asked questions',
+                        pick: {
+                            q: "How is the daily mystery album picked?",
+                            a: "One album gets locked in at midnight UTC and it's the same for everyone that day, the same idea as 1jour1film. Random Album skips that lock entirely and hands you a new mystery every time you refresh the page."
+                        },
+                        wrongClue: {
+                            q: 'A clue looks wrong, or a genre seems off. What\'s going on?',
+                            a: "All the metadata comes straight from MusicBrainz, a community-edited database. Most entries are solid, but genre tags in particular can be inconsistent since volunteers fill them in. If something's clearly wrong, let us know on the <a href=\"report-bug.html\">Report a Bug</a> page."
+                        },
+                        account: {
+                            q: 'Do I need an account to play?',
+                            a: "No, you can play without logging in. If you do log in, your guess history, stats, and leaderboard position get saved between sessions."
+                        },
+                        modes: {
+                            q: 'What\'s the difference between Album of the Day, Random Album, and Cover Guess?',
+                            a: 'Album of the Day gives everyone the same mystery album, once a day. Random Album does the same thing with no limit, a fresh album every time you refresh. Cover Guess changes the mechanic entirely: instead of text clues, you reveal the cover art square by square, and your score depends on how many squares and guesses it took.'
+                        },
+                        unlimited: {
+                            q: 'Is there a limit on how many guesses I can make?',
+                            a: "No, on Album of the Day and Random Album you can guess as many times as you need. Clues only ever show what matches, never what doesn't, so you have to deduce the rest from what piles up."
+                        },
+                        contribute: {
+                            q: "I found a mistake in the data, or I want to see the code. Where do I go?",
+                            a: 'Report mistakes or bugs through the <a href="report-bug.html">Report a Bug</a> page. The project is open source and the code is on <a href="https://github.com/prfalken/albumguessr" target="_blank" rel="noopener">GitHub</a>.'
+                        }
                     }
                 },
                 pageTitles: {
@@ -718,6 +745,33 @@ class I18nManager {
                         rule3: 'Les points sont calculés selon le nombre de tentatives et de carrés révélés',
                         rule4: 'Un nouveau mystère à chaque actualisation',
                         rule5: 'Vous devez être connecté pour participer au classement'
+                    },
+                    faq: {
+                        title: 'Questions fréquentes',
+                        pick: {
+                            q: "Comment l'album mystère du jour est-il choisi ?",
+                            a: "Un album est verrouillé chaque jour à minuit (UTC) et il est le même pour tout le monde, un peu comme sur 1jour1film. L'album aléatoire, lui, ignore ce verrou : vous obtenez un nouveau mystère à chaque actualisation de la page."
+                        },
+                        wrongClue: {
+                            q: 'Un indice semble faux ou un genre me paraît étrange, que se passe-t-il ?',
+                            a: 'Toutes les métadonnées viennent de MusicBrainz, une base de données éditée par sa communauté. La plupart des fiches sont fiables, mais les genres en particulier peuvent être incohérents puisqu\'ils sont renseignés par des contributeurs bénévoles. Si quelque chose vous semble clairement faux, signalez-le sur la page <a href="report-bug.html">Signaler un bug</a>.'
+                        },
+                        account: {
+                            q: 'Dois-je créer un compte pour jouer ?',
+                            a: "Non, vous pouvez jouer sans vous connecter. Si vous vous connectez, votre historique de parties, vos statistiques et votre place dans les classements sont sauvegardés d'une session à l'autre."
+                        },
+                        modes: {
+                            q: 'Quelle est la différence entre Album du jour, Album aléatoire et Devine la Pochette ?',
+                            a: 'Album du jour propose le même album mystère à tout le monde, une fois par jour. Album aléatoire fait la même chose mais sans limite, avec un nouvel album à chaque actualisation. Devine la Pochette change complètement de mécanique : au lieu d\'indices textuels, vous révélez la pochette carré par carré et votre score dépend du nombre de carrés et de tentatives utilisés.'
+                        },
+                        unlimited: {
+                            q: 'Y a-t-il une limite de tentatives ?',
+                            a: "Non, sur Album du jour et Album aléatoire vous pouvez tenter autant de propositions que nécessaire. Les indices ne montrent que les points communs, jamais les différences : c'est à vous de déduire le reste à partir de ce qui s'accumule."
+                        },
+                        contribute: {
+                            q: "J'ai trouvé une erreur dans les données, ou je veux voir le code, où est-ce que je vais ?",
+                            a: 'Pour signaler une erreur ou un bug, utilisez la page <a href="report-bug.html">Signaler un bug</a>. Le projet est open source, le code source est disponible sur <a href="https://github.com/prfalken/albumguessr" target="_blank" rel="noopener">GitHub</a>.'
+                        }
                     }
                 },
                 pageTitles: {
@@ -1081,6 +1135,33 @@ class I18nManager {
                         rule3: 'Los puntos se calculan según el número de intentos y cuadrados revelados',
                         rule4: 'Un nuevo misterio en cada actualización',
                         rule5: 'Debes estar conectado para participar en el ranking'
+                    },
+                    faq: {
+                        title: 'Preguntas frecuentes',
+                        pick: {
+                            q: '¿Cómo se elige el álbum misterioso del día?',
+                            a: 'Cada día, a medianoche (UTC), se fija un álbum que es el mismo para todo el mundo, igual que en 1jour1film. Álbum aleatorio ignora ese bloqueo y te da un misterio nuevo cada vez que actualizas la página.'
+                        },
+                        wrongClue: {
+                            q: 'Una pista parece incorrecta, o un género me parece raro. ¿Qué pasa?',
+                            a: 'Todos los metadatos vienen directamente de MusicBrainz, una base de datos editada por su comunidad. La mayoría de las fichas son fiables, pero los géneros en particular pueden ser inconsistentes porque los rellenan voluntarios. Si algo te parece claramente incorrecto, avísanos en la página <a href="report-bug.html">Reportar un error</a>.'
+                        },
+                        account: {
+                            q: '¿Necesito una cuenta para jugar?',
+                            a: 'No, puedes jugar sin iniciar sesión. Si inicias sesión, tu historial de partidas, estadísticas y posición en el ranking se guardan entre sesiones.'
+                        },
+                        modes: {
+                            q: '¿Cuál es la diferencia entre Álbum del día, Álbum aleatorio y Adivina la Portada?',
+                            a: 'Álbum del día da el mismo álbum misterioso a todo el mundo, una vez al día. Álbum aleatorio hace lo mismo sin límite, con un álbum nuevo cada vez que actualizas. Adivina la Portada cambia completamente la mecánica: en lugar de pistas de texto, revelas la portada cuadrado por cuadrado y tu puntuación depende de cuántos cuadrados e intentos usaste.'
+                        },
+                        unlimited: {
+                            q: '¿Hay un límite de intentos?',
+                            a: 'No, en Álbum del día y Álbum aleatorio puedes intentarlo tantas veces como necesites. Las pistas solo muestran lo que coincide, nunca lo que no, así que tienes que deducir el resto a partir de lo que se acumula.'
+                        },
+                        contribute: {
+                            q: 'Encontré un error en los datos, o quiero ver el código. ¿A dónde voy?',
+                            a: 'Reporta errores o fallos en la página <a href="report-bug.html">Reportar un error</a>. El proyecto es de código abierto y el código está en <a href="https://github.com/prfalken/albumguessr" target="_blank" rel="noopener">GitHub</a>.'
+                        }
                     }
                 },
                 pageTitles: {

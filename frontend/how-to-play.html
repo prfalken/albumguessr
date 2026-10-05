@@ -69,7 +69,55 @@
       ]
     }
     </script>
-    
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "How is the daily mystery album picked?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "One album gets locked in at midnight UTC and it's the same for everyone that day. Random Album skips that lock and hands you a new mystery every time you refresh the page."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "A clue looks wrong, or a genre seems off. What's going on?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "All the metadata comes from MusicBrainz, a community-edited database. Most entries are solid, but genre tags in particular can be inconsistent since volunteers fill them in."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Do I need an account to play?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No, you can play without logging in. If you do log in, your guess history, stats, and leaderboard position get saved between sessions."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What's the difference between Album of the Day, Random Album, and Cover Guess?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Album of the Day gives everyone the same mystery album once a day. Random Album does the same with no limit, a fresh album each refresh. Cover Guess reveals the cover art square by square instead of text clues, scored on guesses and squares revealed."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is there a limit on how many guesses I can make?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No, on Album of the Day and Random Album you can guess as many times as you need. Clues only show what matches, never what doesn't."
+          }
+        }
+      ]
+    }
+    </script>
+
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
@@ -175,7 +223,39 @@
                             </ul>
                         </div>
                     </section>
-                    
+
+                    <!-- FAQ -->
+                    <section class="how-to-play-section">
+                        <h2 data-i18n="howToPlay.faq.title">Questions fréquentes</h2>
+
+                        <div class="faq-list">
+                            <details class="faq-item">
+                                <summary data-i18n="howToPlay.faq.pick.q">Comment l'album mystère du jour est-il choisi ?</summary>
+                                <p data-i18n="howToPlay.faq.pick.a">Un album est verrouillé chaque jour à minuit (UTC) et il est le même pour tout le monde, un peu comme sur 1jour1film. L'album aléatoire, lui, ignore ce verrou : vous obtenez un nouveau mystère à chaque actualisation de la page.</p>
+                            </details>
+                            <details class="faq-item">
+                                <summary data-i18n="howToPlay.faq.wrongClue.q">Un indice semble faux ou un genre me paraît étrange, que se passe-t-il ?</summary>
+                                <p data-i18n="howToPlay.faq.wrongClue.a">Toutes les métadonnées viennent de MusicBrainz, une base de données éditée par sa communauté. La plupart des fiches sont fiables, mais les genres en particulier peuvent être incohérents puisqu'ils sont renseignés par des contributeurs bénévoles. Si quelque chose vous semble clairement faux, signalez-le sur la page <a href="report-bug.html">Signaler un bug</a>.</p>
+                            </details>
+                            <details class="faq-item">
+                                <summary data-i18n="howToPlay.faq.account.q">Dois-je créer un compte pour jouer ?</summary>
+                                <p data-i18n="howToPlay.faq.account.a">Non, vous pouvez jouer sans vous connecter. Si vous vous connectez, votre historique de parties, vos statistiques et votre place dans les classements sont sauvegardés d'une session à l'autre.</p>
+                            </details>
+                            <details class="faq-item">
+                                <summary data-i18n="howToPlay.faq.modes.q">Quelle est la différence entre Album du jour, Album aléatoire et Devine la Pochette ?</summary>
+                                <p data-i18n="howToPlay.faq.modes.a">Album du jour propose le même album mystère à tout le monde, une fois par jour. Album aléatoire fait la même chose mais sans limite, avec un nouvel album à chaque actualisation. Devine la Pochette change complètement de mécanique : au lieu d'indices textuels, vous révélez la pochette carré par carré et votre score dépend du nombre de carrés et de tentatives utilisés.</p>
+                            </details>
+                            <details class="faq-item">
+                                <summary data-i18n="howToPlay.faq.unlimited.q">Y a-t-il une limite de tentatives ?</summary>
+                                <p data-i18n="howToPlay.faq.unlimited.a">Non, sur Album du jour et Album aléatoire vous pouvez tenter autant de propositions que nécessaire. Les indices ne montrent que les points communs, jamais les différences : c'est à vous de déduire le reste à partir de ce qui s'accumule.</p>
+                            </details>
+                            <details class="faq-item">
+                                <summary data-i18n="howToPlay.faq.contribute.q">J'ai trouvé une erreur dans les données, ou je veux voir le code, où est-ce que je vais ?</summary>
+                                <p data-i18n="howToPlay.faq.contribute.a">Pour signaler une erreur ou un bug, utilisez la page <a href="report-bug.html">Signaler un bug</a>. Le projet est open source, le code source est disponible sur <a href="https://github.com/prfalken/albumguessr" target="_blank" rel="noopener">GitHub</a>.</p>
+                            </details>
+                        </div>
+                    </section>
+
                 </div>
             </div>
         </main>
