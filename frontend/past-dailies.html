@@ -82,6 +82,20 @@
                 </div>
             </a>
         </template>
+
+        <template id="tpl-calendar-day-revealed">
+            <a href="#" class="calendar-day-card revealed">
+                <div class="day-number"></div>
+                <img class="day-cover" alt="Album cover" />
+                <div class="day-overlay">
+                    <div class="day-title"></div>
+                    <div class="day-artist"></div>
+                </div>
+                <div class="day-play-overlay">
+                    <i class="bi bi-play-circle"></i>
+                </div>
+            </a>
+        </template>
         
         <template id="tpl-calendar-day-future">
             <div class="calendar-day-card future">
@@ -98,6 +112,7 @@
     </section>
 
     <script src="https://cdn.auth0.com/js/auth0-spa-js/2.1/auth0-spa-js.production.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/algoliasearch@4.14.3/dist/algoliasearch.umd.js"></script>
     <script src="config.js"></script>
     <script src="analytics.js"></script>
     <script src="ads.js"></script>

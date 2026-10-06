@@ -86,6 +86,7 @@ export async function handler(event) {
           s.object_id,
           s.blurb,
           CASE WHEN h.user_id IS NOT NULL THEN true ELSE false END as completed,
+          s.schedule_date <= CURRENT_DATE - INTERVAL '90 days' as revealed,
           h.title as album_title,
           h.artists as album_artists,
           h.cover_url as cover_url
@@ -103,6 +104,7 @@ export async function handler(event) {
           s.object_id,
           s.blurb,
           false as completed,
+          s.schedule_date <= CURRENT_DATE - INTERVAL '90 days' as revealed,
           NULL as album_title,
           NULL as album_artists,
           NULL as cover_url
@@ -117,13 +119,16 @@ export async function handler(event) {
       date: r.date,
       object_id: r.object_id,
       completed: r.completed || false,
+      // Once a day is old enough (90+ days), spoiler protection no longer applies:
+      // the puzzle stays playable forever, but we accept the tradeoff so this
+      // content becomes crawlable/indexable.
+      revealed: r.revealed || false,
       album_title: r.album_title || null,
       album_artists: Array.isArray(r.album_artists)
         ? r.album_artists
         : (r.album_artists?.array || r.album_artists) || null,
       cover_url: r.cover_url || null,
-      // Only surface the blurb once the viewer has actually completed that day
-      blurb: r.completed ? (r.blurb || null) : null
+      blurb: (r.completed || r.revealed) ? (r.blurb || null) : null
     }));
 
     return {

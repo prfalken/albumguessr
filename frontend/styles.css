@@ -2687,6 +2687,52 @@ footer .contenu {
     white-space: nowrap;
 }
 
+/* Revealed album card (old enough that the archive shows it, but this viewer hasn't played it) */
+.calendar-day-card.revealed {
+    border-color: var(--border);
+}
+
+.calendar-day-card.revealed .day-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0.7) 50%, transparent 100%);
+    padding: 0.5rem;
+    z-index: 1;
+}
+
+.calendar-day-card.revealed .day-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: white;
+    margin-bottom: 0.25rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.calendar-day-card.revealed .day-artist {
+    font-size: 0.65rem;
+    color: rgba(255, 255, 255, 0.9);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.calendar-day-card.revealed .day-play-overlay {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 2;
+}
+
+.calendar-day-card.revealed .day-play-overlay i {
+    font-size: 1.1rem;
+    color: rgba(255, 255, 255, 0.85);
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+}
+
 /* Uncompleted album card */
 .calendar-day-card.uncompleted {
     background: var(--surface);

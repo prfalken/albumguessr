@@ -7,7 +7,11 @@ class AlbumGuessrPastDailies {
         this.authManager = new AuthManager();
         this.apiClient = new ApiClient(this.authManager);
         this.pastAlbums = [];
-        
+        this.revealedAlbumData = {};
+
+        this.algoliaClient = algoliasearch(ALGOLIA_CONFIG.applicationId, ALGOLIA_CONFIG.apiKey);
+        this.algoliaIndex = this.algoliaClient.initIndex(ALGOLIA_CONFIG.indexName);
+
         this.initializeDOM();
         this.authManager.initializeAuth0();
         this.postDomAuthSetup();
@@ -54,6 +58,7 @@ class AlbumGuessrPastDailies {
             // Templates
             tplCompleted: document.getElementById('tpl-calendar-day-completed'),
             tplUncompleted: document.getElementById('tpl-calendar-day-uncompleted'),
+            tplRevealed: document.getElementById('tpl-calendar-day-revealed'),
             tplFuture: document.getElementById('tpl-calendar-day-future'),
             tplMonth: document.getElementById('tpl-calendar-month')
         };
@@ -100,13 +105,35 @@ class AlbumGuessrPastDailies {
             
             const data = await response.json();
             this.pastAlbums = data.albums || [];
+            await this.enrichRevealedAlbums();
             this.renderCalendar();
         } catch (error) {
             console.error('Failed to load past albums:', error);
             this.showError();
         }
     }
-    
+
+    async enrichRevealedAlbums() {
+        // Days old enough to be revealed but that this viewer hasn't completed
+        // don't have title/artist/cover from user_album_history, so look them
+        // up directly from Algolia instead.
+        const toFetch = this.pastAlbums.filter(a => a.revealed && !a.completed);
+        if (toFetch.length === 0) return;
+
+        const promises = toFetch.map(async (album) => {
+            try {
+                const result = await this.algoliaIndex.getObject(album.object_id, {
+                    attributesToRetrieve: ['objectID', 'title', 'artists', 'cover_art_url']
+                });
+                this.revealedAlbumData[album.object_id] = result;
+            } catch (error) {
+                console.warn(`Failed to fetch revealed album data for ${album.object_id}:`, error);
+            }
+        });
+
+        await Promise.all(promises);
+    }
+
     renderCalendar() {
         if (!this.elements.calendarContainer) return;
         
@@ -217,6 +244,8 @@ class AlbumGuessrPastDailies {
             } else if (album) {
                 if (album.completed) {
                     dayCard = this.renderDayCardCompleted(day, album);
+                } else if (album.revealed) {
+                    dayCard = this.renderDayCardRevealed(day, album);
                 } else {
                     dayCard = this.renderDayCardUncompleted(day, album);
                 }
@@ -266,6 +295,43 @@ class AlbumGuessrPastDailies {
         return card;
     }
     
+    renderDayCardRevealed(day, album) {
+        const card = this.elements.tplRevealed.content.cloneNode(true).querySelector('.calendar-day-card');
+        card.querySelector('.day-number').textContent = String(day).padStart(2, '0');
+        card.href = `index.html?date=${album.date}`;
+
+        const albumData = this.revealedAlbumData[album.object_id];
+
+        const coverImg = card.querySelector('.day-cover');
+        if (albumData && albumData.cover_art_url) {
+            coverImg.src = albumData.cover_art_url;
+            coverImg.style.display = '';
+        } else {
+            coverImg.style.display = 'none';
+        }
+
+        const titleEl = card.querySelector('.day-title');
+        const artistEl = card.querySelector('.day-artist');
+
+        if (albumData && albumData.title) {
+            titleEl.textContent = albumData.title;
+            titleEl.style.display = '';
+        } else {
+            titleEl.style.display = 'none';
+        }
+
+        if (albumData && albumData.artists && albumData.artists.length > 0) {
+            artistEl.textContent = Array.isArray(albumData.artists)
+                ? albumData.artists.join(', ')
+                : albumData.artists;
+            artistEl.style.display = '';
+        } else {
+            artistEl.style.display = 'none';
+        }
+
+        return card;
+    }
+
     renderDayCardUncompleted(day, album) {
         const card = this.elements.tplUncompleted.content.cloneNode(true).querySelector('.calendar-day-card');
         card.querySelector('.day-number').textContent = String(day).padStart(2, '0');
