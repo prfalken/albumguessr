@@ -385,6 +385,7 @@ export class AlbumGuessrGame {
                 if (Array.isArray(this.mysteryAlbum.countries)) {
                     this.mysteryAlbum.continents = this.getContinentsForCountryCodes(this.mysteryAlbum.countries);
                 }
+                this.mysteryAlbum.blurb = data.blurb || null;
                 return this.mysteryAlbum;
             } catch (error) {
                 lastError = error;
@@ -1693,7 +1694,16 @@ export class AlbumGuessrGame {
                 metaEl.appendChild(span);
             });
         }
-        
+        const blurbEl = block.querySelector('.mystery-album-blurb');
+        if (blurbEl) {
+            if (this.mysteryAlbum.blurb) {
+                blurbEl.textContent = this.mysteryAlbum.blurb;
+                blurbEl.style.display = '';
+            } else {
+                blurbEl.style.display = 'none';
+            }
+        }
+
         // Reorder elements: cover, title, artist, meta
         if (coverEl && titleEl) {
             coverEl.parentNode.insertBefore(coverEl, titleEl);

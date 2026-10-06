@@ -1660,6 +1660,15 @@ main {
     display: none;
 }
 
+.mystery-album-blurb {
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: #000;
+    max-width: 420px;
+    margin: 0.75rem auto 0;
+    text-align: center;
+}
+
 .victory-stats {
     display: flex;
     justify-content: space-around;
@@ -3298,6 +3307,11 @@ footer .contenu {
     display: none;
 }
 
+.admin-schedule-form textarea.form-input {
+    width: 100%;
+    resize: vertical;
+}
+
 .admin-schedule-form .form-input {
     width: 100%;
     padding: 0.75rem;
@@ -3505,6 +3519,11 @@ footer .contenu {
     transition: transform 0.2s ease, box-shadow 0.2s ease;
     display: flex;
     flex-direction: column;
+    width: 100%;
+    padding: 0;
+    text-align: left;
+    font-family: inherit;
+    color: inherit;
 }
 
 .admin-album-card:hover {
@@ -3562,6 +3581,21 @@ footer .contenu {
     text-overflow: ellipsis;
     white-space: nowrap;
     margin-bottom: 0.25rem;
+}
+
+.admin-album-card .album-blurb-preview {
+    font-size: 0.65rem;
+    color: rgba(255, 255, 255, 0.75);
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.admin-album-card .album-blurb-preview.album-blurb-missing {
+    color: var(--accent-color);
+    font-style: italic;
 }
 
 .admin-album-card .album-status {

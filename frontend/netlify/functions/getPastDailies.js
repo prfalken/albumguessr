@@ -81,25 +81,27 @@ export async function handler(event) {
     // Also join with user_profiles to get album details for completed albums
     const query = userId
       ? sql`
-        SELECT 
+        SELECT
           s.schedule_date::text as date,
           s.object_id,
+          s.blurb,
           CASE WHEN h.user_id IS NOT NULL THEN true ELSE false END as completed,
           h.title as album_title,
           h.artists as album_artists,
           h.cover_url as cover_url
         FROM mystery_album_schedule s
-        LEFT JOIN user_album_history h ON 
-          s.object_id = h.object_id 
+        LEFT JOIN user_album_history h ON
+          s.object_id = h.object_id
           AND h.user_id = ${userId}
           AND h.game_mode = 'daily'
         WHERE s.schedule_date <= CURRENT_DATE
         ORDER BY s.schedule_date DESC
       `
       : sql`
-        SELECT 
+        SELECT
           s.schedule_date::text as date,
           s.object_id,
+          s.blurb,
           false as completed,
           NULL as album_title,
           NULL as album_artists,
@@ -116,10 +118,12 @@ export async function handler(event) {
       object_id: r.object_id,
       completed: r.completed || false,
       album_title: r.album_title || null,
-      album_artists: Array.isArray(r.album_artists) 
-        ? r.album_artists 
+      album_artists: Array.isArray(r.album_artists)
+        ? r.album_artists
         : (r.album_artists?.array || r.album_artists) || null,
-      cover_url: r.cover_url || null
+      cover_url: r.cover_url || null,
+      // Only surface the blurb once the viewer has actually completed that day
+      blurb: r.completed ? (r.blurb || null) : null
     }));
 
     return {

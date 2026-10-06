@@ -557,6 +557,7 @@ class AlbumGuessrDailyGame extends AlbumGuessrGame {
             if (Array.isArray(this.mysteryAlbum.countries)) {
                 this.mysteryAlbum.continents = this.getContinentsForCountryCodes(this.mysteryAlbum.countries);
             }
+            this.mysteryAlbum.blurb = data.blurb || null;
             console.log('Daily mystery album:', this.mysteryAlbum);
             return this.mysteryAlbum;
         } catch (error) {

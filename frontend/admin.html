@@ -55,7 +55,19 @@
                                 <input type="hidden" id="selected-object-id" required>
                                 <div id="selected-album-display" class="selected-album-display"></div>
                             </div>
-                            
+
+                            <div class="form-group">
+                                <label for="schedule-blurb" data-i18n="admin.blurb">Blurb (optional)</label>
+                                <textarea
+                                    id="schedule-blurb"
+                                    class="form-input"
+                                    rows="4"
+                                    maxlength="2000"
+                                    data-i18n-placeholder="admin.blurbPlaceholder"
+                                    placeholder="A couple of sentences shown to players once they find this album. Leave blank to show nothing."
+                                ></textarea>
+                            </div>
+
                             <div class="form-message" id="schedule-message"></div>
                             
                             <button type="submit" class="btn-primary" id="btn-save-schedule">

@@ -234,7 +234,8 @@ class AlbumGuessrPastDailies {
     renderDayCardCompleted(day, album) {
         const card = this.elements.tplCompleted.content.cloneNode(true).querySelector('.calendar-day-card');
         card.querySelector('.day-number').textContent = String(day).padStart(2, '0');
-        
+        card.href = `index.html?date=${album.date}`;
+
         const coverImg = card.querySelector('.day-cover');
         if (album.cover_url) {
             coverImg.src = album.cover_url;

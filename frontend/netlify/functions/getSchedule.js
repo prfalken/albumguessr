@@ -31,9 +31,10 @@ export async function handler(event) {
     // Fetch all schedule entries ordered by date
     // Cast date to text to ensure YYYY-MM-DD format without timezone conversion
     const rows = await sql`
-      SELECT 
-        schedule_date::text as schedule_date, 
-        object_id
+      SELECT
+        schedule_date::text as schedule_date,
+        object_id,
+        blurb
       FROM mystery_album_schedule
       ORDER BY schedule_date ASC
     `;

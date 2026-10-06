@@ -105,6 +105,7 @@ class AdminDashboard {
             searchResults: document.getElementById('admin-search-results'),
             selectedObjectId: document.getElementById('selected-object-id'),
             selectedAlbumDisplay: document.getElementById('selected-album-display'),
+            blurbInput: document.getElementById('schedule-blurb'),
             messageDiv: document.getElementById('schedule-message'),
             scheduleList: document.getElementById('admin-schedule-list'),
             genresList: document.getElementById('admin-genres-list'),
@@ -278,17 +279,18 @@ class AdminDashboard {
         
         const date = this.elements.dateInput.value;
         const objectId = this.elements.selectedObjectId.value;
-        
+        const blurb = this.elements.blurbInput ? this.elements.blurbInput.value.trim() : '';
+
         if (!date || !objectId) {
             this.showMessage('Please select a date and an album', 'error');
             return;
         }
-        
+
         try {
             this.showMessage('Saving...', 'info');
-            await this.apiClient.updateSchedule(date, objectId);
+            await this.apiClient.updateSchedule(date, objectId, blurb);
             this.showMessage('Schedule updated successfully!', 'success');
-            
+
             // Reset form
             this.elements.form.reset();
             this.clearSelection();
@@ -398,31 +400,37 @@ class AdminDashboard {
                     }
                     
                     // Render album card
+                    const blurbPreview = entry.blurb
+                        ? `<div class="album-blurb-preview">${this.escapeHtml(entry.blurb.length > 90 ? entry.blurb.slice(0, 90) + '…' : entry.blurb)}</div>`
+                        : `<div class="album-blurb-preview album-blurb-missing">No blurb yet</div>`;
+
                     if (entry.albumData) {
                         const album = entry.albumData;
                         const artist = this.escapeHtml(album.main_artist || album.artists?.[0] || 'Unknown Artist');
                         const title = this.escapeHtml(album.title || 'Unknown Title');
                         const coverUrl = album.cover_art_url || '';
-                        
+
                         return `
-                            <div class="admin-album-card">
+                            <button type="button" class="admin-album-card" data-schedule-date="${entryDate}" title="Click to edit this day">
                                 ${coverUrl ? `<img src="${coverUrl}" alt="${title}" class="album-cover">` : ''}
                                 <div class="album-date">${this.formatDate(entryDate)}</div>
                                 <div class="album-info">
                                     <div class="album-title">${title}</div>
                                     <div class="album-artist">${artist}</div>
+                                    ${blurbPreview}
                                 </div>
-                            </div>
+                            </button>
                         `;
                     } else {
                         return `
-                            <div class="admin-album-card">
+                            <button type="button" class="admin-album-card" data-schedule-date="${entryDate}" title="Click to edit this day">
                                 <div class="album-date">${this.formatDate(entryDate)}</div>
                                 <div class="album-info">
                                     <div class="album-title">Album not found</div>
                                     <div class="album-artist">${this.escapeHtml(entry.object_id)}</div>
+                                    ${blurbPreview}
                                 </div>
-                            </div>
+                            </button>
                         `;
                     }
                 }).join('')}
@@ -432,6 +440,26 @@ class AdminDashboard {
         
         this.elements.scheduleList.innerHTML = html;
         this.bindPaginationEvents();
+        this.bindScheduleEditEvents();
+    }
+
+    bindScheduleEditEvents() {
+        this.elements.scheduleList.querySelectorAll('.admin-album-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const date = card.getAttribute('data-schedule-date');
+                const entry = this.scheduleData.find(e => e.schedule_date === date);
+                if (!entry) return;
+
+                this.elements.dateInput.value = date;
+                if (entry.albumData) {
+                    this.selectAlbum(entry.albumData);
+                }
+                if (this.elements.blurbInput) {
+                    this.elements.blurbInput.value = entry.blurb || '';
+                }
+                this.elements.form.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            });
+        });
     }
 
     renderPagination(totalPages) {

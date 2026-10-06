@@ -30,7 +30,7 @@ export async function handler(event) {
 
     // Parse request body
     const body = JSON.parse(event.body || "{}");
-    const { date, objectId } = body;
+    const { date, objectId, blurb } = body;
 
     // Validate inputs
     if (!date || typeof date !== "string") {
@@ -66,28 +66,50 @@ export async function handler(event) {
     
     // Compare dates as strings (YYYY-MM-DD format naturally sorts correctly)
     if (date < todayStr) {
-      return { 
-        statusCode: 400, 
+      return {
+        statusCode: 400,
         headers: { ...baseHeaders, "Content-Type": "application/json" },
         body: JSON.stringify({ error: "date_must_be_today_or_future" })
       };
     }
 
+    // Blurb is optional free text written by an admin; cap length defensively
+    let normalizedBlurb = null;
+    if (blurb !== undefined && blurb !== null) {
+      if (typeof blurb !== "string") {
+        return {
+          statusCode: 400,
+          headers: { ...baseHeaders, "Content-Type": "application/json" },
+          body: JSON.stringify({ error: "invalid_blurb" })
+        };
+      }
+      const trimmed = blurb.trim();
+      if (trimmed.length > 2000) {
+        return {
+          statusCode: 400,
+          headers: { ...baseHeaders, "Content-Type": "application/json" },
+          body: JSON.stringify({ error: "blurb_too_long" })
+        };
+      }
+      normalizedBlurb = trimmed.length > 0 ? trimmed : null;
+    }
+
     // Insert or update schedule entry
     await sql`
-      INSERT INTO mystery_album_schedule (schedule_date, object_id)
-      VALUES (${date}, ${objectId})
-      ON CONFLICT (schedule_date) 
-      DO UPDATE SET object_id = EXCLUDED.object_id
+      INSERT INTO mystery_album_schedule (schedule_date, object_id, blurb)
+      VALUES (${date}, ${objectId}, ${normalizedBlurb})
+      ON CONFLICT (schedule_date)
+      DO UPDATE SET object_id = EXCLUDED.object_id, blurb = EXCLUDED.blurb
     `;
 
     return {
       statusCode: 200,
       headers: { ...baseHeaders, "Content-Type": "application/json" },
-      body: JSON.stringify({ 
-        success: true, 
-        date, 
-        objectId 
+      body: JSON.stringify({
+        success: true,
+        date,
+        objectId,
+        blurb: normalizedBlurb
       })
     };
   } catch (err) {

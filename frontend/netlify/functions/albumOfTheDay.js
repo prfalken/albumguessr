@@ -68,17 +68,19 @@ export async function handler(event) {
     // Cast date to text to ensure YYYY-MM-DD format without timezone conversion
     const rows = targetDate
       ? await sql`
-          SELECT 
-            schedule_date::text as schedule_date, 
-            object_id
+          SELECT
+            schedule_date::text as schedule_date,
+            object_id,
+            blurb
           FROM mystery_album_schedule
           WHERE schedule_date = ${targetDate}::date
           LIMIT 1
         `
       : await sql`
-          SELECT 
-            schedule_date::text as schedule_date, 
-            object_id
+          SELECT
+            schedule_date::text as schedule_date,
+            object_id,
+            blurb
           FROM mystery_album_schedule
           WHERE schedule_date = CURRENT_DATE
           LIMIT 1
@@ -91,7 +93,8 @@ export async function handler(event) {
     const row = rows[0];
     const payload = {
       objectID: row.object_id,
-      date: row.schedule_date
+      date: row.schedule_date,
+      blurb: row.blurb || null
     };
 
     return {

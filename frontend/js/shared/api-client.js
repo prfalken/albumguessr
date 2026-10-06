@@ -210,14 +210,15 @@ export class ApiClient {
      * Update mystery album schedule (admin only)
      * @param {string} date - Date in YYYY-MM-DD format
      * @param {string} objectId - Algolia object ID
+     * @param {string} [blurb] - Optional editorial blurb shown on the victory screen
      * @returns {Promise<Object>} Result object
      */
-    async updateSchedule(date, objectId) {
+    async updateSchedule(date, objectId, blurb) {
         const token = await this.authManager.getApiAccessToken();
         if (!token) {
             throw new Error('Authentication required');
         }
-        
+
         try {
             const res = await fetch('/.netlify/functions/updateSchedule', {
                 method: 'POST',
@@ -225,7 +226,7 @@ export class ApiClient {
                     'Content-Type': 'application/json',
                     Authorization: `Bearer ${token}`
                 },
-                body: JSON.stringify({ date, objectId })
+                body: JSON.stringify({ date, objectId, blurb: blurb || '' })
             });
             
             if (!res.ok) {

@@ -48,7 +48,7 @@ export async function handler(event) {
     } else {
       // When no genre, pick from mystery_album_schedule table (original behavior)
       rows = await sql`
-        SELECT schedule_date, object_id
+        SELECT schedule_date, object_id, blurb
         FROM mystery_album_schedule
         ORDER BY random()
         LIMIT 1
@@ -63,7 +63,8 @@ export async function handler(event) {
     const payload = {
       objectID: row.object_id,
       date: row.schedule_date || null,
-      genre: row.primary_genre || null
+      genre: row.primary_genre || null,
+      blurb: row.blurb || null
     };
 
     return {
