@@ -129,6 +129,8 @@ data/
 *.json
 *.zip
 frontend/config.js
+frontend/archive/
+frontend/sitemap-archive.xml
 
 frontend/node_modules/
 

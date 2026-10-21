@@ -21,4 +21,5 @@ Allow: /privacy-policy.html
 
 # Sitemap location
 Sitemap: https://albumguessr.com/sitemap.xml
+Sitemap: https://albumguessr.com/sitemap-archive.xml
 

@@ -298,7 +298,7 @@ class AlbumGuessrPastDailies {
     renderDayCardRevealed(day, album) {
         const card = this.elements.tplRevealed.content.cloneNode(true).querySelector('.calendar-day-card');
         card.querySelector('.day-number').textContent = String(day).padStart(2, '0');
-        card.href = `index.html?date=${album.date}`;
+        card.href = `archive/${album.date}.html`;
 
         const albumData = this.revealedAlbumData[album.object_id];
 
